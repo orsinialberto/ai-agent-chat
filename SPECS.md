@@ -173,13 +173,20 @@ app.use(cors({
 - [x] Interfaccia utente base
 - [x] Test end-to-end
 
-### Settimana 5-6: Fase 2 - MCP
+### Settimana 5: Fase 1.5 - Chat Sidebar
+- [ ] Sidebar component con lista chat
+- [ ] Navigazione tra chat esistenti
+- [ ] Gestione chat (crea/elimina)
+- [ ] Design responsive
+- [ ] Test integrazione sidebar
+
+### Settimana 6-7: Fase 2 - MCP
 - [ ] Implementazione MCP client
 - [ ] Estensione agent con tools
 - [ ] Gestione dinamica funzionalità
 - [ ] Testing MCP integration
 
-### Settimana 7-8: Fase 3 - Multi-LLM
+### Settimana 8-9: Fase 3 - Multi-LLM
 - [ ] Architettura modulare LLM
 - [ ] Implementazione provider multipli
 - [ ] UI per selezione LLM
@@ -212,6 +219,38 @@ app.use(cors({
 - Integration test per API endpoints
 - E2E test per flussi chat completi
 
+## 🎨 Chat Sidebar - Specifiche Tecniche
+
+### Componenti Frontend
+```
+frontend/src/components/
+├── sidebar/
+│   ├── Sidebar.tsx           # Componente principale
+│   ├── ChatList.tsx        # Lista chat
+│   ├── ChatItem.tsx        # Singolo elemento chat
+│   ├── NewChatButton.tsx   # Pulsante nuova chat
+│   └── DeleteChatModal.tsx # Modal conferma eliminazione
+```
+
+### API Endpoints
+- `GET /api/chats` - Lista chat con metadati
+- `DELETE /api/chats/:id` - Elimina chat
+- `PUT /api/chats/:id` - Aggiorna titolo chat
+
+### Funzionalità Base
+- **Lista Chat**: Visualizzazione titolo, ultimo messaggio, data
+- **Navigazione**: Click per aprire chat esistente
+- **Nuova Chat**: Pulsante per creare chat
+- **Eliminazione**: Modal di conferma per delete
+- **Chat Attiva**: Highlight della chat corrente
+- **Responsive**: Collassabile su mobile
+
+### Design Requirements
+- **Desktop**: Sidebar fissa 300px
+- **Mobile**: Drawer overlay
+- **Stati**: Loading, empty, error
+- **Accessibilità**: Keyboard navigation
+
 ## 🔍 Considerazioni Aggiuntive
 
 ### **MCP Server Integration**
@@ -219,6 +258,13 @@ Per la Fase 2, considera:
 - **Stdio vs HTTP**: Stdio è più performante per processi locali, HTTP per server remoti
 - **Gestione connessioni**: Implementa connection pooling e retry logic
 - **Tool discovery**: Cache dinamica dei tools disponibili
+
+### **Chat Sidebar Integration**
+Per la gestione delle chat:
+- **Performance**: Lazy loading per molte chat
+- **UX**: Transizioni fluide tra chat
+- **State Management**: Sincronizzazione sidebar-chat
+- **Mobile First**: Design responsive prioritario
 
 ### **Multi-LLM Strategy**
 - **Cost optimization**: Routing intelligente basato su costo/performance
