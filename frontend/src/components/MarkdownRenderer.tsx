@@ -20,14 +20,14 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     html = html.replace(/(<td[^>]*>.*<\/td>)/gs, '<tr class="border-b border-gray-300">$1</tr>');
     
     // Wrap table
-    html = html.replace(/(<tr[^>]*>.*<\/tr>)/gs, '<table class="min-w-full border-collapse border border-gray-300 my-4">$1</table>');
+    html = html.replace(/(<tr[^>]*>.*<\/tr>)/gs, '<div class="overflow-x-auto my-4"><table class="min-w-full border-collapse border border-gray-300">$1</table></div>');
     
     // Handle ASCII tables (like your example)
     html = html.replace(/^([^|\n]+)\n([-]+)\n((?:[^|\n]+\n)*)([-]+)$/gm, (match, header, separator1, rows, separator2) => {
       const headerCells = header.trim().split(/\s{2,}/).map(cell => cell.trim());
       const rowLines = rows.trim().split('\n');
       
-      let tableHtml = '<table class="min-w-full border-collapse border border-gray-300 my-4 bg-white">';
+      let tableHtml = '<div class="overflow-x-auto my-4"><table class="min-w-full border-collapse border border-gray-300 bg-white">';
       
       // Header
       tableHtml += '<thead class="bg-gray-50">';
@@ -51,7 +51,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         }
       });
       tableHtml += '</tbody>';
-      tableHtml += '</table>';
+      tableHtml += '</table></div>';
       
       return tableHtml;
     });

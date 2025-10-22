@@ -10,6 +10,7 @@ export interface UseChatReturn {
   
   // Actions
   createChat: (request: CreateChatRequest) => Promise<void>;
+  loadChat: (chatId: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   clearError: () => void;
 }
@@ -86,6 +87,26 @@ export const useChat = (): UseChatReturn => {
     }
   }, [currentChat]);
 
+  const loadChat = useCallback(async (chatId: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await apiService.getChat(chatId);
+      
+      if (response.success && response.data) {
+        setCurrentChat(response.data);
+        setMessages(response.data.messages || []);
+      } else {
+        setError(response.error || 'Failed to load chat');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -96,6 +117,7 @@ export const useChat = (): UseChatReturn => {
     isLoading,
     error,
     createChat,
+    loadChat,
     sendMessage,
     clearError
   };

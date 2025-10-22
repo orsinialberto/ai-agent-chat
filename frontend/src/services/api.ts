@@ -95,6 +95,19 @@ class ApiService {
     });
   }
 
+  async updateChat(chatId: string, title: string): Promise<ApiResponse<Chat>> {
+    return this.request<Chat>(`/chats/${chatId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ title }),
+    });
+  }
+
+  async deleteChat(chatId: string): Promise<ApiResponse<{ message: string }>> {
+    return this.request<{ message: string }>(`/chats/${chatId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Test endpoints
   async testGeminiConnection(): Promise<ApiResponse> {
     return this.request('/test/gemini');

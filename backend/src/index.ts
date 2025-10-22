@@ -47,6 +47,8 @@ import { chatController } from './controllers/chatController';
 app.post('/api/chats', (req, res) => chatController.createChat(req, res));
 app.get('/api/chats', (req, res) => chatController.getChats(req, res));
 app.get('/api/chats/:chatId', (req, res) => chatController.getChat(req, res));
+app.put('/api/chats/:chatId', (req, res) => chatController.updateChat(req, res));
+app.delete('/api/chats/:chatId', (req, res) => chatController.deleteChat(req, res));
 app.post('/api/chats/:chatId/messages', (req, res) => chatController.sendMessage(req, res));
 app.get('/api/test/gemini', (req, res) => chatController.testConnection(req, res));
 app.get('/api/test/database', (req, res) => chatController.testDatabase(req, res));

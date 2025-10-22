@@ -173,12 +173,18 @@ app.use(cors({
 - [x] Interfaccia utente base
 - [x] Test end-to-end
 
-### Settimana 5: Fase 1.5 - Chat Sidebar
-- [ ] Sidebar component con lista chat
-- [ ] Navigazione tra chat esistenti
-- [ ] Gestione chat (crea/elimina)
-- [ ] Design responsive
-- [ ] Test integrazione sidebar
+### Settimana 5: Fase 1.5 - Chat Sidebar ✅
+- [x] Sidebar component con lista chat
+- [x] Navigazione tra chat esistenti
+- [x] Gestione chat (crea/elimina)
+- [x] Design responsive
+- [x] Test integrazione sidebar
+
+### Settimana 6-7: Fase 2 - MCP
+- [ ] Implementazione MCP client
+- [ ] Estensione agent con tools
+- [ ] Gestione dinamica funzionalità
+- [ ] Testing MCP integration
 
 ### Settimana 5.5: Testing Strategy
 - [ ] Setup Jest per test unitari backend
@@ -186,12 +192,6 @@ app.use(cors({
 - [ ] Test coverage per servizi core
 - [ ] Test automatizzati CI/CD
 - [ ] Performance testing
-
-### Settimana 6-7: Fase 2 - MCP
-- [ ] Implementazione MCP client
-- [ ] Estensione agent con tools
-- [ ] Gestione dinamica funzionalità
-- [ ] Testing MCP integration
 
 ### Settimana 8-9: Fase 3 - Multi-LLM
 - [ ] Architettura modulare LLM

@@ -1,9 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useChat } from '../hooks/useChat'
 import { Message } from '../services/api'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
-export const ChatInterface: React.FC = () => {
+interface ChatInterfaceProps {
+  currentChatId?: string;
+}
+
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) => {
   const [inputValue, setInputValue] = useState('')
   const { 
     currentChat, 
@@ -11,9 +15,17 @@ export const ChatInterface: React.FC = () => {
     isLoading, 
     error, 
     createChat, 
+    loadChat,
     sendMessage, 
     clearError 
   } = useChat()
+
+  // Load chat when currentChatId changes
+  useEffect(() => {
+    if (currentChatId && currentChatId !== currentChat?.id) {
+      loadChat(currentChatId);
+    }
+  }, [currentChatId, currentChat?.id, loadChat])
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return
@@ -41,9 +53,8 @@ export const ChatInterface: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Chat Interface</h2>
+    <div className="w-full min-w-0 h-full max-h-full">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 min-w-0 h-full max-h-full flex flex-col">
         
         {/* Error Display */}
         {error && (
@@ -61,16 +72,15 @@ export const ChatInterface: React.FC = () => {
         )}
 
         {/* Messages Area */}
-        <div className="space-y-4 mb-6 min-h-[400px] max-h-[500px] overflow-y-auto">
+        <div className="space-y-4 mb-6 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              <p>Start a conversation with the AI agent!</p>
-              <p className="text-sm mt-2">Phase 1: Gemini Integration Active</p>
+            <div className="text-center text-gray-500 py-12">
+              <p className="text-lg">Start a conversation</p>
             </div>
           ) : (
             messages.map((message: Message) => (
-              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[70%] px-4 py-2 rounded-lg ${
+              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end mr-4' : 'justify-start'}`}>
+                <div className={`max-w-[70%] px-4 py-2 rounded-lg break-words ${
                   message.role === 'user' 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-200 text-gray-900'
@@ -124,8 +134,8 @@ export const ChatInterface: React.FC = () => {
           </button>
         </div>
         
-        <div className="mt-4 text-xs text-gray-500">
-          <p>✅ Backend integration active - Gemini API connected</p>
+        <div className="mt-4 text-xs text-gray-400 text-center">
+          <p>AI Agent Ready</p>
         </div>
       </div>
     </div>
