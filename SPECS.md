@@ -168,10 +168,10 @@ app.use(cors({
 - [x] Struttura base frontend React
 
 ### Settimana 3-4: Fase 1 - Gemini
-- [ ] Integrazione Gemini API
-- [ ] Implementazione chat persistente
-- [ ] Interfaccia utente base
-- [ ] Test end-to-end
+- [x] Integrazione Gemini API
+- [x] Implementazione chat persistente
+- [x] Interfaccia utente base
+- [x] Test end-to-end
 
 ### Settimana 5-6: Fase 2 - MCP
 - [ ] Implementazione MCP client

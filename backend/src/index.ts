@@ -40,10 +40,16 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes (will be added later)
-app.use('/api', (req, res) => {
-  res.json({ message: 'AI Agent Chat API - Coming Soon!' });
-});
+// Import controllers
+import { chatController } from './controllers/chatController';
+
+// API routes
+app.post('/api/chats', (req, res) => chatController.createChat(req, res));
+app.get('/api/chats', (req, res) => chatController.getChats(req, res));
+app.get('/api/chats/:chatId', (req, res) => chatController.getChat(req, res));
+app.post('/api/chats/:chatId/messages', (req, res) => chatController.sendMessage(req, res));
+app.get('/api/test/gemini', (req, res) => chatController.testConnection(req, res));
+app.get('/api/test/database', (req, res) => chatController.testDatabase(req, res));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

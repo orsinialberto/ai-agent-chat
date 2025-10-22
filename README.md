@@ -127,9 +127,9 @@ ai-agent-chat/
 ## Development Status
 
 - ✅ **Phase 1**: Setup Base - Complete
-- 🔄 **Phase 2**: Gemini Integration - In Progress
-- ⏳ **Phase 3**: MCP Integration - Planned
-- ⏳ **Phase 4**: Multi-LLM Support - Planned
+- ✅ **Phase 1**: Gemini Integration - Complete
+- ⏳ **Phase 2**: MCP Integration - Planned
+- ⏳ **Phase 3**: Multi-LLM Support - Planned
 
 ## Available Scripts
 
@@ -148,8 +148,32 @@ ai-agent-chat/
 
 ## API Endpoints
 
+### Core Endpoints
 - `GET /health` - Health check
-- `GET /api` - API status (coming soon)
+- `GET /api/test/gemini` - Test Gemini API connection
+
+### Chat Endpoints
+- `POST /api/chats` - Create new chat
+- `GET /api/chats` - List all chats
+- `GET /api/chats/:chatId` - Get specific chat
+- `POST /api/chats/:chatId/messages` - Send message to chat
+
+### Example Usage
+
+```bash
+# Test Gemini connection
+curl http://localhost:3001/api/test/gemini
+
+# Create a new chat
+curl -X POST http://localhost:3001/api/chats \
+  -H "Content-Type: application/json" \
+  -d '{"title": "My Chat", "initialMessage": "Hello!"}'
+
+# Send a message
+curl -X POST http://localhost:3001/api/chats/chat123/messages \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Tell me about AI", "role": "user"}'
+```
 
 ## Contributing
 
