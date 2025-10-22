@@ -180,6 +180,13 @@ app.use(cors({
 - [ ] Design responsive
 - [ ] Test integrazione sidebar
 
+### Settimana 5.5: Testing Strategy
+- [ ] Setup Jest per test unitari backend
+- [ ] Setup Playwright per test E2E
+- [ ] Test coverage per servizi core
+- [ ] Test automatizzati CI/CD
+- [ ] Performance testing
+
 ### Settimana 6-7: Fase 2 - MCP
 - [ ] Implementazione MCP client
 - [ ] Estensione agent con tools
@@ -251,6 +258,50 @@ frontend/src/components/
 - **Stati**: Loading, empty, error
 - **Accessibilità**: Keyboard navigation
 
+## 🧪 Testing Strategy - Specifiche Tecniche
+
+### Test Unitari (Backend)
+```
+backend/src/
+├── __tests__/
+│   ├── services/
+│   │   ├── geminiService.test.ts
+│   │   ├── databaseService.test.ts
+│   │   └── chatController.test.ts
+│   ├── utils/
+│   └── integration/
+```
+
+### Test E2E (Frontend)
+```
+frontend/
+├── tests/
+│   ├── e2e/
+│   │   ├── chat-flow.spec.ts
+│   │   ├── sidebar-navigation.spec.ts
+│   │   └── responsive.spec.ts
+│   └── fixtures/
+```
+
+### Strumenti Testing
+- **Jest**: Test unitari e integrazione
+- **Playwright**: Test E2E browser
+- **Supertest**: API testing
+- **MSW**: Mock service worker
+- **Coverage**: Istanbul/nyc
+
+### Coverage Requirements
+- **Backend**: >80% coverage
+- **Frontend**: >70% coverage
+- **E2E**: 100% user journeys
+- **Performance**: <2s load time
+
+### **CI/CD Testing Pipeline**
+- **Pre-commit**: Lint + unit tests
+- **PR**: Full test suite + coverage
+- **Deploy**: E2E tests + performance
+- **Monitoring**: Test results dashboard
+
 ## 🔍 Considerazioni Aggiuntive
 
 ### **MCP Server Integration**
@@ -265,6 +316,13 @@ Per la gestione delle chat:
 - **UX**: Transizioni fluide tra chat
 - **State Management**: Sincronizzazione sidebar-chat
 - **Mobile First**: Design responsive prioritario
+
+### **Testing Strategy Integration**
+Per la qualità del codice:
+- **Test-Driven Development**: Scrivere test prima del codice
+- **Continuous Testing**: Test automatici ad ogni commit
+- **Quality Gates**: Coverage minimo per deploy
+- **Performance Monitoring**: Test di carico e latenza
 
 ### **Multi-LLM Strategy**
 - **Cost optimization**: Routing intelligente basato su costo/performance
