@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { geminiService } from '../services/geminiService';
 import { databaseService } from '../services/databaseService';
+import { MCPClient } from '../services/mcpClient';
+import { MCPContextService } from '../services/mcpContextService';
+import { MCP_CONFIG } from '../config/mcpConfig';
 import { 
   Chat, 
   Message, 
@@ -11,6 +14,43 @@ import {
 } from '../types/shared';
 
 export class ChatController {
+  private mcpClient?: MCPClient;
+  private mcpContextService?: MCPContextService;
+  private mcpEnabled: boolean;
+
+  constructor() {
+    this.mcpEnabled = MCP_CONFIG.enabled;
+    
+    if (this.mcpEnabled) {
+      this.mcpClient = new MCPClient(MCP_CONFIG);
+      this.mcpContextService = new MCPContextService(this.mcpClient, MCP_CONFIG);
+      this.initializeMCP();
+    }
+  }
+
+  private async initializeMCP(): Promise<void> {
+    try {
+      const isHealthy = await this.mcpClient!.healthCheck();
+      if (!isHealthy) {
+        console.warn('⚠️ MCP Server is not healthy, disabling MCP features');
+        this.mcpEnabled = false;
+        return;
+      }
+
+      const initialized = await this.mcpClient!.initialize();
+      if (!initialized) {
+        console.warn('⚠️ Failed to initialize MCP Server, disabling MCP features');
+        this.mcpEnabled = false;
+        return;
+      }
+
+      console.log('✅ MCP Server initialized successfully');
+    } catch (error) {
+      console.error('❌ MCP initialization failed:', error);
+      this.mcpEnabled = false;
+    }
+  }
+
   /**
    * Create a new chat
    */
@@ -104,8 +144,13 @@ export class ChatController {
         // Get chat history for context
         const chatHistory = await databaseService.getMessages(chatId);
         
-        // Get AI response
-        const aiResponse = await geminiService.sendMessage(chatHistory);
+        // Get AI response with MCP integration
+        let aiResponse;
+        if (this.mcpEnabled && this.mcpContextService) {
+          aiResponse = await this.processWithMCPIntegration(content, chatHistory);
+        } else {
+          aiResponse = await geminiService.sendMessage(chatHistory);
+        }
         
         // Add AI response to database
         const assistantMessage = await databaseService.addMessage(
@@ -300,6 +345,141 @@ export class ChatController {
       res.status(500).json({
         success: false,
         error: 'Failed to test database connection'
+      });
+    }
+  }
+
+  /**
+   * Process message with MCP integration
+   */
+  private async processWithMCPIntegration(message: string, chatHistory: Message[]): Promise<{ content: string }> {
+    try {
+      // Get MCP tools context
+      const mcpContext = await this.mcpContextService!.getMCPToolsContext();
+      
+      // Create enhanced prompt with MCP context
+      const systemPrompt = `
+${mcpContext}
+
+When a user asks a question:
+1. If it can be answered using MCP tools, call the appropriate tool
+2. If it's a general question, answer directly
+3. Always be helpful and provide clear explanations
+
+User message: "${message}"
+
+Respond with either:
+- A direct answer if no MCP tools are needed
+- A tool call in the format: TOOL_CALL:toolName:{"param1":"value1","param2":"value2"}
+- If you need to call multiple tools, use multiple TOOL_CALL lines
+      `.trim();
+
+      // Get LLM response with MCP context
+      const llmResponse = await geminiService.sendMessage([
+        ...chatHistory,
+        { role: MessageRole.USER, content: systemPrompt } as Message
+      ]);
+      
+      // Check if LLM wants to call tools
+      const toolCalls = this.extractToolCalls(llmResponse.content);
+      
+      if (toolCalls.length > 0) {
+        return await this.executeToolCallsAndRespond(toolCalls, message, chatHistory);
+      } else {
+        return llmResponse;
+      }
+
+    } catch (error) {
+      console.error('MCP integration failed, falling back to Gemini:', error);
+      return await geminiService.sendMessage(chatHistory);
+    }
+  }
+
+  /**
+   * Extract tool calls from LLM response
+   */
+  private extractToolCalls(response: string): Array<{toolName: string, arguments: any}> {
+    const toolCallRegex = /TOOL_CALL:(\w+):({.*?})/g;
+    const toolCalls: Array<{toolName: string, arguments: any}> = [];
+    
+    let match;
+    while ((match = toolCallRegex.exec(response)) !== null) {
+      try {
+        const toolName = match[1];
+        const args = JSON.parse(match[2]);
+        toolCalls.push({ toolName, arguments: args });
+      } catch (error) {
+        console.error('Failed to parse tool call:', match[0]);
+      }
+    }
+    
+    return toolCalls;
+  }
+
+  /**
+   * Execute tool calls and generate response
+   */
+  private async executeToolCallsAndRespond(
+    toolCalls: Array<{toolName: string, arguments: any}>, 
+    originalMessage: string,
+    chatHistory: Message[]
+  ): Promise<{ content: string }> {
+    try {
+      const toolResults: string[] = [];
+      
+      // Execute all tool calls
+      for (const toolCall of toolCalls) {
+        const result = await this.mcpClient!.callTool(toolCall.toolName, toolCall.arguments);
+        toolResults.push(`Tool ${toolCall.toolName}: ${result}`);
+      }
+      
+      // Use LLM to interpret the results
+      const context = toolResults.join('\n\n');
+      const prompt = `
+User asked: "${originalMessage}"
+
+I called the following tools and got these results:
+${context}
+
+Please provide a helpful response based on these results.
+      `.trim();
+      
+      return await geminiService.sendMessage([
+        ...chatHistory,
+        { role: MessageRole.USER, content: prompt } as Message
+      ]);
+      
+    } catch (error: any) {
+      console.error('Tool execution failed:', error);
+      return { content: `I encountered an error while processing your request: ${error.message}` };
+    }
+  }
+
+  /**
+   * Get MCP status
+   */
+  async getMCPStatus(req: Request, res: Response) {
+    try {
+      if (!this.mcpEnabled || !this.mcpContextService) {
+        return res.json({
+          success: false,
+          message: 'MCP is not enabled',
+          mcpEnabled: false
+        });
+      }
+
+      const status = await this.mcpContextService.getMCPStatus();
+      
+      res.json({
+        success: true,
+        data: status,
+        mcpEnabled: this.mcpEnabled
+      });
+    } catch (error) {
+      console.error('Error getting MCP status:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get MCP status'
       });
     }
   }

@@ -79,6 +79,12 @@ JWT_SECRET="your_jwt_secret"
 
 # CORS
 FRONTEND_URL="http://localhost:5173"
+
+# MCP Configuration
+MCP_ENABLED=true
+MCP_SERVER_URL=http://localhost:8080
+MCP_TIMEOUT=10000
+MCP_RETRY_ATTEMPTS=3
 ```
 
 ### Docker Commands
@@ -128,7 +134,8 @@ ai-agent-chat/
 
 - ✅ **Phase 1**: Setup Base - Complete
 - ✅ **Phase 1**: Gemini Integration - Complete
-- ⏳ **Phase 2**: MCP Integration - Planned
+- ✅ **Phase 1.5**: Chat Sidebar - Complete
+- ✅ **Phase 2**: MCP Integration - Complete
 - ⏳ **Phase 3**: Multi-LLM Support - Planned
 
 ## Available Scripts
@@ -156,7 +163,16 @@ ai-agent-chat/
 - `POST /api/chats` - Create new chat
 - `GET /api/chats` - List all chats
 - `GET /api/chats/:chatId` - Get specific chat
-- `POST /api/chats/:chatId/messages` - Send message to chat
+- `PUT /api/chats/:chatId` - Update chat title
+- `DELETE /api/chats/:chatId` - Delete chat
+- `POST /api/chats/:chatId/messages` - Send message to chat (with MCP integration)
+
+### Health & Monitoring Endpoints
+- `GET /api/health` - Health check generale
+- `GET /api/health/detailed` - Health check dettagliato
+- `GET /api/health/mcp` - Status MCP specifico
+- `GET /api/test/mcp` - Test connessione MCP
+- `GET /api/mcp/status` - Status MCP dal chat controller
 
 ### Example Usage
 
@@ -164,15 +180,21 @@ ai-agent-chat/
 # Test Gemini connection
 curl http://localhost:3001/api/test/gemini
 
+# Test MCP connection
+curl http://localhost:3001/api/test/mcp
+
+# Check health status
+curl http://localhost:3001/api/health
+
 # Create a new chat
 curl -X POST http://localhost:3001/api/chats \
   -H "Content-Type: application/json" \
   -d '{"title": "My Chat", "initialMessage": "Hello!"}'
 
-# Send a message
+# Send a message (with MCP integration)
 curl -X POST http://localhost:3001/api/chats/chat123/messages \
   -H "Content-Type: application/json" \
-  -d '{"content": "Tell me about AI", "role": "user"}'
+  -d '{"content": "Mostrami tutti i segmenti per il tenant 12992", "role": "user"}'
 ```
 
 ## Contributing

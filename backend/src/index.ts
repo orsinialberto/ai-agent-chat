@@ -42,6 +42,7 @@ app.get('/health', (req, res) => {
 
 // Import controllers
 import { chatController } from './controllers/chatController';
+import { healthController } from './controllers/healthController';
 
 // API routes
 app.post('/api/chats', (req, res) => chatController.createChat(req, res));
@@ -52,6 +53,13 @@ app.delete('/api/chats/:chatId', (req, res) => chatController.deleteChat(req, re
 app.post('/api/chats/:chatId/messages', (req, res) => chatController.sendMessage(req, res));
 app.get('/api/test/gemini', (req, res) => chatController.testConnection(req, res));
 app.get('/api/test/database', (req, res) => chatController.testDatabase(req, res));
+
+// Health check routes
+app.get('/api/health', (req, res) => healthController.healthCheck(req, res));
+app.get('/api/health/detailed', (req, res) => healthController.detailedHealthCheck(req, res));
+app.get('/api/health/mcp', (req, res) => healthController.getMCPInfo(req, res));
+app.get('/api/test/mcp', (req, res) => healthController.testMCPConnection(req, res));
+app.get('/api/mcp/status', (req, res) => chatController.getMCPStatus(req, res));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
