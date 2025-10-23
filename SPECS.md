@@ -181,10 +181,10 @@ app.use(cors({
 - [x] Test integrazione sidebar
 
 ### Settimana 6-7: Fase 2 - MCP
-- [ ] Implementazione MCP client
-- [ ] Estensione agent con tools
-- [ ] Gestione dinamica funzionalità
-- [ ] Testing MCP integration
+- [x] Implementazione MCP client
+- [x] Estensione agent con tools
+- [x] Gestione dinamica funzionalità
+- [x] Testing MCP integration
 
 ### Settimana 5.5: Testing Strategy
 - [ ] Setup Jest per test unitari backend

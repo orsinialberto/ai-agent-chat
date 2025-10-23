@@ -52,6 +52,7 @@ app.put('/api/chats/:chatId', (req, res) => chatController.updateChat(req, res))
 app.delete('/api/chats/:chatId', (req, res) => chatController.deleteChat(req, res));
 app.post('/api/chats/:chatId/messages', (req, res) => chatController.sendMessage(req, res));
 app.get('/api/test/gemini', (req, res) => chatController.testConnection(req, res));
+app.get('/api/test/gemini/error-handling', (req, res) => chatController.testGeminiErrorHandling(req, res));
 app.get('/api/test/database', (req, res) => chatController.testDatabase(req, res));
 
 // Health check routes

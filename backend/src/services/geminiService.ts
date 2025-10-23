@@ -13,6 +13,13 @@ export interface GeminiResponse {
 export class GeminiService {
   private genAI: GoogleGenerativeAI | null = null;
   private model: any = null;
+  private retryAttempts: number;
+  private retryDelay: number;
+
+  constructor() {
+    this.retryAttempts = parseInt(process.env.GEMINI_RETRY_ATTEMPTS || '3');
+    this.retryDelay = parseInt(process.env.GEMINI_RETRY_DELAY || '1000');
+  }
 
   private initialize() {
     if (this.genAI && this.model) {
@@ -37,9 +44,16 @@ export class GeminiService {
   }
 
   /**
-   * Send a message to Gemini and get a response
+   * Send a message to Gemini and get a response with retry logic
    */
   async sendMessage(messages: Message[]): Promise<GeminiResponse> {
+    return await this.sendMessageWithRetry(messages, 0);
+  }
+
+  /**
+   * Send message with retry logic and exponential backoff
+   */
+  private async sendMessageWithRetry(messages: Message[], attempt: number): Promise<GeminiResponse> {
     try {
       // Initialize if not already done
       this.initialize();
@@ -72,9 +86,63 @@ export class GeminiService {
         }
       };
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      const isRetryableError = this.isRetryableError(error);
+      
+      if (isRetryableError && attempt < this.retryAttempts) {
+        const delay = this.calculateRetryDelay(attempt);
+        console.warn(`🔄 Gemini API error (attempt ${attempt + 1}/${this.retryAttempts}): ${error instanceof Error ? error.message : 'Unknown error'}. Retrying in ${delay}ms...`);
+        
+        await this.delay(delay);
+        return await this.sendMessageWithRetry(messages, attempt + 1);
+      }
+      
+      // If not retryable or max attempts reached, throw error
+      console.error('❌ Gemini API error (final):', error);
       throw new Error(`Failed to get response from Gemini: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Check if error is retryable
+   */
+  private isRetryableError(error: any): boolean {
+    if (!error) return false;
+    
+    const errorMessage = error.message || error.toString();
+    
+    // Check for specific retryable error conditions
+    const retryablePatterns = [
+      '503 Service Unavailable',
+      'The model is overloaded',
+      'Rate limit exceeded',
+      'Quota exceeded',
+      'Internal server error',
+      'Bad Gateway',
+      'Gateway Timeout',
+      'Service Unavailable',
+      'Too Many Requests'
+    ];
+    
+    return retryablePatterns.some(pattern => 
+      errorMessage.toLowerCase().includes(pattern.toLowerCase())
+    );
+  }
+
+  /**
+   * Calculate retry delay with exponential backoff
+   */
+  private calculateRetryDelay(attempt: number): number {
+    // Exponential backoff: baseDelay * (2^attempt) + jitter
+    const exponentialDelay = this.retryDelay * Math.pow(2, attempt);
+    const jitter = Math.random() * 1000; // Add up to 1 second of jitter
+    return Math.min(exponentialDelay + jitter, 30000); // Cap at 30 seconds
+  }
+
+  /**
+   * Delay utility function
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -87,6 +155,74 @@ export class GeminiService {
         role: msg.role === MessageRole.USER ? 'user' : 'model',
         parts: [msg.content]
       }));
+  }
+
+  /**
+   * Send message with fallback response if Gemini is unavailable
+   */
+  async sendMessageWithFallback(messages: Message[]): Promise<GeminiResponse> {
+    try {
+      return await this.sendMessage(messages);
+    } catch (error) {
+      console.warn('⚠️ Gemini API unavailable, providing fallback response');
+      return this.getFallbackResponse(messages);
+    }
+  }
+
+  /**
+   * Get fallback response when Gemini is unavailable
+   */
+  private getFallbackResponse(messages: Message[]): GeminiResponse {
+    const lastMessage = messages[messages.length - 1];
+    const userMessage = lastMessage?.content || '';
+
+    // Simple keyword-based fallback responses
+    const fallbackResponses = {
+      greeting: [
+        "Ciao! Mi dispiace, ma al momento il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
+        "Salve! Il sistema AI è momentaneamente sovraccarico. Ti risponderò appena possibile.",
+        "Buongiorno! Stiamo riscontrando alcuni problemi tecnici con l'AI. Riprova tra poco."
+      ],
+      question: [
+        "Mi dispiace, ma al momento non posso rispondere alle tue domande perché il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
+        "Il sistema AI è momentaneamente sovraccarico. Non posso elaborare la tua richiesta in questo momento. Riprova tra poco.",
+        "Stiamo riscontrando problemi tecnici con l'AI. La tua domanda non può essere elaborata al momento. Riprova tra qualche minuto."
+      ],
+      mcp: [
+        "Mi dispiace, ma al momento non posso accedere ai tool MCP perché il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
+        "Il sistema AI è sovraccarico e non posso utilizzare i tool MCP. Riprova tra poco per accedere alle funzionalità complete.",
+        "Stiamo riscontrando problemi tecnici. I tool MCP non sono al momento disponibili. Riprova tra qualche minuto."
+      ],
+      default: [
+        "Mi dispiace, ma il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
+        "Il sistema AI è momentaneamente sovraccarico. Riprova tra poco.",
+        "Stiamo riscontrando problemi tecnici. Riprova tra qualche minuto."
+      ]
+    };
+
+    // Determine response type based on message content
+    const lowerMessage = userMessage.toLowerCase();
+    let responseType = 'default';
+
+    if (lowerMessage.includes('ciao') || lowerMessage.includes('salve') || lowerMessage.includes('buongiorno') || lowerMessage.includes('buonasera')) {
+      responseType = 'greeting';
+    } else if (lowerMessage.includes('segmento') || lowerMessage.includes('contatto') || lowerMessage.includes('evento') || lowerMessage.includes('tenant')) {
+      responseType = 'mcp';
+    } else if (lowerMessage.includes('?') || lowerMessage.includes('come') || lowerMessage.includes('cosa') || lowerMessage.includes('perché')) {
+      responseType = 'question';
+    }
+
+    const responses = fallbackResponses[responseType as keyof typeof fallbackResponses];
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+    return {
+      content: randomResponse,
+      usage: {
+        promptTokens: 0,
+        responseTokens: 0,
+        totalTokens: 0,
+      }
+    };
   }
 
   /**

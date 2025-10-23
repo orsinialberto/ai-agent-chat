@@ -180,6 +180,9 @@ ai-agent-chat/
 # Test Gemini connection
 curl http://localhost:3001/api/test/gemini
 
+# Test Gemini error handling
+curl http://localhost:3001/api/test/gemini/error-handling
+
 # Test MCP connection
 curl http://localhost:3001/api/test/mcp
 

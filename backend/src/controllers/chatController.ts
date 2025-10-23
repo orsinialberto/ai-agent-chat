@@ -149,7 +149,7 @@ export class ChatController {
         if (this.mcpEnabled && this.mcpContextService) {
           aiResponse = await this.processWithMCPIntegration(content, chatHistory);
         } else {
-          aiResponse = await geminiService.sendMessage(chatHistory);
+          aiResponse = await geminiService.sendMessageWithFallback(chatHistory);
         }
         
         // Add AI response to database
@@ -391,7 +391,7 @@ Respond with either:
 
     } catch (error) {
       console.error('MCP integration failed, falling back to Gemini:', error);
-      return await geminiService.sendMessage(chatHistory);
+      return await geminiService.sendMessageWithFallback(chatHistory);
     }
   }
 
@@ -444,7 +444,7 @@ ${context}
 Please provide a helpful response based on these results.
       `.trim();
       
-      return await geminiService.sendMessage([
+      return await geminiService.sendMessageWithFallback([
         ...chatHistory,
         { role: MessageRole.USER, content: prompt } as Message
       ]);
@@ -480,6 +480,37 @@ Please provide a helpful response based on these results.
       res.status(500).json({
         success: false,
         error: 'Failed to get MCP status'
+      });
+    }
+  }
+
+  /**
+   * Test Gemini error handling and retry logic
+   */
+  async testGeminiErrorHandling(req: Request, res: Response) {
+    try {
+      const testMessage: Message = {
+        id: 'test_error_handling',
+        chatId: 'test_chat',
+        role: MessageRole.USER,
+        content: 'Test message for error handling',
+        createdAt: new Date()
+      };
+
+      // Test with fallback
+      const response = await geminiService.sendMessageWithFallback([testMessage]);
+      
+      res.json({
+        success: true,
+        message: 'Gemini error handling test completed',
+        response: response.content,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error testing Gemini error handling:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to test Gemini error handling'
       });
     }
   }
