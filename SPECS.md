@@ -188,7 +188,12 @@ app.use(cors({
 - [x] Gestione dinamica funzionalità
 - [x] Testing MCP integration
 
-### Settimana 5.5: Testing Strategy
+### Settimana 7.5: Sistema di Prompting Intelligente + lettura swagger
+ - [] Aggiunta prompt per creazione segmento semplice
+ - [] Aggiunta prompt per creazione segmento combinato
+ - [] Aggiunta prompt dinamici
+
+### Settimana 7-8: Testing Strategy
 - [ ] Setup Jest per test unitari backend
 - [ ] Setup Playwright per test E2E
 - [ ] Test coverage per servizi core
@@ -216,6 +221,11 @@ app.use(cors({
 - [ ] Implementazione provider multipli
 - [ ] UI per selezione LLM
 - [ ] Configurazione dinamica
+
+### Settimana 9-10: Fase 4 - Autenticazione Oauth
+ - [] Autenticazione Oauth per accesso alla chat
+ - [] Set apikey Gemini alla creazione dell'utente
+ - [] UI configurazione mcp server + oauth
 
 ## 💡 Suggerimenti e Best Practices
 
