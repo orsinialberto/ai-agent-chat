@@ -1,21 +1,21 @@
-# Architettura del Sistema - AI Agent Chat
+# System Architecture - AI Agent Chat
 
-Questo documento contiene i diagrammi di architettura del progetto AI Agent Chat, che mostrano la struttura del sistema, i flussi di dati e le integrazioni tra i componenti.
+This document contains the architecture diagrams for the AI Agent Chat project, showing the system structure, data flows, and component integrations.
 
-## 📋 Indice
+## 📋 Table of Contents
 
-1. [Architettura Generale](#1-architettura-generale)
-2. [Flusso Dati Chat](#2-flusso-dati-chat)
-3. [Architettura Backend](#3-architettura-backend)
-4. [Architettura Frontend](#4-architettura-frontend)
-5. [Integrazione MCP](#5-integrazione-mcp)
-6. [Schema Database](#6-schema-database)
+1. [General Architecture](#1-general-architecture)
+2. [Chat Data Flow](#2-chat-data-flow)
+3. [Backend Architecture](#3-backend-architecture)
+4. [Frontend Architecture](#4-frontend-architecture)
+5. [MCP Integration](#5-mcp-integration)
+6. [Database Schema](#6-database-schema)
 7. [Deployment](#7-deployment)
-8. [Flusso MCP Integration](#8-flusso-mcp-integration)
+8. [MCP Integration Flow](#8-mcp-integration-flow)
 
 ---
 
-## 1. Architettura Generale
+## 1. General Architecture
 
 ```mermaid
 graph TB
@@ -46,11 +46,11 @@ graph TB
     end
 ```
 
-**Descrizione**: Questo diagramma mostra l'architettura generale del sistema, evidenziando i layer principali (Client, Backend, Database) e le loro interazioni con servizi esterni.
+**Description**: This diagram shows the general system architecture, highlighting the main layers (Client, Backend, Database) and their interactions with external services.
 
 ---
 
-## 2. Flusso Dati Chat
+## 2. Chat Data Flow
 
 ```mermaid
 sequenceDiagram
@@ -81,11 +81,11 @@ sequenceDiagram
     F-->>U: Display Response
 ```
 
-**Descrizione**: Questo diagramma di sequenza mostra il flusso completo di un messaggio utente, dalla ricezione alla risposta AI, includendo la gestione dell'integrazione MCP.
+**Description**: This sequence diagram shows the complete flow of a user message, from reception to AI response, including MCP integration management.
 
 ---
 
-## 3. Architettura Backend
+## 3. Backend Architecture
 
 ```mermaid
 graph TB
@@ -123,11 +123,11 @@ graph TB
     P --> |SQL| DB[(PostgreSQL)]
 ```
 
-**Descrizione**: Architettura dettagliata del backend, mostrando la separazione tra controllers, services, middleware e database layer.
+**Description**: Detailed backend architecture, showing the separation between controllers, services, middleware, and database layer.
 
 ---
 
-## 4. Architettura Frontend
+## 4. Frontend Architecture
 
 ```mermaid
 graph TB
@@ -165,11 +165,11 @@ graph TB
     API --> |HTTP| BACKEND[Backend API]
 ```
 
-**Descrizione**: Struttura del frontend React, mostrando i componenti, hooks personalizzati e servizi per la gestione dello stato e delle API.
+**Description**: React frontend structure, showing components, custom hooks, and services for state management and API handling.
 
 ---
 
-## 5. Integrazione MCP
+## 5. MCP Integration
 
 ```mermaid
 graph LR
@@ -208,11 +208,11 @@ graph LR
     MCS --> |Tool Context| GS
 ```
 
-**Descrizione**: Dettaglio dell'integrazione MCP (Model Context Protocol), mostrando come il sistema si connette a server MCP esterni per estendere le funzionalità AI.
+**Description**: Detail of MCP (Model Context Protocol) integration, showing how the system connects to external MCP servers to extend AI capabilities.
 
 ---
 
-## 6. Schema Database
+## 6. Database Schema
 
 ```mermaid
 erDiagram
@@ -245,7 +245,7 @@ erDiagram
     LLM_PROVIDERS ||--o{ CHATS : "serves"
 ```
 
-**Descrizione**: Schema del database PostgreSQL, mostrando le tabelle principali e le loro relazioni per la gestione di chat, messaggi e provider LLM.
+**Description**: PostgreSQL database schema, showing the main tables and their relationships for managing chats, messages, and LLM providers.
 
 ---
 
@@ -280,11 +280,11 @@ graph TB
     PGADMIN --> |Web UI| POSTGRES
 ```
 
-**Descrizione**: Ambiente di sviluppo con Docker Compose, mostrando i servizi locali e le connessioni ai servizi esterni.
+**Description**: Development environment with Docker Compose, showing local services and connections to external services.
 
 ---
 
-## 8. Flusso MCP Integration
+## 8. MCP Integration Flow
 
 ```mermaid
 flowchart TD
@@ -311,11 +311,11 @@ flowchart TD
     SAVE_RESPONSE --> RETURN[Return to User]
 ```
 
-**Descrizione**: Flusso dettagliato dell'integrazione MCP, mostrando come il sistema decide quando utilizzare i tool MCP e come gestisce le risposte.
+**Description**: Detailed MCP integration flow, showing how the system decides when to use MCP tools and how it handles responses.
 
 ---
 
-## 🔧 Tecnologie Utilizzate
+## 🔧 Technologies Used
 
 ### Frontend
 - **React 18** - Framework UI
@@ -331,7 +331,7 @@ flowchart TD
 - **Prisma** - ORM
 - **PostgreSQL** - Database
 
-### Integrazioni
+### Integrations
 - **Google Gemini API** - LLM Provider
 - **MCP (Model Context Protocol)** - External Tools
 - **Docker Compose** - Development Environment
@@ -342,15 +342,15 @@ flowchart TD
 
 ---
 
-## 📚 Documentazione Correlata
+## 📚 Related Documentation
 
-- [Specifiche Tecniche](../SPECS.md) - Dettagli tecnici del progetto
-- [Processo di Sviluppo](../AGENTS.md) - Workflow di sviluppo
-- [Setup e Configurazione](../README.md) - Guida all'installazione
-- [Integrazione Gemini](./gemini-integration.md) - Dettagli integrazione Gemini
-- [Chat Sidebar](./chat-sidebar.md) - Funzionalità sidebar
-- [Supporto Markdown](./markdown-support.md) - Rendering messaggi
+- [Technical Specifications](../SPECS.md) - Project technical details
+- [Development Process](../AGENTS.md) - Development workflow
+- [Setup and Configuration](../README.md) - Installation guide
+- [Gemini Integration](./gemini-integration.md) - Gemini integration details
+- [Chat Sidebar](./chat-sidebar.md) - Sidebar functionality
+- [Markdown Support](./markdown-support.md) - Message rendering
 
 ---
 
-*Ultimo aggiornamento: Dicembre 2024*
+*Last updated: December 2024*
