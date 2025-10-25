@@ -33,6 +33,27 @@
 3. **AI Integration** → Gemini API → AI Response → Database (Save) → Frontend
 4. **MCP Integration** → MCP Context → Tool Selection → MCP Server → External API → Response
 
+## 🛠️ Technology Stack
+
+### Frontend
+- **React 18** - UI Framework
+- **TypeScript** - Type Safety
+- **Vite** - Build Tool
+- **Tailwind CSS** - Styling
+- **React Query** - State Management
+
+### Backend
+- **Node.js** - Runtime
+- **Express.js** - Web Framework
+- **TypeScript** - Type Safety
+- **Prisma** - ORM
+- **PostgreSQL** - Database
+
+### Integrations
+- **Google Gemini API** - LLM Provider
+- **MCP Protocol** - External Tools
+- **Docker** - Containerization
+
 ## 🛡️ Key Features
 
 - **Retry Logic** with exponential backoff

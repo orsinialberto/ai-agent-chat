@@ -161,7 +161,8 @@ See [AGENTS.md](./AGENTS.md) for development process and guidelines.
 
 ## Documentation
 
-- [Technical Specifications](./SPECS.md)
 - [Documentation Overview](./docs/README.md)
+- [Architecture Overview](./docs/architecture/overview.md) - System architecture and technology stack
 - [Architecture Diagrams](./docs/architecture/diagrams.md)
 - [Development Process](./AGENTS.md)
+- [Technical Specifications](./SPECS.md) - Detailed technical specs
