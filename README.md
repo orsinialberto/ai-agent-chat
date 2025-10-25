@@ -118,86 +118,41 @@ docker-compose up -d
    - Username: `postgres`
    - Password: `postgres`
 
-## Project Structure
-
-```
-ai-agent-chat/
-├── backend/          # Express.js API server
-├── frontend/         # React application
-├── shared/           # Shared types and utilities
-├── docs/             # Documentation
-├── AGENTS.md         # Development process
-└── SPECS.md          # Technical specifications
-```
-
 ## Development Status
 
-- ✅ **Phase 1**: Setup Base - Complete
 - ✅ **Phase 1**: Gemini Integration - Complete
-- ✅ **Phase 1.5**: Chat Sidebar - Complete
+- ✅ **Phase 1.5**: Chat Sidebar - Complete  
 - ✅ **Phase 2**: MCP Integration - Complete
 - ⏳ **Phase 3**: Multi-LLM Support - Planned
 
-## Available Scripts
-
-### Backend
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run test` - Run tests
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:push` - Push schema to database
-
-### Frontend
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run test` - Run tests
-- `npm run lint` - Run ESLint
-
-## API Endpoints
-
-### Core Endpoints
-- `GET /health` - Health check
-- `GET /api/test/gemini` - Test Gemini API connection
-
-### Chat Endpoints
-- `POST /api/chats` - Create new chat
-- `GET /api/chats` - List all chats
-- `GET /api/chats/:chatId` - Get specific chat
-- `PUT /api/chats/:chatId` - Update chat title
-- `DELETE /api/chats/:chatId` - Delete chat
-- `POST /api/chats/:chatId/messages` - Send message to chat (with MCP integration)
-
-### Health & Monitoring Endpoints
-- `GET /api/health` - Health check generale
-- `GET /api/health/detailed` - Health check dettagliato
-- `GET /api/health/mcp` - Status MCP specifico
-- `GET /api/test/mcp` - Test connessione MCP
-- `GET /api/mcp/status` - Status MCP dal chat controller
-
-### Example Usage
+## Quick Commands
 
 ```bash
-# Test Gemini connection
-curl http://localhost:3001/api/test/gemini
+# Backend
+cd backend && npm run dev
 
-# Test Gemini error handling
-curl http://localhost:3001/api/test/gemini/error-handling
+# Frontend  
+cd frontend && npm run dev
 
-# Test MCP connection
-curl http://localhost:3001/api/test/mcp
+# Database
+docker-compose up -d
+```
 
-# Check health status
+## API Examples
+
+```bash
+# Health check
 curl http://localhost:3001/api/health
 
-# Create a new chat
+# Create chat
 curl -X POST http://localhost:3001/api/chats \
   -H "Content-Type: application/json" \
   -d '{"title": "My Chat", "initialMessage": "Hello!"}'
 
-# Send a message (with MCP integration)
+# Send message
 curl -X POST http://localhost:3001/api/chats/chat123/messages \
   -H "Content-Type: application/json" \
-  -d '{"content": "Mostrami tutti i segmenti per il tenant 12992", "role": "user"}'
+  -d '{"content": "Hello AI!", "role": "user"}'
 ```
 
 ## Contributing
