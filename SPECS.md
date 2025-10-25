@@ -24,6 +24,8 @@ Un sistema di chat interattivo con AI Agent che supporta multiple fasi di svilup
 
 ## 🏗️ Architettura Tecnica
 
+> 📊 **Diagrammi di Architettura**: Per una rappresentazione visuale completa dell'architettura del sistema, consulta [Architecture Diagrams](./docs/architecture-diagrams.md).
+
 ### Stack Tecnologico
 ```
 Frontend: React 18 + TypeScript + Vite
@@ -328,6 +330,17 @@ Per la qualità del codice:
 - **Cost optimization**: Routing intelligente basato su costo/performance
 - **A/B testing**: Possibilità di testare diversi LLM per la stessa query
 - **Load balancing**: Distribuzione del carico tra provider
+
+---
+
+## 📚 Documentazione Correlata
+
+- [Architecture Diagrams](./docs/architecture-diagrams.md) - Diagrammi di architettura del sistema
+- [Development Process](./AGENTS.md) - Processo di sviluppo e workflow
+- [Setup Guide](./README.md) - Guida all'installazione e configurazione
+- [Gemini Integration](./docs/gemini-integration.md) - Dettagli integrazione Gemini
+- [Chat Sidebar](./docs/chat-sidebar.md) - Funzionalità sidebar
+- [Markdown Support](./docs/markdown-support.md) - Supporto rendering messaggi
 
 ---
 

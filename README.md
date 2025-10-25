@@ -207,4 +207,5 @@ See [AGENTS.md](./AGENTS.md) for development process and guidelines.
 ## Documentation
 
 - [Technical Specifications](./SPECS.md)
+- [Architecture Diagrams](./docs/architecture-diagrams.md)
 - [Development Process](./AGENTS.md)
