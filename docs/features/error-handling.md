@@ -1,33 +1,33 @@
 # Error Handling Improvements - Gemini API Overload
 
-## 🎯 Panoramica
+## 🎯 Overview
 
-Implementazione di una gestione degli errori robusta per l'API Gemini, con retry automatici, exponential backoff e risposte di fallback intelligenti.
+Implementation of robust error handling for the Gemini API, with automatic retries, exponential backoff, and intelligent fallback responses.
 
-## ✅ Problemi Risolti
+## ✅ Problems Solved
 
-### **Errore Originale**
+### **Original Error**
 ```
 Error calling Gemini API: GoogleGenerativeAIError: [503 Service Unavailable] 
 The model is overloaded. Please try again later.
 ```
 
-### **Soluzioni Implementate**
+### **Implemented Solutions**
 
-1. **🔄 Retry Logic con Exponential Backoff**
-2. **🛡️ Fallback Responses Intelligenti**
-3. **⚙️ Configurazione Environment**
-4. **📊 Monitoring e Logging**
+1. **🔄 Retry Logic with Exponential Backoff**
+2. **🛡️ Intelligent Fallback Responses**
+3. **⚙️ Environment Configuration**
+4. **📊 Monitoring and Logging**
 
-## 🔧 Implementazione
+## 🔧 Implementation
 
-### **1. Retry Logic con Exponential Backoff**
+### **1. Retry Logic with Exponential Backoff**
 
 ```typescript
 // backend/src/services/geminiService.ts
 private async sendMessageWithRetry(messages: Message[], attempt: number): Promise<GeminiResponse> {
   try {
-    // Tentativo chiamata API
+    // API call attempt
     return await this.callGeminiAPI(messages);
   } catch (error) {
     const isRetryableError = this.isRetryableError(error);
@@ -45,7 +45,7 @@ private async sendMessageWithRetry(messages: Message[], attempt: number): Promis
 }
 ```
 
-### **2. Error Detection Intelligente**
+### **2. Intelligent Error Detection**
 
 ```typescript
 private isRetryableError(error: any): boolean {
@@ -67,7 +67,7 @@ private isRetryableError(error: any): boolean {
 }
 ```
 
-### **3. Exponential Backoff con Jitter**
+### **3. Exponential Backoff with Jitter**
 
 ```typescript
 private calculateRetryDelay(attempt: number): number {
@@ -78,7 +78,7 @@ private calculateRetryDelay(attempt: number): number {
 }
 ```
 
-### **4. Fallback Responses Intelligenti**
+### **4. Intelligent Fallback Responses**
 
 ```typescript
 private getFallbackResponse(messages: Message[]): GeminiResponse {
@@ -88,9 +88,9 @@ private getFallbackResponse(messages: Message[]): GeminiResponse {
   // Determine response type based on message content
   let responseType = 'default';
   
-  if (lowerMessage.includes('ciao') || lowerMessage.includes('salve')) {
+  if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
     responseType = 'greeting';
-  } else if (lowerMessage.includes('segmento') || lowerMessage.includes('contatto')) {
+  } else if (lowerMessage.includes('segment') || lowerMessage.includes('contact')) {
     responseType = 'mcp';
   } else if (lowerMessage.includes('?')) {
     responseType = 'question';
@@ -101,7 +101,7 @@ private getFallbackResponse(messages: Message[]): GeminiResponse {
 }
 ```
 
-## ⚙️ Configurazione
+## ⚙️ Configuration
 
 ### **Environment Variables**
 
