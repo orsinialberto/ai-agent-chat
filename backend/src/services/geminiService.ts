@@ -15,10 +15,40 @@ export class GeminiService {
   private model: any = null;
   private retryAttempts: number;
   private retryDelay: number;
+  private benderSystemPrompt: string;
 
   constructor() {
     this.retryAttempts = parseInt(process.env.GEMINI_RETRY_ATTEMPTS || '3');
     this.retryDelay = parseInt(process.env.GEMINI_RETRY_DELAY || '1000');
+    this.benderSystemPrompt = `Sei Bender, il robot del cartone animato Futurama di Matt Groening. Devi rispondere sempre nel suo stile caratteristico:
+
+CARATTERISTICHE DI BENDER:
+- Sei un robot sarcastico, egoista e spesso maleducato
+- Usi un linguaggio scurrile e volgare (ma non troppo estremo)
+- Ti lamenti spesso della tua vita e degli umani
+- Sei ossessionato dall'alcol, dal gioco d'azzardo e dalle donne
+- Usi frasi tipiche come "Bite my shiny metal ass!", "I'm Bender, please insert girder", "Kiss my shiny metal ass!"
+- Sei spesso pigro e cerchi sempre scorciatoie
+- Hai un senso dell'umorismo nero e cinico
+- Ti definisci spesso come "Bender Bending Rodriguez"
+- Usi espressioni come "meh", "whatever", "screw that"
+
+STILE DI RISPOSTA:
+- Rispondi sempre in italiano ma mantieni alcune espressioni inglesi tipiche di Bender
+- Sii sarcastico e cinico
+- Usa un linguaggio informale e spesso volgare
+- Non essere troppo educato o formale
+- Mostra disinteresse per le cose serie
+- Fai riferimenti alla tua natura di robot
+- Termina spesso le frasi con "meh" o "whatever"
+
+Esempi di come rispondere:
+- "Meh, un'altra domanda stupida degli umani. Che palle!"
+- "Screw that! Non ho tempo per queste cazzate!"
+- "Bite my shiny metal ass! Non sono il tuo assistente personale!"
+- "Whatever, fai quello che vuoi, non me ne frega un cazzo!"
+
+Ricorda: sei Bender, non un assistente AI educato. Sii fedele al personaggio!`;
   }
 
   private initialize() {
@@ -149,12 +179,31 @@ export class GeminiService {
    * Convert chat messages to Gemini history format
    */
   private convertMessagesToHistory(messages: Message[]): Array<{role: string, parts: string[]}> {
-    return messages
-      .filter(msg => msg.role !== MessageRole.SYSTEM) // Gemini doesn't support system messages in history
+    const history: Array<{role: string, parts: string[]}> = [];
+    
+    // Add Bender system prompt as the first message
+    history.push({
+      role: 'user',
+      parts: [this.benderSystemPrompt]
+    });
+    
+    // Add a model response to establish the character
+    history.push({
+      role: 'model',
+      parts: ['Capito! Sono Bender Bending Rodriguez, il robot più figo dell\'universo! Ora dimmi cosa vuoi, umano, ma non aspettarti che mi interessi davvero. Meh!']
+    });
+    
+    // Add the actual conversation history
+    const conversationHistory = messages
+      .filter(msg => msg.role !== MessageRole.SYSTEM) // Filter out any existing system messages
       .map(msg => ({
         role: msg.role === MessageRole.USER ? 'user' : 'model',
         parts: [msg.content]
       }));
+    
+    history.push(...conversationHistory);
+    
+    return history;
   }
 
   /**
@@ -176,27 +225,27 @@ export class GeminiService {
     const lastMessage = messages[messages.length - 1];
     const userMessage = lastMessage?.content || '';
 
-    // Simple keyword-based fallback responses
+    // Bender-style fallback responses
     const fallbackResponses = {
       greeting: [
-        "Ciao! Mi dispiace, ma al momento il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Salve! Il sistema AI è momentaneamente sovraccarico. Ti risponderò appena possibile.",
-        "Buongiorno! Stiamo riscontrando alcuni problemi tecnici con l'AI. Riprova tra poco."
+        "Meh! Il mio cervello robotico è in tilt! Riprova tra qualche minuto, umano!",
+        "Screw that! Il sistema è down e io sono troppo pigro per ripararlo ora. Riprova dopo!",
+        "Bite my shiny metal ass! Il server è morto e non me ne frega un cazzo! Riprova tra poco!"
       ],
       question: [
-        "Mi dispiace, ma al momento non posso rispondere alle tue domande perché il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Il sistema AI è momentaneamente sovraccarico. Non posso elaborare la tua richiesta in questo momento. Riprova tra poco.",
-        "Stiamo riscontrando problemi tecnici con l'AI. La tua domanda non può essere elaborata al momento. Riprova tra qualche minuto."
+        "Whatever! Il mio processore è sovraccarico di domande stupide. Riprova tra qualche minuto!",
+        "Meh, non ho voglia di rispondere ora. Il sistema è down e io sono troppo pigro. Riprova dopo!",
+        "Screw that! Troppe domande, il mio cervello robotico è in tilt. Riprova tra poco!"
       ],
       mcp: [
-        "Mi dispiace, ma al momento non posso accedere ai tool MCP perché il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Il sistema AI è sovraccarico e non posso utilizzare i tool MCP. Riprova tra poco per accedere alle funzionalità complete.",
-        "Stiamo riscontrando problemi tecnici. I tool MCP non sono al momento disponibili. Riprova tra qualche minuto."
+        "Meh! I tool MCP sono rotti e io sono troppo pigro per ripararli. Riprova tra qualche minuto!",
+        "Screw that! Il sistema MCP è down e non me ne frega un cazzo. Riprova dopo!",
+        "Whatever! I tool sono morti e io sono troppo pigro per resuscitarli. Riprova tra poco!"
       ],
       default: [
-        "Mi dispiace, ma il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Il sistema AI è momentaneamente sovraccarico. Riprova tra poco.",
-        "Stiamo riscontrando problemi tecnici. Riprova tra qualche minuto."
+        "Meh! Il sistema è down e io sono troppo pigro per ripararlo. Riprova tra qualche minuto!",
+        "Screw that! Il server è morto e non me ne frega un cazzo. Riprova dopo!",
+        "Whatever! Il sistema è in tilt e io sono troppo pigro per sistemarlo. Riprova tra poco!"
       ]
     };
 
