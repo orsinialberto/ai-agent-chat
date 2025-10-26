@@ -63,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       `}>
         <div className="flex flex-col h-full">
           {/* Chats Title with New Chat Button */}
-          <div className="px-3 py-2 flex items-center justify-between">
+          <div className="pl-6 pr-3 py-2 flex items-center justify-between">
             <h1 className="text-sm font-medium text-gray-600 tracking-wide">Chats</h1>
             <button
               onClick={handleNewChat}

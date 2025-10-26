@@ -68,10 +68,10 @@ export const ChatItem: React.FC<ChatItemProps> = ({
     <>
       <div
         className={`
-          group relative p-3 rounded-lg cursor-pointer transition-colors
+          group relative pl-6 pr-3 py-3 rounded-lg cursor-pointer transition-colors
           ${isActive 
             ? 'bg-sky-100/50 border border-sky-200/60' 
-            : 'hover:bg-peach-50/40'
+            : 'hover:bg-sky-50/40'
           }
         `}
         onClick={onSelect}
@@ -107,7 +107,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               </p>
               
               {/* Action buttons aligned with message preview */}
-              <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1 ml-2">
+              <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1 ml-13">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

@@ -8,7 +8,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   return (
     <header className="bg-white border-b border-gray-100 w-full relative z-50">
-      <div className="w-full px-6 py-4">
+      <div className="w-full px-3 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
@@ -25,9 +25,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             
             <AIcon size="md" />
             <h1 className="text-xl font-semibold text-gray-900">AI Agent Chat</h1>
-          </div>
-          <div className="text-sm text-gray-500">
-            Phase 1.5: Chat Sidebar
           </div>
         </div>
       </div>

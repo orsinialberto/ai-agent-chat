@@ -10,16 +10,17 @@ export const AIcon: React.FC<AIconProps> = ({
   className = '' 
 }) => {
   const sizeClasses = {
-    sm: 'w-6 h-6 text-xs',
-    md: 'w-8 h-8 text-sm',
-    lg: 'w-12 h-12 text-lg'
+    sm: 'w-14 h-14',
+    md: 'w-16 h-16',
+    lg: 'w-20 h-20'
   };
 
   return (
-    <div 
-      className={`bg-sky-400 rounded-lg flex items-center justify-center ${sizeClasses[size]} ${className}`}
-    >
-      <span className="text-white font-bold">AI</span>
-    </div>
+    <img 
+      src="/images/ai-icon.png" 
+      alt="AI" 
+      className={`${sizeClasses[size]} ${className}`}
+      style={{ marginTop: '-8px', marginBottom: '-8px' }}
+    />
   );
 };
