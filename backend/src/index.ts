@@ -13,18 +13,45 @@ const PORT = process.env.PORT || 3001;
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
+// Rate limiting - più permissivo per sviluppo
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  max: 1000, // limit each IP to 1000 requests per windowMs (più permissivo)
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration - più permissiva per sviluppo
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+  origin: function (origin, callback) {
+    // Permetti richieste senza origin (es. mobile apps, Postman)
+    if (!origin) return callback(null, true);
+    
+    // In sviluppo, permetti localhost su qualsiasi porta
+    if (process.env.NODE_ENV !== 'production') {
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return callback(null, true);
+      }
+    }
+    
+    // In produzione, usa solo l'URL configurato
+    const allowedOrigins = [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5173'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Body parsing middleware
@@ -40,10 +67,27 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes (will be added later)
-app.use('/api', (req, res) => {
-  res.json({ message: 'AI Agent Chat API - Coming Soon!' });
-});
+// Import controllers
+import { chatController } from './controllers/chatController';
+import { healthController } from './controllers/healthController';
+
+// API routes
+app.post('/api/chats', (req, res) => chatController.createChat(req, res));
+app.get('/api/chats', (req, res) => chatController.getChats(req, res));
+app.get('/api/chats/:chatId', (req, res) => chatController.getChat(req, res));
+app.put('/api/chats/:chatId', (req, res) => chatController.updateChat(req, res));
+app.delete('/api/chats/:chatId', (req, res) => chatController.deleteChat(req, res));
+app.post('/api/chats/:chatId/messages', (req, res) => chatController.sendMessage(req, res));
+app.get('/api/test/gemini', (req, res) => chatController.testConnection(req, res));
+app.get('/api/test/gemini/error-handling', (req, res) => chatController.testGeminiErrorHandling(req, res));
+app.get('/api/test/database', (req, res) => chatController.testDatabase(req, res));
+
+// Health check routes
+app.get('/api/health', (req, res) => healthController.healthCheck(req, res));
+app.get('/api/health/detailed', (req, res) => healthController.detailedHealthCheck(req, res));
+app.get('/api/health/mcp', (req, res) => healthController.getMCPInfo(req, res));
+app.get('/api/test/mcp', (req, res) => healthController.testMCPConnection(req, res));
+app.get('/api/mcp/status', (req, res) => chatController.getMCPStatus(req, res));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

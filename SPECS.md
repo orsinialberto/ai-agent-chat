@@ -24,6 +24,8 @@ Un sistema di chat interattivo con AI Agent che supporta multiple fasi di svilup
 
 ## 🏗️ Architettura Tecnica
 
+> 📊 **Diagrammi di Architettura**: Per una rappresentazione visuale completa dell'architettura del sistema, consulta [Architecture Diagrams](./docs/architecture/diagrams.md).
+
 ### Stack Tecnologico
 ```
 Frontend: React 18 + TypeScript + Vite
@@ -168,18 +170,48 @@ app.use(cors({
 - [x] Struttura base frontend React
 
 ### Settimana 3-4: Fase 1 - Gemini
-- [ ] Integrazione Gemini API
-- [ ] Implementazione chat persistente
-- [ ] Interfaccia utente base
-- [ ] Test end-to-end
+- [x] Integrazione Gemini API
+- [x] Implementazione chat persistente
+- [x] Interfaccia utente base
+- [x] Test end-to-end
 
-### Settimana 5-6: Fase 2 - MCP
-- [ ] Implementazione MCP client
-- [ ] Estensione agent con tools
-- [ ] Gestione dinamica funzionalità
-- [ ] Testing MCP integration
+### Settimana 5: Fase 1.5 - Chat Sidebar ✅
+- [x] Sidebar component con lista chat
+- [x] Navigazione tra chat esistenti
+- [x] Gestione chat (crea/elimina)
+- [x] Design responsive
+- [x] Test integrazione sidebar
 
-### Settimana 7-8: Fase 3 - Multi-LLM
+### Settimana 6-7: Fase 2 - MCP
+- [x] Implementazione MCP client
+- [x] Estensione agent con tools
+- [x] Gestione dinamica funzionalità
+- [x] Testing MCP integration
+
+### Settimana 5.5: Testing Strategy
+- [ ] Setup Jest per test unitari backend
+- [ ] Setup Playwright per test E2E
+- [ ] Test coverage per servizi core
+- [ ] Test automatizzati CI/CD
+- [ ] Performance testing
+
+### Settimana 5.6: Markdown Rendering Fix ✅
+- [x] Correggere il rendering del markdown nei messaggi
+- [x] Implementare una libreria dedicata per il rendering markdown
+- [x] Testare il rendering di elementi complessi (code blocks, tabelle, liste)
+- [x] Verificare la compatibilità con diversi tipi di contenuto AI
+
+**Implementazione completata:**
+- ✅ Sostituito parser regex personalizzato con `react-markdown`
+- ✅ Aggiunto supporto GitHub Flavored Markdown con `remark-gfm`
+- ✅ Implementato syntax highlighting con `react-syntax-highlighter`
+- ✅ Aggiunta sanitizzazione HTML automatica con `rehype-sanitize`
+- ✅ Supporto completo per tabelle, code blocks, liste, link, formattazione
+- ✅ CSS aggiornato con stili inline per compatibilità
+- ✅ Test suite completa per il nuovo componente
+- ✅ Risolti problemi CORS e rate limiting del backend
+
+### Settimana 8-9: Fase 3 - Multi-LLM
 - [ ] Architettura modulare LLM
 - [ ] Implementazione provider multipli
 - [ ] UI per selezione LLM
@@ -212,6 +244,82 @@ app.use(cors({
 - Integration test per API endpoints
 - E2E test per flussi chat completi
 
+## 🎨 Chat Sidebar - Specifiche Tecniche
+
+### Componenti Frontend
+```
+frontend/src/components/
+├── sidebar/
+│   ├── Sidebar.tsx           # Componente principale
+│   ├── ChatList.tsx        # Lista chat
+│   ├── ChatItem.tsx        # Singolo elemento chat
+│   ├── NewChatButton.tsx   # Pulsante nuova chat
+│   └── DeleteChatModal.tsx # Modal conferma eliminazione
+```
+
+### API Endpoints
+- `GET /api/chats` - Lista chat con metadati
+- `DELETE /api/chats/:id` - Elimina chat
+- `PUT /api/chats/:id` - Aggiorna titolo chat
+
+### Funzionalità Base
+- **Lista Chat**: Visualizzazione titolo, ultimo messaggio, data
+- **Navigazione**: Click per aprire chat esistente
+- **Nuova Chat**: Pulsante per creare chat
+- **Eliminazione**: Modal di conferma per delete
+- **Chat Attiva**: Highlight della chat corrente
+- **Responsive**: Collassabile su mobile
+
+### Design Requirements
+- **Desktop**: Sidebar fissa 300px
+- **Mobile**: Drawer overlay
+- **Stati**: Loading, empty, error
+- **Accessibilità**: Keyboard navigation
+
+## 🧪 Testing Strategy - Specifiche Tecniche
+
+### Test Unitari (Backend)
+```
+backend/src/
+├── __tests__/
+│   ├── services/
+│   │   ├── geminiService.test.ts
+│   │   ├── databaseService.test.ts
+│   │   └── chatController.test.ts
+│   ├── utils/
+│   └── integration/
+```
+
+### Test E2E (Frontend)
+```
+frontend/
+├── tests/
+│   ├── e2e/
+│   │   ├── chat-flow.spec.ts
+│   │   ├── sidebar-navigation.spec.ts
+│   │   └── responsive.spec.ts
+│   └── fixtures/
+```
+
+### Strumenti Testing
+- **Jest**: Test unitari e integrazione
+- **Playwright**: Test E2E browser
+- **Supertest**: API testing
+- **MSW**: Mock service worker
+- **Coverage**: Istanbul/nyc
+
+### Coverage Requirements
+- **Backend**: >80% coverage
+- **Frontend**: >70% coverage
+- **E2E**: 100% user journeys
+- **Performance**: <2s load time
+
+### **CI/CD Testing Pipeline**
+- **Pre-commit**: Lint + unit tests
+- **PR**: Full test suite + coverage
+- **Deploy**: E2E tests + performance
+- **Monitoring**: Test results dashboard
+
 ## 🔍 Considerazioni Aggiuntive
 
 ### **MCP Server Integration**
@@ -220,10 +328,47 @@ Per la Fase 2, considera:
 - **Gestione connessioni**: Implementa connection pooling e retry logic
 - **Tool discovery**: Cache dinamica dei tools disponibili
 
+### **Chat Sidebar Integration**
+Per la gestione delle chat:
+- **Performance**: Lazy loading per molte chat
+- **UX**: Transizioni fluide tra chat
+- **State Management**: Sincronizzazione sidebar-chat
+- **Mobile First**: Design responsive prioritario
+
+### **Testing Strategy Integration**
+Per la qualità del codice:
+- **Test-Driven Development**: Scrivere test prima del codice
+- **Continuous Testing**: Test automatici ad ogni commit
+- **Quality Gates**: Coverage minimo per deploy
+- **Performance Monitoring**: Test di carico e latenza
+
 ### **Multi-LLM Strategy**
 - **Cost optimization**: Routing intelligente basato su costo/performance
 - **A/B testing**: Possibilità di testare diversi LLM per la stessa query
 - **Load balancing**: Distribuzione del carico tra provider
+
+### **Markdown Rendering Issues**
+Il rendering del markdown nei messaggi AI presenta problemi significativi:
+- **Code blocks**: Non vengono formattati correttamente
+- **Syntax highlighting**: Mancante per blocchi di codice
+- **Tabelle**: Rendering inconsistente o mancante
+- **Liste annidate**: Struttura non preservata
+- **Link**: Non vengono renderizzati come clickabili
+- **Formattazione**: Bold, italic, strikethrough non funzionano correttamente
+
+**Soluzione proposta**: Implementare una libreria dedicata come `react-markdown` con `remark-gfm` per supporto GitHub Flavored Markdown e `react-syntax-highlighter` per syntax highlighting dei code blocks.
+
+---
+
+## 📚 Documentazione Correlata
+
+- [Documentation Overview](./docs/README.md) - Panoramica della documentazione
+- [Architecture Diagrams](./docs/architecture/diagrams.md) - Diagrammi di architettura del sistema
+- [Development Process](./AGENTS.md) - Processo di sviluppo e workflow
+- [Setup Guide](./README.md) - Guida all'installazione e configurazione
+- [Gemini Integration](./docs/integrations/gemini-api.md) - Dettagli integrazione Gemini
+- [Chat Sidebar](./docs/features/sidebar.md) - Funzionalità sidebar
+- [Markdown Support](./docs/features/markdown-support.md) - Supporto rendering messaggi
 
 ---
 

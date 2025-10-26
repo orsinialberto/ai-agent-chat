@@ -79,6 +79,12 @@ JWT_SECRET="your_jwt_secret"
 
 # CORS
 FRONTEND_URL="http://localhost:5173"
+
+# MCP Configuration
+MCP_ENABLED=true
+MCP_SERVER_URL=http://localhost:8080
+MCP_TIMEOUT=10000
+MCP_RETRY_ATTEMPTS=3
 ```
 
 ### Docker Commands
@@ -112,44 +118,42 @@ docker-compose up -d
    - Username: `postgres`
    - Password: `postgres`
 
-## Project Structure
-
-```
-ai-agent-chat/
-├── backend/          # Express.js API server
-├── frontend/         # React application
-├── shared/           # Shared types and utilities
-├── docs/             # Documentation
-├── AGENTS.md         # Development process
-└── SPECS.md          # Technical specifications
-```
-
 ## Development Status
 
-- ✅ **Phase 1**: Setup Base - Complete
-- 🔄 **Phase 2**: Gemini Integration - In Progress
-- ⏳ **Phase 3**: MCP Integration - Planned
-- ⏳ **Phase 4**: Multi-LLM Support - Planned
+- ✅ **Phase 1**: Gemini Integration - Complete
+- ✅ **Phase 1.5**: Chat Sidebar - Complete  
+- ✅ **Phase 2**: MCP Integration - Complete
+- ⏳ **Phase 3**: Multi-LLM Support - Planned
 
-## Available Scripts
+## Quick Commands
 
-### Backend
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run test` - Run tests
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:push` - Push schema to database
+```bash
+# Backend
+cd backend && npm run dev
 
-### Frontend
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run test` - Run tests
-- `npm run lint` - Run ESLint
+# Frontend  
+cd frontend && npm run dev
 
-## API Endpoints
+# Database
+docker-compose up -d
+```
 
-- `GET /health` - Health check
-- `GET /api` - API status (coming soon)
+## API Examples
+
+```bash
+# Health check
+curl http://localhost:3001/api/health
+
+# Create chat
+curl -X POST http://localhost:3001/api/chats \
+  -H "Content-Type: application/json" \
+  -d '{"title": "My Chat", "initialMessage": "Hello!"}'
+
+# Send message
+curl -X POST http://localhost:3001/api/chats/chat123/messages \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Hello AI!", "role": "user"}'
+```
 
 ## Contributing
 
@@ -157,5 +161,8 @@ See [AGENTS.md](./AGENTS.md) for development process and guidelines.
 
 ## Documentation
 
-- [Technical Specifications](./SPECS.md)
+- [Documentation Overview](./docs/README.md)
+- [Architecture Overview](./docs/architecture/overview.md) - System architecture and technology stack
+- [Architecture Diagrams](./docs/architecture/diagrams.md)
 - [Development Process](./AGENTS.md)
+- [Technical Specifications](./SPECS.md) - Detailed technical specs
