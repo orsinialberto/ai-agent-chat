@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useChat } from '../hooks/useChat'
 import { Message } from '../services/api'
 import { MarkdownRenderer } from './MarkdownRenderer'
@@ -9,6 +9,8 @@ interface ChatInterfaceProps {
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) => {
   const [inputValue, setInputValue] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const { 
     currentChat, 
     messages, 
@@ -26,6 +28,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) =
       loadChat(currentChatId);
     }
   }, [currentChatId, currentChat?.id, loadChat])
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
+  }, [messages, isLoading])
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return
@@ -78,7 +87,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) =
           </div>
         </div>
       ) : (
-        <div className="space-y-4 mb-6 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-[calc(100vh-16rem)] scrollbar-hide px-6 pt-6">
+        <div ref={messagesContainerRef} className="space-y-4 mb-6 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-[calc(100vh-16rem)] scrollbar-hide px-6 pt-6">
           {messages.map((message: Message) => (
             <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[70%] px-4 py-2 rounded-lg break-words ${
@@ -110,6 +119,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) =
               </div>
             </div>
           )}
+          
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
         </div>
       )}
         

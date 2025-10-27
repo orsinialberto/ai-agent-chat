@@ -91,6 +91,7 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+*Zone.Identifier
 
 # Database
 *.sqlite
