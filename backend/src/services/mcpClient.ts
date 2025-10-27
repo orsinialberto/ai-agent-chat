@@ -66,8 +66,21 @@ export class MCPClient {
       const data: MCPResponse = await response.json() as MCPResponse;
       console.log(`📥 MCP Response (JSON-RPC):`, JSON.stringify(data, null, 2));
       
+      // Handle JSON-RPC error response (proper format)
       if (data.error) {
-        throw new Error(`MCP Error: ${data.error.message}`);
+        const errorMsg = data.error.message || 'Unknown MCP error';
+        console.error('❌ MCP tool returned error:', errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      // Handle legacy error format from old Java server implementation
+      if (data.result && typeof data.result === 'object' && 'code' in data.result) {
+        const resultAny = data.result as any;
+        if (resultAny.code === 'error') {
+          const errorMsg = resultAny.message || 'Unknown error';
+          console.error('❌ MCP tool returned error (legacy format):', errorMsg);
+          throw new Error(errorMsg);
+        }
       }
 
       if (!data.result || !data.result.content || data.result.content.length === 0) {

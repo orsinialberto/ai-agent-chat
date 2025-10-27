@@ -384,7 +384,7 @@ Respond with either:
       const toolCalls = this.extractToolCalls(llmResponse.content);
       
       if (toolCalls.length > 0) {
-        return await this.executeToolCallsAndRespond(toolCalls, message, chatHistory);
+        return await this.executeToolCallsAndRespond(toolCalls, message, chatHistory, 0);
       } else {
         return llmResponse;
       }
@@ -459,13 +459,16 @@ Respond with either:
   }
 
   /**
-   * Execute tool calls and generate response
+   * Execute tool calls and generate response with automatic error recovery
    */
   private async executeToolCallsAndRespond(
     toolCalls: Array<{toolName: string, arguments: any}>, 
     originalMessage: string,
-    chatHistory: Message[]
+    chatHistory: Message[],
+    retryCount: number = 0
   ): Promise<{ content: string }> {
+    const MAX_RETRIES = 2;
+    
     try {
       const toolResults: string[] = [];
       
@@ -492,9 +495,125 @@ Please provide a helpful response based on these results.
       ]);
       
     } catch (error: any) {
-      console.error('Tool execution failed:', error);
-      return { content: `I encountered an error while processing your request: ${error.message}` };
+      console.error(`Tool execution failed (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, error);
+      
+      // If we haven't exceeded max retries, try to auto-fix with LLM
+      if (retryCount < MAX_RETRIES) {
+        return await this.retryWithLLMCorrection(toolCalls, originalMessage, chatHistory, error, retryCount);
+      }
+      
+      // Max retries exceeded, return user-friendly error message
+      const language = this.detectUserLanguage(originalMessage, chatHistory);
+      return { content: this.getGenericErrorMessage(language) };
     }
+  }
+
+  /**
+   * Use LLM to analyze error and auto-correct the tool call
+   */
+  private async retryWithLLMCorrection(
+    toolCalls: Array<{toolName: string, arguments: any}>, 
+    originalMessage: string,
+    chatHistory: Message[],
+    error: any,
+    retryCount: number
+  ): Promise<{ content: string }> {
+    console.log(`🤖 Attempting auto-correction with LLM (attempt ${retryCount + 1})`);
+    
+    try {
+      // Get MCP tools context for LLM to know what's available
+      const mcpContext = await this.mcpContextService!.getMCPToolsContext();
+      
+      // Create prompt to let LLM analyze the error and fix it
+      const correctionPrompt = `
+${mcpContext}
+
+The user asked: "${originalMessage}"
+
+I tried to call the tool "${toolCalls[0].toolName}" with these arguments:
+${JSON.stringify(toolCalls[0].arguments, null, 2)}
+
+But it failed with this error: "${error.message}"
+
+Please analyze this error and provide a CORRECTED tool call with fixed arguments.
+- Read the error message carefully to understand what's wrong
+- Check available operators, attributes, and formats from the MCP tools documentation above
+- Fix any invalid operators, attributes, or data formats
+- Provide the corrected arguments in the same TOOL_CALL format
+
+If you believe the error cannot be fixed with the available information, respond with ERROR_UNABLE_TO_FIX and explain why.
+
+CORRECTED TOOL_CALL format:
+TOOL_CALL:toolName:{"corrected":"arguments"}
+      `.trim();
+
+      // Ask LLM to analyze and correct
+      const llmCorrection = await geminiService.sendMessageWithFallback([
+        ...chatHistory,
+        { role: MessageRole.USER, content: correctionPrompt } as Message
+      ]);
+
+      // Check if LLM gave up
+      if (llmCorrection.content.includes('ERROR_UNABLE_TO_FIX')) {
+        console.log('❌ LLM unable to fix the error');
+        const language = this.detectUserLanguage(originalMessage, chatHistory);
+        return { content: this.getGenericErrorMessage(language) };
+      }
+
+      // Extract corrected tool call
+      const correctedToolCalls = this.extractToolCalls(llmCorrection.content);
+      
+      if (correctedToolCalls.length === 0) {
+        console.log('❌ LLM did not provide a corrected tool call');
+        const language = this.detectUserLanguage(originalMessage, chatHistory);
+        return { content: this.getGenericErrorMessage(language) };
+      }
+
+      console.log(`✅ LLM provided corrected tool call:`, correctedToolCalls[0]);
+      
+      // Retry with corrected arguments
+      return await this.executeToolCallsAndRespond(
+        correctedToolCalls,
+        originalMessage,
+        chatHistory,
+        retryCount + 1
+      );
+
+    } catch (correctionError: any) {
+      console.error('Error during LLM correction:', correctionError);
+      const language = this.detectUserLanguage(originalMessage, chatHistory);
+      return { content: this.getGenericErrorMessage(language) };
+    }
+  }
+
+  /**
+   * Detect user's language from their messages
+   */
+  private detectUserLanguage(currentMessage: string, chatHistory: Message[]): 'it' | 'en' {
+    // Analyze all messages to detect language
+    const italianKeywords = [
+      'italiano', 'italia', 'segmento', 'segmenti', 'uomo', 'donna', 'età', 
+      'data', 'dopo', 'prima', 'crea', 'nuovo', 'vorrei', 'puoi', 'per favore',
+      'grazie', 'prego', 'ok', 'okay', 'con', 'o', 'e', 'dovrei', 'elaborazione'
+    ];
+    
+    const allMessages = [currentMessage, ...chatHistory.map(m => m.content)].join(' ').toLowerCase();
+    
+    const italianCount = italianKeywords.filter(keyword => allMessages.includes(keyword)).length;
+    
+    return italianCount > 0 ? 'it' : 'en';
+  }
+
+  /**
+   * Get generic error message in user's language
+   */
+  private getGenericErrorMessage(language: 'it' | 'en'): string {
+    const messages = {
+      en: "I apologize, but I encountered an issue while processing your request. Please try rephrasing your request or being more specific about the parameters you need.",
+      it: "Mi dispiace, ma ho riscontrato un problema durante l'elaborazione della tua richiesta. Prova a riformulare la tua richiesta o sii più specifico sui parametri che necessiti."
+    };
+    
+    return messages[language];
   }
 
   /**

@@ -192,8 +192,15 @@ app.use(cors({
 - [x] Fix parsing tool calls con JSON annidati (brace counting)
 - [x] Gestione strutture JSON complesse in tool call arguments
 - [ ] Migrazione a @modelcontextprotocol/sdk per parsing robusto
-- [ ] Implementazione gestione errori migliorata
+- [x] Implementazione gestione errori migliorata con auto-correzione LLM
 - [ ] Test con strutture JSON deep
+
+**Gestione Errori Inteligente (Implementata):**
+- ✅ Sistema di auto-correzione generico per errori MCP tool calls
+- ✅ LLM analizza automaticamente gli errori e corregge gli argomenti
+- ✅ Retry automatico fino a 2 tentativi con argomenti corretti
+- ✅ Rilevamento lingua utente per messaggi errore personalizzati
+- ✅ Messaggi di errore generici in lingua dell'utente quando il retry fallisce
 
 ### Settimana 7.5: Sistema di Prompting Intelligente + lettura swagger
  - [] Aggiunta prompt per creazione segmento semplice
@@ -245,6 +252,11 @@ app.use(cors({
 - Implementa retry logic per chiamate API
 - Fallback graceful quando un LLM non è disponibile
 - Logging strutturato per debugging
+- **Auto-correzione intelligente degli errori MCP:** Quando un tool call MCP fallisce, il sistema:
+  1. Passa l'errore all'LLM insieme al contesto MCP disponibile
+  2. L'LLM analizza l'errore e genera argomenti corretti
+  3. Retry automatico fino a 2 tentativi
+  4. Se fallisce, mostra messaggio generico nella lingua dell'utente
 
 ### 3. **Performance**
 - Implementa streaming per risposte lunghe

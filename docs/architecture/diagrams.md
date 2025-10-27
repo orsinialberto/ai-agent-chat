@@ -12,6 +12,7 @@ This document contains the architecture diagrams for the AI Agent Chat project, 
 6. [Database Schema](#6-database-schema)
 7. [Deployment](#7-deployment)
 8. [MCP Integration Flow](#8-mcp-integration-flow)
+9. [MCP Error Auto-Correction Flow](#9-mcp-error-auto-correction-flow)
 
 ---
 
@@ -312,6 +313,55 @@ flowchart TD
 ```
 
 **Description**: Detailed MCP integration flow, showing how the system decides when to use MCP tools and how it handles responses.
+
+---
+
+## 9. MCP Error Auto-Correction Flow
+
+```mermaid
+flowchart TD
+    START[User Sends Message] --> PROCESS[Process Message with MCP Context]
+    PROCESS --> GEMINI[Send to Gemini with Tools Context]
+    GEMINI --> PARSE{Parse Response}
+    
+    PARSE -->|Has Tool Call| EXECUTE[Execute MCP Tool]
+    PARSE -->|No Tool Call| DIRECT[Direct AI Response]
+    
+    EXECUTE --> SUCCESS{Success?}
+    
+    SUCCESS -->|Yes| RESULT[Get Tool Result]
+    SUCCESS -->|No| ERROR_ANALYSIS[Analyze Error Message]
+    
+    RESULT --> FINAL[Generate Final Response with LLM]
+    FINAL --> SAVE[Save AI Response]
+    DIRECT --> SAVE
+    SAVE --> RETURN[Return to User]
+    
+    ERROR_ANALYSIS --> CHECK_RETRY{Retry Count < 2?}
+    
+    CHECK_RETRY -->|Yes| LLM_CORRECTION[Pass Error to LLM for Analysis]
+    CHECK_RETRY -->|No| DETECT_LANG[Detect User Language]
+    
+    LLM_CORRECTION --> CORRECTION_PROMPT[Build Correction Prompt:<br/>Error message + MCP context + Available tools]
+    CORRECTION_PROMPT --> ASK_LLM[Ask LLM to Fix Arguments]
+    
+    ASK_LLM --> EXTRACT{Extract<br/>Corrected Tool Call?}
+    
+    EXTRACT -->|Success| FIXED_ARGS[Use Fixed Arguments]
+    EXTRACT -->|Failure| DETECT_LANG
+    
+    FIXED_ARGS --> RETRY[Retry with Corrected Arguments]
+    RETRY --> EXECUTE
+    
+    DETECT_LANG --> GENERIC_ERROR[Return Generic Error Message<br/>in User's Language]
+    GENERIC_ERROR --> RETURN
+    
+    style ERROR_ANALYSIS fill:#ffcccc
+    style LLM_CORRECTION fill:#ffffcc
+    style GENERIC_ERROR fill:#ffe6e6
+```
+
+**Description**: This diagram shows the intelligent error auto-correction flow when MCP tool calls fail. The system uses the LLM itself to analyze errors and automatically retry with corrected arguments, supporting up to 2 retry attempts before returning a user-friendly error message in the user's detected language.
 
 ---
 
