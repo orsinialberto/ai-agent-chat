@@ -1,24 +1,45 @@
-import { geminiService } from '../services/geminiService';
-import { Message, MessageRole } from '../../shared/types';
+import { GeminiService } from '../services/geminiService';
+import { Message, MessageRole } from '../../../shared/types';
 
 describe('Gemini Service Integration', () => {
   // Mock environment variables for testing
+  let consoleErrorSpy: jest.SpyInstance;
+
   beforeAll(() => {
     process.env.GEMINI_API_KEY = 'test-api-key';
+    // Silenzia console.error durante i test
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterAll(() => {
     delete process.env.GEMINI_API_KEY;
+    consoleErrorSpy.mockRestore();
   });
 
   describe('Service Initialization', () => {
-    it('should initialize with API key', () => {
-      expect(() => new geminiService()).toBeDefined();
+    it('should create service instance', () => {
+      const service = new GeminiService();
+      expect(service).toBeDefined();
     });
 
-    it('should throw error without API key', () => {
+    it('should throw error without API key when sending message', async () => {
+      const service = new GeminiService();
       delete process.env.GEMINI_API_KEY;
-      expect(() => new geminiService()).toThrow('GEMINI_API_KEY environment variable is required');
+      
+      const messages: Message[] = [{
+        id: '1',
+        chatId: 'test',
+        role: MessageRole.USER,
+        content: 'Test',
+        createdAt: new Date()
+      }];
+
+      await expect(service.sendMessage(messages)).rejects.toThrow(
+        'GEMINI_API_KEY environment variable is required'
+      );
+      
+      // Restore for other tests
+      process.env.GEMINI_API_KEY = 'test-api-key';
     });
   });
 

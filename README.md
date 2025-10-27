@@ -118,6 +118,22 @@ docker-compose up -d
    - Username: `postgres`
    - Password: `postgres`
 
+## Testing
+
+### Backend Tests
+```bash
+cd backend
+npm test
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm test
+```
+
+For more information on testing, see [Testing Documentation](./docs/development/testing/README.md).
+
 ## Development Status
 
 - ✅ **Phase 1**: Gemini Integration - Complete

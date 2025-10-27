@@ -161,15 +161,23 @@ describe('useSidebar', () => {
     expect(result.current.chats).not.toContain(chatToDelete);
   });
 
-  it('should clear error', () => {
-    const { result } = renderHook(() => useSidebar());
-
-    act(() => {
-      result.current.error = 'Some error';
+  it('should clear error', async () => {
+    // First, create an error by making a failed API call
+    mockApiService.getChats.mockResolvedValueOnce({
+      success: false,
+      error: 'Test error'
     });
 
-    expect(result.current.error).toBe('Some error');
+    const { result } = renderHook(() => useSidebar());
 
+    // Wait for the error to be set
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    expect(result.current.error).toBe('Test error');
+
+    // Now clear the error
     act(() => {
       result.current.clearError();
     });

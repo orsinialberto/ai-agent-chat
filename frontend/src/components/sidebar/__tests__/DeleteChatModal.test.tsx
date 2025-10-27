@@ -34,8 +34,12 @@ describe('DeleteChatModal', () => {
     );
 
     expect(screen.getByText('Delete Chat')).toBeInTheDocument();
-    expect(screen.getByText('Are you sure you want to delete "Test Chat"?')).toBeInTheDocument();
-    expect(screen.getByText('This action cannot be undone and will permanently remove all messages in this chat.')).toBeInTheDocument();
+    expect(screen.getByText('Are you sure you want to delete', { exact: false })).toBeInTheDocument();
+    // Check the strong element contains the chat title
+    const modalContent = screen.getByText('This action cannot be undone', { exact: false });
+    expect(modalContent).toBeInTheDocument();
+    // The title appears inside the modal
+    expect(screen.getAllByText('Test Chat', { exact: false }).length).toBeGreaterThan(0);
   });
 
   it('should call onCancel when Cancel button is clicked', () => {
@@ -82,8 +86,10 @@ describe('DeleteChatModal', () => {
       />
     );
 
-    const backdrop = screen.getByRole('button', { hidden: true }); // The backdrop div
-    fireEvent.click(backdrop);
+    const backdrop = document.querySelector('.absolute.inset-0.bg-black'); // The backdrop div
+    if (backdrop) {
+      fireEvent.click(backdrop);
+    }
 
     expect(mockOnCancel).toHaveBeenCalledTimes(1);
     expect(mockOnConfirm).not.toHaveBeenCalled();
@@ -143,6 +149,8 @@ describe('DeleteChatModal', () => {
       />
     );
 
-    expect(screen.getByText('Are you sure you want to delete "My Special Chat"?')).toBeInTheDocument();
+    expect(screen.getByText('Are you sure you want to delete', { exact: false })).toBeInTheDocument();
+    // The title appears inside the modal
+    expect(screen.getAllByText('My Special Chat', { exact: false }).length).toBeGreaterThan(0);
   });
 });

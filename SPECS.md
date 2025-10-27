@@ -145,13 +145,13 @@ app.use(cors({
 
 ## 🚀 Roadmap di Sviluppo
 
-### Setup Base
+### Setup Base ✅
 - [x] Configurazione ambiente di sviluppo
 - [x] Setup database PostgreSQL + Prisma
 - [x] Struttura base backend Express
 - [x] Struttura base frontend React
 
-### Fase 1 - Gemini
+### Fase 1 - Gemini ✅
 - [x] Integrazione Gemini API
 - [x] Implementazione chat persistente
 - [x] Interfaccia utente base
@@ -164,7 +164,7 @@ app.use(cors({
 - [x] Design responsive
 - [x] Test integrazione sidebar
 
-### Fase 2 - MCP
+### Fase 2 - MCP ✅
 - [x] Implementazione MCP client
 - [x] Estensione agent con tools
 - [x] Gestione dinamica funzionalità
@@ -205,17 +205,20 @@ app.use(cors({
 - [ ] Text box chat con supporto wrap automatico
 - [ ] Modifica titolo chat con doppio click (rimuovere bottone)
 
-### Fase 5 - Testing Strategy
-- [ ] Setup Jest per test unitari backend
-- [ ] Setup Playwright per test E2E
-- [ ] Test coverage per servizi core
-- [ ] Test automatizzati CI/CD
-- [ ] Performance testing
+### Fase 5 - Testing Strategy 
+- [x] Setup Jest per test unitari backend
+- [x] Setup Vitest per test frontend (React Testing Library)
+- [x] Test coverage per servizi core (Gemini service, E2E API)
+- [x] Test unitari backend (Gemini integration)
+- [x] Test E2E backend (Health checks, Chat management, Database)
+- [x] Test componenti React (Sidebar, ChatItem, DeleteChatModal, MarkdownRenderer)
+- [x] Test custom hooks (useSidebar)
+- [ ] Setup Playwright per test E2E browser
 
 ### Fase 6 - Markdown Rendering Fix ✅
-- [] Correggere il rendering del markdown nei messaggi
-- [] Testare il rendering di elementi complessi (code blocks, tabelle, liste)
-- [] Verificare la compatibilità con diversi tipi di contenuto AI
+- [x] Correggere il rendering del markdown nei messaggi
+- [x] Testare il rendering di elementi complessi (code blocks, tabelle, liste)
+- [x] Verificare la compatibilità con diversi tipi di contenuto AI
 
 ### Fase 7 - Multi-LLM
 - [ ] Architettura modulare LLM
@@ -224,9 +227,9 @@ app.use(cors({
 - [ ] Configurazione dinamica
 
 ### Fase 8 - Autenticazione Oauth
-- [] Autenticazione Oauth per accesso alla chat
-- [] Set apikey Gemini alla creazione dell'utente
-- [] UI configurazione mcp server + oauth
+- [ ] Autenticazione Oauth per accesso alla chat
+- [ ] Set apikey Gemini alla creazione dell'utente
+- [ ] UI configurazione mcp server + oauth
 
 ## 🎨 Chat Sidebar - Specifiche Tecniche
 
