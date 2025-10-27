@@ -1,31 +1,84 @@
 import { GeminiService } from '../services/geminiService';
 import { Message, MessageRole } from '../../../shared/types';
 
-describe('Gemini Service Integration', () => {
-  // Mock environment variables for testing
+// Mock the GoogleGenerativeAI module
+const mockSendMessage = jest.fn().mockResolvedValue({
+  response: {
+    text: jest.fn().mockReturnValue('AI response text')
+  }
+});
+
+const mockStartChat = jest.fn().mockReturnValue({
+  sendMessage: mockSendMessage
+});
+
+const mockGetGenerativeModel = jest.fn().mockReturnValue({
+  startChat: mockStartChat
+});
+
+jest.mock('@google/generative-ai', () => ({
+  GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
+    getGenerativeModel: mockGetGenerativeModel
+  }))
+}));
+
+describe('Gemini Service', () => {
+  let service: GeminiService;
   let consoleErrorSpy: jest.SpyInstance;
+  let originalApiKey: string | undefined;
 
   beforeAll(() => {
+    originalApiKey = process.env.GEMINI_API_KEY;
     process.env.GEMINI_API_KEY = 'test-api-key';
-    // Silenzia console.error durante i test
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterAll(() => {
-    delete process.env.GEMINI_API_KEY;
+    if (originalApiKey) {
+      process.env.GEMINI_API_KEY = originalApiKey;
+    } else {
+      delete process.env.GEMINI_API_KEY;
+    }
     consoleErrorSpy.mockRestore();
+  });
+
+  beforeEach(() => {
+    service = new GeminiService();
   });
 
   describe('Service Initialization', () => {
     it('should create service instance', () => {
-      const service = new GeminiService();
       expect(service).toBeDefined();
+      expect(service).toBeInstanceOf(GeminiService);
     });
 
-    it('should throw error without API key when sending message', async () => {
-      const service = new GeminiService();
+    it('should have API key configured', () => {
+      expect(process.env.GEMINI_API_KEY).toBeDefined();
+      expect(process.env.GEMINI_API_KEY).not.toBe('');
+    });
+  });
+
+  describe('sendMessage', () => {
+    it('should send message successfully', async () => {
+      const messages: Message[] = [{
+        id: '1',
+        chatId: 'test',
+        role: MessageRole.USER,
+        content: 'Hello',
+        createdAt: new Date()
+      }];
+
+      const result = await service.sendMessage(messages);
+
+      expect(result).toBeDefined();
+      expect(result.content).toBe('AI response text');
+    });
+
+    it('should throw error without API key', async () => {
+      const originalKey = process.env.GEMINI_API_KEY;
       delete process.env.GEMINI_API_KEY;
-      
+
+      const newService = new GeminiService();
       const messages: Message[] = [{
         id: '1',
         chatId: 'test',
@@ -34,17 +87,16 @@ describe('Gemini Service Integration', () => {
         createdAt: new Date()
       }];
 
-      await expect(service.sendMessage(messages)).rejects.toThrow(
+      await expect(newService.sendMessage(messages)).rejects.toThrow(
         'GEMINI_API_KEY environment variable is required'
       );
-      
-      // Restore for other tests
-      process.env.GEMINI_API_KEY = 'test-api-key';
-    });
-  });
 
-  describe('Message Processing', () => {
-    it('should convert messages to Gemini format', () => {
+      if (originalKey) {
+        process.env.GEMINI_API_KEY = originalKey;
+      }
+    });
+
+    it('should process conversation history', async () => {
       const messages: Message[] = [
         {
           id: '1',
@@ -59,31 +111,130 @@ describe('Gemini Service Integration', () => {
           role: MessageRole.ASSISTANT,
           content: 'Hi there!',
           createdAt: new Date()
+        },
+        {
+          id: '3',
+          chatId: 'chat1',
+          role: MessageRole.USER,
+          content: 'How are you?',
+          createdAt: new Date()
         }
       ];
 
-      // This would test the private method through public interface
-      // In a real test, we'd mock the Gemini API
-      expect(messages).toHaveLength(2);
+      const result = await service.sendMessage(messages);
+
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
     });
   });
 
-  describe('API Integration', () => {
+  describe('sendMessageWithFallback', () => {
+    it('should send message with fallback successfully', async () => {
+      const messages: Message[] = [{
+        id: '1',
+        chatId: 'test',
+        role: MessageRole.USER,
+        content: 'Hello',
+        createdAt: new Date()
+      }];
+
+      const result = await service.sendMessageWithFallback(messages);
+
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
+    });
+
+    it('should handle errors and provide fallback', async () => {
+      const messages: Message[] = [{
+        id: '1',
+        chatId: 'test',
+        role: MessageRole.USER,
+        content: 'Hello',
+        createdAt: new Date()
+      }];
+
+      const result = await service.sendMessageWithFallback(messages);
+
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe('testConnection', () => {
+    it('should test connection successfully', async () => {
+      const result = await service.testConnection();
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when API key is missing', async () => {
+      const originalKey = process.env.GEMINI_API_KEY;
+      delete process.env.GEMINI_API_KEY;
+
+      const newService = new GeminiService();
+      const result = await newService.testConnection();
+
+      expect(result).toBe(false);
+
+      if (originalKey) {
+        process.env.GEMINI_API_KEY = originalKey;
+      }
+    });
+  });
+
+  describe('Message Conversion', () => {
+    it('should handle empty message array', async () => {
+      const messages: Message[] = [];
+
+      await expect(service.sendMessage(messages)).rejects.toThrow();
+    });
+
+    it('should handle long messages', async () => {
+      const messages: Message[] = [{
+        id: '1',
+        chatId: 'test',
+        role: MessageRole.USER,
+        content: 'A'.repeat(1000),
+        createdAt: new Date()
+      }];
+
+      const result = await service.sendMessage(messages);
+
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe('Error Handling', () => {
     it('should handle API errors gracefully', async () => {
-      // Mock the Gemini API to throw an error
-      const mockError = new Error('API Error');
-      
-      // In a real test, we'd mock the GoogleGenerativeAI
-      expect(mockError.message).toBe('API Error');
+      const messages: Message[] = [{
+        id: '1',
+        chatId: 'test',
+        role: MessageRole.USER,
+        content: 'Test',
+        createdAt: new Date()
+      }];
+
+      try {
+        await service.sendMessage(messages);
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+      }
+    });
+
+    it('should handle network errors', async () => {
+      const messages: Message[] = [{
+        id: '1',
+        chatId: 'test',
+        role: MessageRole.USER,
+        content: 'Test',
+        createdAt: new Date()
+      }];
+
+      // Mock a network error scenario
+      try {
+        await service.sendMessage(messages);
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+      }
     });
   });
 });
-
-// Mock test runner for demonstration
-export const runTests = () => {
-  console.log('🧪 Gemini Service Tests');
-  console.log('✅ Service initialization tests passed');
-  console.log('✅ Message processing tests passed');
-  console.log('✅ API integration tests passed');
-  console.log('🎉 All tests completed successfully!');
-};

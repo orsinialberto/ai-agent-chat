@@ -134,26 +134,6 @@ npm test
 
 For more information on testing, see [Testing Documentation](./docs/development/testing/README.md).
 
-## Development Status
-
-- ✅ **Phase 1**: Gemini Integration - Complete
-- ✅ **Phase 1.5**: Chat Sidebar - Complete  
-- ✅ **Phase 2**: MCP Integration - Complete
-- ⏳ **Phase 3**: Multi-LLM Support - Planned
-
-## Quick Commands
-
-```bash
-# Backend
-cd backend && npm run dev
-
-# Frontend  
-cd frontend && npm run dev
-
-# Database
-docker-compose up -d
-```
-
 ## API Examples
 
 ```bash

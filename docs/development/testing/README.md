@@ -40,10 +40,16 @@ cd frontend && npm test -- --watch
 
 ### Backend (Jest)
 - **Framework**: Jest + ts-jest
-- **Test files**: 2
-  - `gemini.test.ts` - Unit tests
+- **Test files**: 8
+  - `gemini.test.ts` - Gemini service tests
   - `e2e.test.ts` - E2E tests
-- **Test cases**: ~12
+  - `controllers/chatController.test.ts` - Chat controller tests
+  - `controllers/healthController.test.ts` - Health controller tests
+  - `middleware/errorHandler.test.ts` - Error handler tests
+  - `middleware/logger.test.ts` - Request logger tests
+  - `services/mcpClient.test.ts` - MCP client tests
+  - `services/mcpContextService.test.ts` - MCP context tests
+- **Test cases**: ~50+
 - **Coverage**: In development
 
 ### Frontend (Vitest)
@@ -67,10 +73,19 @@ cd frontend && npm test -- --watch
 ```
 backend/
   src/
-    test/          # Test files
-      gemini.test.ts
-      e2e.test.ts
-      setup.ts     # Jest setup
+    test/              # Test files
+      controllers/     # Controller tests
+        chatController.test.ts
+        healthController.test.ts
+      middleware/      # Middleware tests
+        errorHandler.test.ts
+        logger.test.ts
+      services/        # Service tests
+        mcpClient.test.ts
+        mcpContextService.test.ts
+      gemini.test.ts   # Gemini service tests
+      e2e.test.ts      # E2E tests
+      setup.ts         # Jest setup
 
 frontend/
   src/
@@ -113,11 +128,10 @@ export default defineConfig({
 ## 📈 Testing Roadmap
 
 ### Backend
-- [ ] Add tests for all controllers
-- [ ] Add tests for middleware
-- [ ] Add tests for MCP services
-- [ ] Improve Gemini tests with proper mocking
-- [ ] Add database integration tests
+- [x] Add tests for all controllers
+- [x] Add tests for middleware
+- [x] Add tests for MCP services
+- [x] Improve Gemini tests with proper mocking
 
 ### Frontend
 - [ ] Add tests for ChatInterface

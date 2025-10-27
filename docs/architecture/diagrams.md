@@ -365,33 +365,6 @@ flowchart TD
 
 ---
 
-## 🔧 Technologies Used
-
-### Frontend
-- **React 18** - Framework UI
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **React Query** - State management
-
-### Backend
-- **Node.js** - Runtime
-- **Express.js** - Web framework
-- **TypeScript** - Type safety
-- **Prisma** - ORM
-- **PostgreSQL** - Database
-
-### Integrations
-- **Google Gemini API** - LLM Provider
-- **MCP (Model Context Protocol)** - External Tools
-- **Docker Compose** - Development Environment
-
-### Database
-- **PostgreSQL 15** - Primary database
-- **pgAdmin** - Database management UI
-
----
-
 ## 📚 Related Documentation
 
 - [Technical Specifications](../SPECS.md) - Project technical details
