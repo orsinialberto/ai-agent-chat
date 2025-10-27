@@ -1,5 +1,5 @@
-import { PrismaClient, Chat, Message, MessageRole } from '@prisma/client';
-import { Chat as SharedChat, Message as SharedMessage } from '../types/shared';
+import { PrismaClient, Chat, Message, MessageRole as PrismaMessageRole } from '@prisma/client';
+import { Chat as SharedChat, Message as SharedMessage, MessageRole } from '../types/shared';
 
 const prisma = new PrismaClient();
 
@@ -66,10 +66,20 @@ export class DatabaseService {
    * Add a message to a chat
    */
   async addMessage(chatId: string, role: MessageRole, content: string, metadata?: any): Promise<SharedMessage> {
+    // Convert shared MessageRole to Prisma MessageRole
+    let prismaRole: PrismaMessageRole;
+    if (role === MessageRole.USER) {
+      prismaRole = PrismaMessageRole.user;
+    } else if (role === MessageRole.ASSISTANT) {
+      prismaRole = PrismaMessageRole.assistant;
+    } else {
+      prismaRole = PrismaMessageRole.system;
+    }
+
     const message = await prisma.message.create({
       data: {
         chatId,
-        role,
+        role: prismaRole,
         content,
         metadata
       }
@@ -132,10 +142,20 @@ export class DatabaseService {
    * Map Prisma Message to Shared Message
    */
   private mapMessageToShared(message: Message): SharedMessage {
+    // Convert Prisma MessageRole to shared MessageRole
+    let role: MessageRole;
+    if (message.role === PrismaMessageRole.user) {
+      role = MessageRole.USER;
+    } else if (message.role === PrismaMessageRole.assistant) {
+      role = MessageRole.ASSISTANT;
+    } else {
+      role = MessageRole.SYSTEM;
+    }
+
     return {
       id: message.id,
       chatId: message.chatId,
-      role: message.role as 'user' | 'assistant' | 'system',
+      role,
       content: message.content,
       metadata: message.metadata as Record<string, any> | undefined,
       createdAt: message.createdAt

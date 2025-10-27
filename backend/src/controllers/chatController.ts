@@ -84,11 +84,10 @@ export class ChatController {
           // Get updated chat with messages
           const updatedChat = await databaseService.getChat(chat.id);
           if (updatedChat) {
-            res.status(201).json({
+            return res.status(201).json({
               success: true,
               data: updatedChat
             });
-            return;
           }
         } catch (error) {
           console.error('Error getting AI response:', error);
@@ -96,13 +95,13 @@ export class ChatController {
         }
       }
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         data: chat
       });
     } catch (error) {
       console.error('Error creating chat:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to create chat'
       });
@@ -159,20 +158,20 @@ export class ChatController {
           aiResponse.content
         );
 
-        res.json({
+        return res.json({
           success: true,
           data: assistantMessage
         });
       } catch (error) {
         console.error('Error getting AI response:', error);
-        res.status(500).json({
+        return res.status(500).json({
           success: false,
           error: 'Failed to get AI response'
         });
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to send message'
       });
@@ -185,13 +184,13 @@ export class ChatController {
   async getChats(req: Request, res: Response<ApiResponse<Chat[]>>) {
     try {
       const chats = await databaseService.getChats();
-      res.json({
+      return res.json({
         success: true,
         data: chats
       });
     } catch (error) {
       console.error('Error getting chats:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to get chats'
       });
@@ -213,13 +212,13 @@ export class ChatController {
         });
       }
 
-      res.json({
+      return res.json({
         success: true,
         data: chat
       });
     } catch (error) {
       console.error('Error getting chat:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to get chat'
       });
@@ -233,14 +232,14 @@ export class ChatController {
     try {
       const isConnected = await geminiService.testConnection();
       
-      res.json({
+      return res.json({
         success: isConnected,
         message: isConnected ? 'Gemini API connection successful' : 'Gemini API connection failed',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error testing connection:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to test connection'
       });
@@ -283,13 +282,13 @@ export class ChatController {
         });
       }
 
-      res.json({
+      return res.json({
         success: true,
         data: updatedChat
       });
     } catch (error) {
       console.error('Error updating chat:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to update chat'
       });
@@ -315,13 +314,13 @@ export class ChatController {
       // Delete chat
       await databaseService.deleteChat(chatId);
 
-      res.json({
+      return res.json({
         success: true,
         data: { message: 'Chat deleted successfully' }
       });
     } catch (error) {
       console.error('Error deleting chat:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to delete chat'
       });
@@ -335,14 +334,14 @@ export class ChatController {
     try {
       const isConnected = await databaseService.testConnection();
       
-      res.json({
+      return res.json({
         success: isConnected,
         message: isConnected ? 'Database connection successful' : 'Database connection failed',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error testing database connection:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to test database connection'
       });
@@ -631,14 +630,14 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
 
       const status = await this.mcpContextService.getMCPStatus();
       
-      res.json({
+      return res.json({
         success: true,
         data: status,
         mcpEnabled: this.mcpEnabled
       });
     } catch (error) {
       console.error('Error getting MCP status:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to get MCP status'
       });
@@ -661,7 +660,7 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
       // Test with fallback
       const response = await geminiService.sendMessageWithFallback([testMessage]);
       
-      res.json({
+      return res.json({
         success: true,
         message: 'Gemini error handling test completed',
         response: response.content,
@@ -669,7 +668,7 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
       });
     } catch (error) {
       console.error('Error testing Gemini error handling:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Failed to test Gemini error handling'
       });

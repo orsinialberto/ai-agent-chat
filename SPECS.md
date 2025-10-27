@@ -178,7 +178,7 @@ app.use(cors({
 - [ ] Test con strutture JSON deep
 
 ### Fase 3.5 - Ottimizzazioni e Fix Tecnici
-- [ ] Fix errori build backend (npm run build)
+- [x] Fix errori build backend (npm run build)
 - [ ] Fix errori build frontend (npm run build)
 - [ ] Implementare cache per MCP tool/list
   - [ ] Valutare best practice per caching tools disponibili
