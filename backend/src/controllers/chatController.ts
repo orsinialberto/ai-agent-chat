@@ -397,19 +397,61 @@ Respond with either:
 
   /**
    * Extract tool calls from LLM response
+   * Uses brace counting to handle nested JSON structures
    */
   private extractToolCalls(response: string): Array<{toolName: string, arguments: any}> {
-    const toolCallRegex = /TOOL_CALL:(\w+):({.*?})/g;
     const toolCalls: Array<{toolName: string, arguments: any}> = [];
     
+    // Find all TOOL_CALL markers
+    const toolCallMarkerRegex = /TOOL_CALL:(\w+):/g;
     let match;
-    while ((match = toolCallRegex.exec(response)) !== null) {
+    
+    while ((match = toolCallMarkerRegex.exec(response)) !== null) {
+      const startIndex = match.index;
+      const toolName = match[1];
+      
+      // Find the opening brace after the colon
+      const colonIndex = match.index + match[0].length;
+      let jsonStart = colonIndex;
+      
+      // Skip whitespace
+      while (jsonStart < response.length && /\s/.test(response[jsonStart])) {
+        jsonStart++;
+      }
+      
+      if (jsonStart >= response.length || response[jsonStart] !== '{') {
+        console.error('Failed to parse tool call: no opening brace found');
+        continue;
+      }
+      
+      // Find matching closing brace by counting nested braces
+      let braceCount = 0;
+      let jsonEnd = jsonStart;
+      
+      for (let i = jsonStart; i < response.length; i++) {
+        if (response[i] === '{') {
+          braceCount++;
+        } else if (response[i] === '}') {
+          braceCount--;
+          if (braceCount === 0) {
+            jsonEnd = i;
+            break;
+          }
+        }
+      }
+      
+      if (braceCount !== 0) {
+        console.error('Failed to parse tool call: unmatched braces');
+        continue;
+      }
+      
       try {
-        const toolName = match[1];
-        const args = JSON.parse(match[2]);
+        const jsonStr = response.substring(jsonStart, jsonEnd + 1);
+        const args = JSON.parse(jsonStr);
         toolCalls.push({ toolName, arguments: args });
       } catch (error) {
-        console.error('Failed to parse tool call:', match[0]);
+        console.error('Failed to parse tool call:', response.substring(startIndex, jsonEnd + 1));
+        console.error('Parse error:', error);
       }
     }
     

@@ -44,26 +44,34 @@ export class MCPClient {
     };
 
     console.log(`🔧 Calling MCP tool: ${toolName}`, args);
+    console.log(`📤 MCP Request (JSON-RPC):`, JSON.stringify(requestBody, null, 2));
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
       const response = await fetch(this.config.baseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-        timeout: this.config.timeout
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data: MCPResponse = await response.json() as MCPResponse;
+      console.log(`📥 MCP Response (JSON-RPC):`, JSON.stringify(data, null, 2));
       
       if (data.error) {
         throw new Error(`MCP Error: ${data.error.message}`);
       }
 
       if (!data.result || !data.result.content || data.result.content.length === 0) {
+        console.error('❌ Invalid response structure. Full response:', JSON.stringify(data, null, 2));
         throw new Error('Invalid MCP response structure');
       }
 
@@ -85,15 +93,23 @@ export class MCPClient {
       params: {}
     };
 
+    console.log('📤 MCP Request (JSON-RPC) - tools/list:', JSON.stringify(requestBody, null, 2));
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
       const response = await fetch(this.config.baseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-        timeout: this.config.timeout
+        signal: controller.signal
       });
 
-      const data = await response.json();
+      clearTimeout(timeoutId);
+
+      const data = await response.json() as any;
+      console.log('📥 MCP Response (JSON-RPC) - tools/list:', JSON.stringify(data, null, 2));
       
       if (data.error) {
         throw new Error(`MCP Error: ${data.error.message}`);
@@ -118,14 +134,22 @@ export class MCPClient {
         params: {}
       };
 
+      console.log('📤 MCP Request (JSON-RPC) - initialize:', JSON.stringify(requestBody, null, 2));
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
       const response = await fetch(this.config.baseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-        timeout: this.config.timeout
+        signal: controller.signal
       });
 
-      const data = await response.json();
+      clearTimeout(timeoutId);
+
+      const data = await response.json() as any;
+      console.log('📥 MCP Response (JSON-RPC) - initialize:', JSON.stringify(data, null, 2));
       
       if (data.error) {
         throw new Error(`MCP Error: ${data.error.message}`);
@@ -144,10 +168,15 @@ export class MCPClient {
    */
   async healthCheck(): Promise<boolean> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch(`${this.config.baseUrl}/actuator/health`, {
         method: 'GET',
-        timeout: 5000
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
       
       return response.ok;
     } catch (error) {
@@ -161,10 +190,15 @@ export class MCPClient {
    */
   async getServerInfo(): Promise<any> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch(this.config.baseUrl, {
         method: 'GET',
-        timeout: 5000
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         return await response.json();

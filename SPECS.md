@@ -188,6 +188,13 @@ app.use(cors({
 - [x] Gestione dinamica funzionalità
 - [x] Testing MCP integration
 
+### Settimana 7.2: MCP Tool Call Parser Fix ✅
+- [x] Fix parsing tool calls con JSON annidati (brace counting)
+- [x] Gestione strutture JSON complesse in tool call arguments
+- [ ] Migrazione a @modelcontextprotocol/sdk per parsing robusto
+- [ ] Implementazione gestione errori migliorata
+- [ ] Test con strutture JSON deep
+
 ### Settimana 7.5: Sistema di Prompting Intelligente + lettura swagger
  - [] Aggiunta prompt per creazione segmento semplice
  - [] Aggiunta prompt per creazione segmento combinato

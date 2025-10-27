@@ -84,7 +84,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) =
               <div className={`max-w-[70%] px-4 py-2 rounded-lg break-words ${
                 message.role === 'user' 
                   ? 'bg-sky-200/60 text-sky-800' 
-                  : 'bg-gray-50 text-gray-600'
+                  : 'bg-gray-100 text-gray-700'
               }`}>
                 {message.role === 'assistant' ? (
                   <MarkdownRenderer 
