@@ -90,3 +90,34 @@ ai-agent-chat/
 - **Updated documentation**: Always keep documentation synchronized
 - **Continuous testing**: Verify everything works before proceeding
 
+## 💡 Tips and Best Practices
+
+### 1. **Modularity**
+- Implement a plugin architecture for LLM providers
+- Use dependency injection for services
+- Keep layers separated (presentation, business, data)
+
+### 2. **Error Handling**
+- Implement retry logic for API calls
+- Graceful fallback when an LLM is unavailable
+- Structured logging for debugging
+- **Smart MCP error auto-correction:** When an MCP tool call fails, the system:
+  1. Passes the error to the LLM along with the available MCP context
+  2. The LLM analyzes the error and generates correct arguments
+  3. Automatic retry up to 2 attempts
+  4. If it fails, shows a generic message in the user's language
+
+### 3. **Performance**
+- Implement streaming for long responses
+- Cache LLM configurations
+- Pagination for historical messages
+
+### 4. **User Experience**
+- Loading indicators for AI responses
+- Ability to cancel requests in progress
+- Auto-save draft messages
+
+### 5. **Testing**
+- Unit tests for core services
+- Integration tests for API endpoints
+- E2E tests for complete chat flows

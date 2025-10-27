@@ -4,24 +4,6 @@
 
 Un sistema di chat interattivo con AI Agent che supporta multiple fasi di sviluppo, diversi LLM e integrazione MCP (Model Context Protocol).
 
-## 📋 Fasi di Sviluppo
-
-### **Fase 1: Gemini Integration**
-- Frontend React con interfaccia chat
-- Backend Node.js con API REST
-- Database PostgreSQL per persistenza chat
-- Integrazione diretta con Gemini API
-
-### **Fase 2: MCP Server Integration**
-- Connessione al server MCP (stdio o HTTP)
-- Estensione dell'agent per utilizzare tools MCP
-- Gestione dinamica delle funzionalità disponibili
-
-### **Fase 3: Multi-LLM Support**
-- Sistema modulare per diversi provider LLM
-- Interfaccia per selezione LLM in tempo reale
-- Gestione unificata delle diverse API
-
 ## 🏗️ Architettura Tecnica
 
 > 📊 **Diagrammi di Architettura**: Per una rappresentazione visuale completa dell'architettura del sistema, consulta [Architecture Diagrams](./docs/architecture/diagrams.md).
@@ -163,115 +145,88 @@ app.use(cors({
 
 ## 🚀 Roadmap di Sviluppo
 
-### Settimana 1-2: Setup Base
+### Setup Base
 - [x] Configurazione ambiente di sviluppo
 - [x] Setup database PostgreSQL + Prisma
 - [x] Struttura base backend Express
 - [x] Struttura base frontend React
 
-### Settimana 3-4: Fase 1 - Gemini
+### Fase 1 - Gemini
 - [x] Integrazione Gemini API
 - [x] Implementazione chat persistente
 - [x] Interfaccia utente base
 - [x] Test end-to-end
 
-### Settimana 5: Fase 1.5 - Chat Sidebar ✅
+### Fase 1.5 - Chat Sidebar ✅
 - [x] Sidebar component con lista chat
 - [x] Navigazione tra chat esistenti
 - [x] Gestione chat (crea/elimina)
 - [x] Design responsive
 - [x] Test integrazione sidebar
 
-### Settimana 6-7: Fase 2 - MCP
+### Fase 2 - MCP
 - [x] Implementazione MCP client
 - [x] Estensione agent con tools
 - [x] Gestione dinamica funzionalità
 - [x] Testing MCP integration
 
-### Settimana 7.2: MCP Tool Call Parser Fix ✅
+### Fase 3 - MCP Tool Call Parser Fix ✅
 - [x] Fix parsing tool calls con JSON annidati (brace counting)
 - [x] Gestione strutture JSON complesse in tool call arguments
-- [ ] Migrazione a @modelcontextprotocol/sdk per parsing robusto
 - [x] Implementazione gestione errori migliorata con auto-correzione LLM
+- [ ] Migrazione a @modelcontextprotocol/sdk per parsing robusto
 - [ ] Test con strutture JSON deep
 
-**Gestione Errori Inteligente (Implementata):**
-- ✅ Sistema di auto-correzione generico per errori MCP tool calls
-- ✅ LLM analizza automaticamente gli errori e corregge gli argomenti
-- ✅ Retry automatico fino a 2 tentativi con argomenti corretti
-- ✅ Rilevamento lingua utente per messaggi errore personalizzati
-- ✅ Messaggi di errore generici in lingua dell'utente quando il retry fallisce
+### Fase 3.5 - Ottimizzazioni e Fix Tecnici
+- [ ] Fix errori build backend (npm run build)
+- [ ] Fix errori build frontend (npm run build)
+- [ ] Implementare cache per MCP tool/list
+  - [ ] Valutare best practice per caching tools disponibili
+  - [ ] Implementare sistema cache con TTL
+  - [ ] Gestire refresh automatico cache
+- [ ] Slegare prompt MCP dal backend
+  - [ ] Valutare approccio: esterno vs server MCP endpoint
+  - [ ] Implementare caricamento dinamico prompt
+  - [ ] Definire best practice architetturale
+- [ ] Cleanup log e debug MCP
+  - [ ] Rimuovere/movare a debug i log verbose
+  - [ ] Mantenere solo log essenziali
+- [ ] Verificare troncamento risposte MCP su liste lunghe
+  - [ ] Test con liste estese (tenant, etc.)
+  - [ ] Implementare paginazione se necessario
 
-### Settimana 7.5: Sistema di Prompting Intelligente + lettura swagger
- - [] Aggiunta prompt per creazione segmento semplice
- - [] Aggiunta prompt per creazione segmento combinato
- - [] Aggiunta prompt dinamici
+### Fase 4 - Sistema di Prompting Intelligente + lettura swagger
+- [ ] Aggiunta prompt per creazione segmento semplice
+- [ ] Aggiunta prompt per creazione segmento eventi
+- [ ] Aggiunta prompt per creazione segmento combinato (contatti + eventi)
+- [ ] Aggiunta prompt dinamici
 
-### Settimana 7-8: Testing Strategy
+### Fase 4.5 - Miglioramenti UX
+- [ ] Text box chat con supporto wrap automatico
+- [ ] Modifica titolo chat con doppio click (rimuovere bottone)
+
+### Fase 5 - Testing Strategy
 - [ ] Setup Jest per test unitari backend
 - [ ] Setup Playwright per test E2E
 - [ ] Test coverage per servizi core
 - [ ] Test automatizzati CI/CD
 - [ ] Performance testing
 
-### Settimana 5.6: Markdown Rendering Fix ✅
-- [x] Correggere il rendering del markdown nei messaggi
-- [x] Implementare una libreria dedicata per il rendering markdown
-- [x] Testare il rendering di elementi complessi (code blocks, tabelle, liste)
-- [x] Verificare la compatibilità con diversi tipi di contenuto AI
+### Fase 6 - Markdown Rendering Fix ✅
+- [] Correggere il rendering del markdown nei messaggi
+- [] Testare il rendering di elementi complessi (code blocks, tabelle, liste)
+- [] Verificare la compatibilità con diversi tipi di contenuto AI
 
-**Implementazione completata:**
-- ✅ Sostituito parser regex personalizzato con `react-markdown`
-- ✅ Aggiunto supporto GitHub Flavored Markdown con `remark-gfm`
-- ✅ Implementato syntax highlighting con `react-syntax-highlighter`
-- ✅ Aggiunta sanitizzazione HTML automatica con `rehype-sanitize`
-- ✅ Supporto completo per tabelle, code blocks, liste, link, formattazione
-- ✅ CSS aggiornato con stili inline per compatibilità
-- ✅ Test suite completa per il nuovo componente
-- ✅ Risolti problemi CORS e rate limiting del backend
-
-### Settimana 8-9: Fase 3 - Multi-LLM
+### Fase 7 - Multi-LLM
 - [ ] Architettura modulare LLM
 - [ ] Implementazione provider multipli
 - [ ] UI per selezione LLM
 - [ ] Configurazione dinamica
 
-### Settimana 9-10: Fase 4 - Autenticazione Oauth
- - [] Autenticazione Oauth per accesso alla chat
- - [] Set apikey Gemini alla creazione dell'utente
- - [] UI configurazione mcp server + oauth
-
-## 💡 Suggerimenti e Best Practices
-
-### 1. **Modularità**
-- Implementa un'architettura a plugin per i provider LLM
-- Usa dependency injection per i servizi
-- Mantieni separati i layer (presentation, business, data)
-
-### 2. **Gestione Errori**
-- Implementa retry logic per chiamate API
-- Fallback graceful quando un LLM non è disponibile
-- Logging strutturato per debugging
-- **Auto-correzione intelligente degli errori MCP:** Quando un tool call MCP fallisce, il sistema:
-  1. Passa l'errore all'LLM insieme al contesto MCP disponibile
-  2. L'LLM analizza l'errore e genera argomenti corretti
-  3. Retry automatico fino a 2 tentativi
-  4. Se fallisce, mostra messaggio generico nella lingua dell'utente
-
-### 3. **Performance**
-- Implementa streaming per risposte lunghe
-- Cache delle configurazioni LLM
-- Paginazione per messaggi storici
-
-### 4. **User Experience**
-- Indicatori di caricamento per risposte AI
-- Possibilità di cancellare richieste in corso
-- Auto-save dei messaggi in bozza
-
-### 5. **Testing**
-- Unit test per servizi core
-- Integration test per API endpoints
-- E2E test per flussi chat completi
+### Fase 8 - Autenticazione Oauth
+- [] Autenticazione Oauth per accesso alla chat
+- [] Set apikey Gemini alla creazione dell'utente
+- [] UI configurazione mcp server + oauth
 
 ## 🎨 Chat Sidebar - Specifiche Tecniche
 
@@ -279,7 +234,7 @@ app.use(cors({
 ```
 frontend/src/components/
 ├── sidebar/
-│   ├── Sidebar.tsx           # Componente principale
+│   ├── Sidebar.tsx         # Componente principale
 │   ├── ChatList.tsx        # Lista chat
 │   ├── ChatItem.tsx        # Singolo elemento chat
 │   ├── NewChatButton.tsx   # Pulsante nuova chat
@@ -348,44 +303,6 @@ frontend/
 - **PR**: Full test suite + coverage
 - **Deploy**: E2E tests + performance
 - **Monitoring**: Test results dashboard
-
-## 🔍 Considerazioni Aggiuntive
-
-### **MCP Server Integration**
-Per la Fase 2, considera:
-- **Stdio vs HTTP**: Stdio è più performante per processi locali, HTTP per server remoti
-- **Gestione connessioni**: Implementa connection pooling e retry logic
-- **Tool discovery**: Cache dinamica dei tools disponibili
-
-### **Chat Sidebar Integration**
-Per la gestione delle chat:
-- **Performance**: Lazy loading per molte chat
-- **UX**: Transizioni fluide tra chat
-- **State Management**: Sincronizzazione sidebar-chat
-- **Mobile First**: Design responsive prioritario
-
-### **Testing Strategy Integration**
-Per la qualità del codice:
-- **Test-Driven Development**: Scrivere test prima del codice
-- **Continuous Testing**: Test automatici ad ogni commit
-- **Quality Gates**: Coverage minimo per deploy
-- **Performance Monitoring**: Test di carico e latenza
-
-### **Multi-LLM Strategy**
-- **Cost optimization**: Routing intelligente basato su costo/performance
-- **A/B testing**: Possibilità di testare diversi LLM per la stessa query
-- **Load balancing**: Distribuzione del carico tra provider
-
-### **Markdown Rendering Issues**
-Il rendering del markdown nei messaggi AI presenta problemi significativi:
-- **Code blocks**: Non vengono formattati correttamente
-- **Syntax highlighting**: Mancante per blocchi di codice
-- **Tabelle**: Rendering inconsistente o mancante
-- **Liste annidate**: Struttura non preservata
-- **Link**: Non vengono renderizzati come clickabili
-- **Formattazione**: Bold, italic, strikethrough non funzionano correttamente
-
-**Soluzione proposta**: Implementare una libreria dedicata come `react-markdown` con `remark-gfm` per supporto GitHub Flavored Markdown e `react-syntax-highlighter` per syntax highlighting dei code blocks.
 
 ---
 
