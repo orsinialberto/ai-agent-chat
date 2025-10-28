@@ -196,8 +196,8 @@ app.use(cors({
   - [ ] Implementare paginazione se necessario
 
 ### Fase 4 - Sistema di Prompting Intelligente + lettura swagger
-- [ ] Aggiunta prompt per creazione segmento semplice
-- [ ] Aggiunta prompt per creazione segmento eventi
+- [x] Aggiunta prompt per creazione segmento semplice
+- [x] Aggiunta prompt per creazione segmento eventi
 - [ ] Aggiunta prompt per creazione segmento combinato (contatti + eventi)
 - [ ] Aggiunta prompt dinamici
 
