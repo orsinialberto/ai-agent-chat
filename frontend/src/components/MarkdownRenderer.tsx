@@ -73,39 +73,48 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             if (inline) {
               return (
                 <code 
-                  className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono border"
+                  className="bg-gray-100 text-gray-800 px-1 py-0 rounded text-sm font-mono border"
                   style={{ 
                     backgroundColor: '#f3f4f6', 
                     color: '#1f2937',
-                    padding: '0.25rem 0.5rem',
+                    padding: '0.05rem 0.3rem',
                     borderRadius: '0.25rem',
-                    fontSize: '0.875rem',
+                    fontSize: '0.8125rem',
                     fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                    border: '1px solid #d1d5db'
+                    border: '1px solid #d1d5db',
+                    verticalAlign: 'middle',
+                    lineHeight: '1'
                   }}
                 >
                   {children}
                 </code>
               );
             }
+            // Code block multi-linea con sfondo chiaro e dimensioni ridotte
             return (
               <pre 
-                className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-3 border-l-4 border-blue-500"
+                className="bg-gray-50 text-gray-800 p-1 rounded overflow-x-auto my-1 border border-gray-200"
                 style={{
-                  backgroundColor: '#111827',
-                  color: '#f3f4f6',
-                  padding: '1rem',
-                  borderRadius: '0.5rem',
+                  backgroundColor: '#f9fafb',
+                  color: '#1f2937',
+                  padding: '0.25rem 0.4rem',
+                  borderRadius: '0.375rem',
                   overflowX: 'auto',
-                  margin: '0.75rem 0',
-                  borderLeft: '4px solid #3b82f6'
+                  margin: '0.25rem 0',
+                  border: '1px solid #e5e7eb',
+                  display: 'inline-block',
+                  maxWidth: '100%',
+                  width: 'fit-content',
+                  verticalAlign: 'middle'
                 }}
               >
                 <code 
-                  className="text-sm font-mono"
+                  className="text-xs font-mono"
                   style={{
-                    fontSize: '0.875rem',
-                    fontFamily: 'ui-monospace, SFMono-Regular, monospace'
+                    fontSize: '0.8125rem',
+                    fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+                    color: '#374151',
+                    lineHeight: '1'
                   }}
                 >
                   {children}
