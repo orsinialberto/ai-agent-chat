@@ -54,7 +54,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) =
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
@@ -127,19 +127,28 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) =
         
         {/* Input Area */}
         <div className="flex space-x-3 px-6">
-          <input
-            type="text"
+          <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Type your message..."
-            className="input-field flex-1"
+            className="input-field flex-1 resize-none min-h-[2.5rem] max-h-32 overflow-y-auto"
             disabled={isLoading}
+            rows={1}
+            style={{
+              height: 'auto',
+              minHeight: '2.5rem'
+            }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+            }}
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || isLoading}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed self-end"
           >
             {isLoading ? 'Sending...' : 'Send'}
           </button>

@@ -201,9 +201,9 @@ app.use(cors({
 - [ ] Aggiunta prompt per creazione segmento combinato (contatti + eventi)
 - [ ] Aggiunta prompt dinamici
 
-### Fase 4.5 - Miglioramenti UX
-- [ ] Text box chat con supporto wrap automatico
-- [ ] Modifica titolo chat con doppio click (rimuovere bottone)
+### Fase 4.5 - Miglioramenti UX ✅
+- [x] Text box chat con supporto wrap automatico
+- [x] Modifica titolo chat con doppio click (rimuovere bottone)
 
 ### Fase 5 - Testing Strategy 
 - [x] Setup Jest per test unitari backend

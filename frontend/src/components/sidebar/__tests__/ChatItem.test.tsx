@@ -77,7 +77,7 @@ describe('ChatItem', () => {
     expect(mockOnSelect).toHaveBeenCalledTimes(1);
   });
 
-  it('should enter edit mode when edit button is clicked', async () => {
+  it('should enter edit mode when double-clicked', async () => {
     render(
       <ChatItem
         chat={mockChat}
@@ -88,18 +88,8 @@ describe('ChatItem', () => {
       />
     );
 
-    // Hover to show action buttons
     const chatItem = screen.getByText('Test Chat').closest('div');
-    fireEvent.mouseEnter(chatItem!);
-
-    // Wait for edit button to appear
-    await waitFor(() => {
-      const editButton = screen.getByTitle('Rename chat');
-      expect(editButton).toBeInTheDocument();
-    });
-
-    const editButton = screen.getByTitle('Rename chat');
-    fireEvent.click(editButton);
+    fireEvent.doubleClick(chatItem!);
 
     // Should show input field
     const input = screen.getByDisplayValue('Test Chat');
@@ -117,14 +107,9 @@ describe('ChatItem', () => {
       />
     );
 
-    // Enter edit mode
+    // Enter edit mode via double-click
     const chatItem = screen.getByText('Test Chat').closest('div');
-    fireEvent.mouseEnter(chatItem!);
-
-    await waitFor(() => {
-      const editButton = screen.getByTitle('Rename chat');
-      fireEvent.click(editButton);
-    });
+    fireEvent.doubleClick(chatItem!);
 
     // Change title
     const input = screen.getByDisplayValue('Test Chat');
@@ -145,14 +130,9 @@ describe('ChatItem', () => {
       />
     );
 
-    // Enter edit mode
+    // Enter edit mode via double-click
     const chatItem = screen.getByText('Test Chat').closest('div');
-    fireEvent.mouseEnter(chatItem!);
-
-    await waitFor(() => {
-      const editButton = screen.getByTitle('Rename chat');
-      fireEvent.click(editButton);
-    });
+    fireEvent.doubleClick(chatItem!);
 
     // Press Escape
     const input = screen.getByDisplayValue('Test Chat');
@@ -161,6 +141,21 @@ describe('ChatItem', () => {
     // Should exit edit mode
     expect(screen.getByText('Test Chat')).toBeInTheDocument();
     expect(screen.queryByDisplayValue('Test Chat')).not.toBeInTheDocument();
+  });
+
+  it('should show tooltip for double-click to rename', () => {
+    render(
+      <ChatItem
+        chat={mockChat}
+        isActive={false}
+        onSelect={mockOnSelect}
+        onUpdateTitle={mockOnUpdateTitle}
+        onDelete={mockOnDelete}
+      />
+    );
+
+    const titleElement = screen.getByText('Test Chat');
+    expect(titleElement).toHaveAttribute('title', 'Double-click to rename');
   });
 
   it('should show delete modal when delete button is clicked', async () => {

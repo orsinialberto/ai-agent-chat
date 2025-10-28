@@ -75,6 +75,10 @@ export const ChatItem: React.FC<ChatItemProps> = ({
           }
         `}
         onClick={onSelect}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          setIsEditing(true);
+        }}
       >
         {isEditing ? (
           <form onSubmit={handleTitleSubmit} onClick={(e) => e.stopPropagation()}>
@@ -92,7 +96,10 @@ export const ChatItem: React.FC<ChatItemProps> = ({
           <>
             {/* Title and timestamp row */}
             <div className="flex items-center justify-between mb-1">
-              <h3 className={`text-xs font-medium truncate flex-1 ${isActive ? 'text-sky-800' : 'text-gray-900'}`}>
+              <h3 
+                className={`text-xs font-medium truncate flex-1 ${isActive ? 'text-sky-800' : 'text-gray-900'}`}
+                title="Double-click to rename"
+              >
                 {chat.title || 'Untitled Chat'}
               </h3>
               <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
@@ -108,18 +115,6 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               
               {/* Action buttons aligned with message preview */}
               <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1 ml-13">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsEditing(true);
-                  }}
-                  className="p-1 rounded hover:bg-peach-100/60 text-gray-500 hover:text-gray-700"
-                  title="Rename chat"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
