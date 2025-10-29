@@ -37,6 +37,9 @@ ai-agent-chat/
 │   │   ├── middleware/      # Express middleware
 │   │   ├── types/           # TypeScript types
 │   │   └── utils/           # Utilities
+│   ├── config/              # Configuration files
+│   │   ├── mcp-config.yml   # MCP configuration (optional)
+│   │   └── mcp-config.yml.example  # MCP config template
 │   ├── prisma/              # Database schema
 │   ├── package.json
 │   └── tsconfig.json
@@ -88,9 +91,10 @@ DATABASE_URL="postgresql://user:password@localhost:5432/ai_agent_chat"
 # Gemini API
 GEMINI_API_KEY="your_gemini_api_key"
 
-# MCP Server (Fase 2)
-MCP_SERVER_PATH="/path/to/mcp/server"
-MCP_SERVER_ARGS="--config config.json"
+# MCP Server (Fase 2) - Opzionale
+# MCP è configurato tramite backend/config/mcp-config.yml
+# Se il file non esiste, MCP è disabilitato
+# Vedi backend/config/mcp-config.yml.example per il template
 
 # JWT
 JWT_SECRET="your_jwt_secret"
@@ -138,7 +142,11 @@ app.use(cors({
     "cors": "^2.8.5",
     "helmet": "^7.0.0",
     "express-rate-limit": "^7.0.0",
-    "@google/generative-ai": "^0.1.0"
+    "@google/generative-ai": "^0.1.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9"
   }
 }
 ```
@@ -184,10 +192,12 @@ app.use(cors({
   - [ ] Valutare best practice per caching tools disponibili
   - [ ] Implementare sistema cache con TTL
   - [ ] Gestire refresh automatico cache
-- [ ] Slegare prompt MCP dal backend
-  - [ ] Valutare approccio: esterno vs server MCP endpoint
-  - [ ] Implementare caricamento dinamico prompt
-  - [ ] Definire best practice architetturale
+- [x] Slegare prompt MCP dal backend ✅
+  - [x] Valutare approccio: esterno vs server MCP endpoint
+  - [x] Implementare caricamento dinamico prompt
+  - [x] Definire best practice architetturale
+  - [x] Creare file YAML configurazione completa (mcp-config.yml)
+  - [x] Rendere configurazione MCP opzionale
 - [ ] Cleanup log e debug MCP
   - [ ] Rimuovere/movare a debug i log verbose
   - [ ] Mantenere solo log essenziali
