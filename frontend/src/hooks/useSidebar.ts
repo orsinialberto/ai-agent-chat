@@ -13,6 +13,7 @@ export interface UseSidebarReturn {
   updateChatTitle: (chatId: string, title: string) => Promise<void>;
   deleteChat: (chatId: string) => Promise<void>;
   createNewChat: () => Promise<Chat | null>;
+  addChat: (chat: Chat) => void;
   clearError: () => void;
 }
 
@@ -103,6 +104,17 @@ export const useSidebar = (): UseSidebarReturn => {
     }
   }, []);
 
+  const addChat = useCallback((chat: Chat) => {
+    setChats(prev => {
+      // Check if chat already exists to avoid duplicates
+      if (prev.some(c => c.id === chat.id)) {
+        return prev;
+      }
+      // Add at the beginning of the list
+      return [chat, ...prev];
+    });
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -121,6 +133,7 @@ export const useSidebar = (): UseSidebarReturn => {
     updateChatTitle,
     deleteChat,
     createNewChat,
+    addChat,
     clearError
   };
 };

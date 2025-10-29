@@ -1,11 +1,13 @@
 import React from 'react';
 import { ChatList } from './ChatList';
 import { useSidebar } from '../../hooks/useSidebar';
+import { Chat } from '../../services/api';
 
 interface SidebarProps {
   currentChatId?: string;
   onChatSelect: (chatId: string) => void;
   onNewChat: () => void;
+  onAddChatReady?: (addChat: (chat: Chat) => void) => void;
   isOpen?: boolean;
   onToggle?: () => void;
 }
@@ -14,6 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentChatId, 
   onChatSelect, 
   onNewChat,
+  onAddChatReady,
   isOpen = false,
   onToggle
 }) => {
@@ -24,9 +27,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
     selectChat, 
     updateChatTitle, 
     deleteChat, 
-    createNewChat, 
+    createNewChat,
+    addChat,
     clearError 
   } = useSidebar();
+
+  // Expose addChat to parent component
+  React.useEffect(() => {
+    if (onAddChatReady) {
+      onAddChatReady(addChat);
+    }
+  }, [onAddChatReady, addChat]);
 
   const handleChatSelect = async (chatId: string) => {
     const chat = await selectChat(chatId);

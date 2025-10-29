@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useChat } from '../hooks/useChat'
-import { Message } from '../services/api'
+import { Message, Chat } from '../services/api'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 interface ChatInterfaceProps {
   currentChatId?: string;
+  onChatCreated?: (chat: Chat) => void;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onChatCreated }) => {
   const [inputValue, setInputValue] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const notifiedChatIdsRef = useRef<Set<string>>(new Set())
   const { 
     currentChat, 
     messages, 
@@ -26,8 +28,21 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId }) =
   useEffect(() => {
     if (currentChatId && currentChatId !== currentChat?.id) {
       loadChat(currentChatId);
+      // Mark this chat as already in sidebar (it was loaded, not created)
+      if (currentChatId) {
+        notifiedChatIdsRef.current.add(currentChatId);
+      }
     }
   }, [currentChatId, currentChat?.id, loadChat])
+
+  // Notify parent when a new chat is created (not loaded from currentChatId)
+  useEffect(() => {
+    if (currentChat && onChatCreated && !currentChatId && !notifiedChatIdsRef.current.has(currentChat.id)) {
+      // This is a newly created chat (no currentChatId was provided and we haven't notified about it yet)
+      onChatCreated(currentChat);
+      notifiedChatIdsRef.current.add(currentChat.id);
+    }
+  }, [currentChat, currentChatId, onChatCreated])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {

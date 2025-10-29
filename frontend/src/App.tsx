@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Header } from './components/Header'
 import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
+import { Chat } from './services/api'
 
 function App() {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const addChatToSidebarRef = useRef<((chat: Chat) => void) | null>(null)
 
   const handleChatSelect = (chatId: string) => {
     setCurrentChatId(chatId)
@@ -15,6 +17,10 @@ function App() {
   const handleNewChat = () => {
     setCurrentChatId(undefined)
     setSidebarOpen(false) // Close sidebar on mobile after selection
+  }
+
+  const handleAddChatReady = (addChat: (chat: Chat) => void) => {
+    addChatToSidebarRef.current = addChat
   }
 
   return (
@@ -28,6 +34,7 @@ function App() {
           currentChatId={currentChatId}
           onChatSelect={handleChatSelect}
           onNewChat={handleNewChat}
+          onAddChatReady={handleAddChatReady}
           isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
@@ -35,7 +42,14 @@ function App() {
         {/* Main Content - Centered */}
         <main className="flex-1 overflow-hidden flex justify-center items-center py-6">
           <div className="w-full max-w-4xl px-4">
-            <ChatInterface currentChatId={currentChatId} />
+            <ChatInterface 
+              currentChatId={currentChatId} 
+              onChatCreated={(chat) => {
+                if (addChatToSidebarRef.current) {
+                  addChatToSidebarRef.current(chat)
+                }
+              }}
+            />
           </div>
         </main>
       </div>
