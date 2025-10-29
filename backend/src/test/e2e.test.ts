@@ -188,6 +188,28 @@ describe('AI Agent Chat - E2E Tests', () => {
       expect(data.success).toBe(false);
       expect(data.error).toBe('Chat not found');
     });
+
+    // Cleanup: delete the test chat after all tests complete
+    afterAll(async () => {
+      if (!serverAvailable || !chatId) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          const data = await response.json() as ApiResponse<{ message: string }>;
+          console.log(`✅ Test chat "${chatId}" cleaned up: ${data.data?.message}`);
+        } else {
+          console.warn(`⚠️  Failed to cleanup test chat "${chatId}"`);
+        }
+      } catch (error) {
+        console.warn(`⚠️  Error cleaning up test chat "${chatId}":`, error);
+      }
+    });
   });
 
   describe('Error Handling', () => {

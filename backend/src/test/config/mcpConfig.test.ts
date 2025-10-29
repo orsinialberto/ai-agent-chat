@@ -1,23 +1,42 @@
-import { MCP_CONFIG } from '../../config/mcpConfig';
-import * as fs from 'fs';
-import * as yaml from 'js-yaml';
+// Mock fs and yaml modules with factory functions
+jest.mock('fs', () => ({
+  existsSync: jest.fn(),
+  readFileSync: jest.fn(),
+}));
 
-// Mock fs and yaml modules
-jest.mock('fs');
-jest.mock('js-yaml');
+jest.mock('js-yaml', () => ({
+  load: jest.fn(),
+}));
 
 describe('MCPConfig', () => {
-  const mockReadFileSync = fs.readFileSync as jest.MockedFunction<typeof fs.readFileSync>;
-  const mockExistsSync = fs.existsSync as jest.MockedFunction<typeof fs.existsSync>;
-  const mockYamlLoad = yaml.load as jest.MockedFunction<typeof yaml.load>;
+  let mockReadFileSync: jest.MockedFunction<any>;
+  let mockExistsSync: jest.MockedFunction<any>;
+  let mockYamlLoad: jest.MockedFunction<any>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
+    
+    // Get mocked functions from the mocks
+    const fs = require('fs');
+    const yaml = require('js-yaml');
+    mockReadFileSync = fs.readFileSync;
+    mockExistsSync = fs.existsSync;
+    mockYamlLoad = yaml.load;
+    
+    // Clear module cache before each test to ensure fresh load
+    const configPath = require.resolve('../../config/mcpConfig');
+    if (require.cache[configPath]) {
+      delete require.cache[configPath];
+    }
   });
 
   afterEach(() => {
-    // Clear module cache to reload config
-    jest.resetModules();
+    // Clear module cache after each test
+    const configPath = require.resolve('../../config/mcpConfig');
+    if (require.cache[configPath]) {
+      delete require.cache[configPath];
+    }
   });
 
   describe('loadMCPConfig - File exists', () => {
@@ -43,9 +62,10 @@ tool_call_format: 'TOOL_CALL:test:{}'
       mockReadFileSync.mockReturnValue(mockYamlContent);
       mockYamlLoad.mockReturnValue(mockConfig);
 
-      // Reload the module to trigger the config loading
-      delete require.cache[require.resolve('../../config/mcpConfig')];
-      const { MCP_CONFIG } = require('../../config/mcpConfig');
+      // Clear module cache and reload
+      const configPath = require.resolve('../../config/mcpConfig');
+      delete require.cache[configPath];
+      const { MCP_CONFIG } = require(configPath);
 
       expect(MCP_CONFIG.enabled).toBe(true);
       expect(MCP_CONFIG.baseUrl).toBe('http://mcp-server:8080');
@@ -66,8 +86,9 @@ tool_call_format: 'TOOL_CALL:test:{}'
         tool_call_format: 'TOOL_CALL:test:{}'
       });
 
-      delete require.cache[require.resolve('../../config/mcpConfig')];
-      const { MCP_CONFIG } = require('../../config/mcpConfig');
+      const configPath = require.resolve('../../config/mcpConfig');
+      delete require.cache[configPath];
+      const { MCP_CONFIG } = require(configPath);
 
       expect(MCP_CONFIG.enabled).toBe(true);
     });
@@ -79,8 +100,9 @@ tool_call_format: 'TOOL_CALL:test:{}'
       
       mockExistsSync.mockReturnValue(false);
 
-      delete require.cache[require.resolve('../../config/mcpConfig')];
-      const { MCP_CONFIG } = require('../../config/mcpConfig');
+      const configPath = require.resolve('../../config/mcpConfig');
+      delete require.cache[configPath];
+      const { MCP_CONFIG } = require(configPath);
 
       expect(MCP_CONFIG.enabled).toBe(false);
       expect(consoleLogSpy).toHaveBeenCalledWith('MCP config file not found. MCP server will be disabled.');
@@ -91,8 +113,9 @@ tool_call_format: 'TOOL_CALL:test:{}'
     it('should use default values when config file does not exist', () => {
       mockExistsSync.mockReturnValue(false);
 
-      delete require.cache[require.resolve('../../config/mcpConfig')];
-      const { MCP_CONFIG } = require('../../config/mcpConfig');
+      const configPath = require.resolve('../../config/mcpConfig');
+      delete require.cache[configPath];
+      const { MCP_CONFIG } = require(configPath);
 
       expect(MCP_CONFIG.baseUrl).toBe('http://localhost:8080');
       expect(MCP_CONFIG.timeout).toBe(10000);
@@ -110,8 +133,9 @@ tool_call_format: 'TOOL_CALL:test:{}'
         throw new Error('Permission denied');
       });
 
-      delete require.cache[require.resolve('../../config/mcpConfig')];
-      const { MCP_CONFIG } = require('../../config/mcpConfig');
+      const configPath = require.resolve('../../config/mcpConfig');
+      delete require.cache[configPath];
+      const { MCP_CONFIG } = require(configPath);
 
       expect(MCP_CONFIG.enabled).toBe(false);
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -129,8 +153,9 @@ tool_call_format: 'TOOL_CALL:test:{}'
         throw new Error('YAML parsing error');
       });
 
-      delete require.cache[require.resolve('../../config/mcpConfig')];
-      const { MCP_CONFIG } = require('../../config/mcpConfig');
+      const configPath = require.resolve('../../config/mcpConfig');
+      delete require.cache[configPath];
+      const { MCP_CONFIG } = require(configPath);
 
       expect(MCP_CONFIG.enabled).toBe(false);
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -140,10 +165,14 @@ tool_call_format: 'TOOL_CALL:test:{}'
   });
 
   describe('MCP_CONFIG default values', () => {
+    let MCP_CONFIG: any;
+
     beforeEach(() => {
       mockExistsSync.mockReturnValue(false);
-      delete require.cache[require.resolve('../../config/mcpConfig')];
-      require('../../config/mcpConfig');
+      const configPath = require.resolve('../../config/mcpConfig');
+      delete require.cache[configPath];
+      const configModule = require(configPath);
+      MCP_CONFIG = configModule.MCP_CONFIG;
     });
 
     it('should have sensible defaults when config is not loaded', () => {
