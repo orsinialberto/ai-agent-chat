@@ -98,7 +98,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
       {messages.length === 0 ? (
         <div className="flex-1 flex flex-col justify-center items-center px-6">
           <div className="text-center text-gray-600 py-4 mb-8">
-            <p className="text-4xl font-light tracking-wide">Start a conversation</p>
+            <p className="text-4xl font-light tracking-wide">All set when you are!</p>
           </div>
         </div>
       ) : (
