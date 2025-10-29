@@ -141,36 +141,42 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
       )}
         
         {/* Input Area */}
-        <div className="flex space-x-3 px-6">
-          <textarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            className="input-field flex-1 resize-none min-h-[2.5rem] max-h-32 overflow-y-auto"
-            disabled={isLoading}
-            rows={1}
-            style={{
-              height: 'auto',
-              minHeight: '2.5rem'
-            }}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = Math.min(target.scrollHeight, 128) + 'px';
-            }}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed self-end"
-          >
-            {isLoading ? 'Sending...' : 'Send'}
-          </button>
-        </div>
-        
-        <div className="mt-4 text-xs text-gray-400 text-center px-6 pb-6">
-          <p>AI Agent Ready</p>
+        <div className="px-6">
+          <div className="relative">
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message..."
+              className="input-field flex-1 resize-none min-h-[2.5rem] max-h-32 overflow-y-auto pr-10"
+              disabled={isLoading}
+              rows={1}
+              style={{
+                height: 'auto',
+                minHeight: '2.5rem'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+              }}
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isLoading}
+              className="absolute right-2 bottom-2 p-2 text-gray-600 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              type="button"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5"
+              >
+                <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
   )
