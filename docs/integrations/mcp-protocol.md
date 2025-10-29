@@ -93,6 +93,8 @@
 
 ### 1. MCP Configuration (`backend/src/config/mcpConfig.ts`)
 
+MCP configuration is loaded from `backend/config/mcp-config.yml`. If the file exists, MCP is enabled; otherwise, it's disabled.
+
 ```typescript
 export interface MCPConfig {
   enabled: boolean;
@@ -103,19 +105,22 @@ export interface MCPConfig {
   toolCallFormat: string;
 }
 
+// Configuration is loaded from backend/config/mcp-config.yml
+// If file doesn't exist, MCP is disabled
 export const MCP_CONFIG: MCPConfig = {
-  enabled: process.env.MCP_ENABLED === 'true',
-  baseUrl: process.env.MCP_SERVER_URL || 'http://localhost:8080',
-  timeout: parseInt(process.env.MCP_TIMEOUT || '10000'),
-  retryAttempts: parseInt(process.env.MCP_RETRY_ATTEMPTS || '3'),
-  systemPrompt: `
-You are an AI assistant with access to MCP (Model Context Protocol) tools.
-When users ask questions that can be answered using available tools, use them.
-Always provide helpful and clear explanations based on the tool results.
-  `.trim(),
-  toolCallFormat: 'TOOL_CALL:toolName:{"param1":"value1","param2":"value2"}'
+  enabled: isMCPEnabled,  // true if mcp-config.yml exists
+  baseUrl: yamlConfig?.base_url || 'http://localhost:8080',
+  timeout: yamlConfig?.timeout || 10000,
+  retryAttempts: yamlConfig?.retry_attempts || 3,
+  systemPrompt: yamlConfig?.system_prompt?.trim() || 'Default prompt...',
+  toolCallFormat: yamlConfig?.tool_call_format || 'TOOL_CALL:toolName:{"param1":"value1"}'
 };
 ```
+
+**To configure MCP:**
+1. Copy `backend/config/mcp-config.yml.example` to `backend/config/mcp-config.yml`
+2. Edit the YAML file with your MCP server settings
+3. The configuration is loaded automatically at startup
 
 ### 2. MCP Client Service (`backend/src/services/mcpClient.ts`)
 
@@ -517,21 +522,35 @@ export class ChatController {
 
 ## ⚙️ Configuration and Deployment
 
-### Environment Variables
+### MCP Server Configuration
 
-```env
-# MCP Configuration
-MCP_ENABLED=true
-MCP_SERVER_URL=http://localhost:8080
-MCP_TIMEOUT=10000
-MCP_RETRY_ATTEMPTS=3
+MCP server is configured via YAML file located at `backend/config/mcp-config.yml`:
 
-# Gemini API (existing)
-GEMINI_API_KEY=your_gemini_api_key
+1. **Copy the example configuration:**
+   ```bash
+   cp backend/config/mcp-config.yml.example backend/config/mcp-config.yml
+   ```
 
-# Database (existing)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ai_agent_chat
-```
+2. **Edit the configuration file:**
+   ```yaml
+   # Server settings
+   base_url: 'http://localhost:8080'
+   timeout: 10000  # milliseconds
+   retry_attempts: 3
+   
+   # System prompt for the MCP agent
+   system_prompt: |
+     You are an AI assistant with access to MCP (Model Context Protocol) tools.
+     When users ask questions that can be answered using available tools, use them.
+     Always provide helpful and clear explanations based on the tool results.
+   
+   # Tool call format
+   tool_call_format: 'TOOL_CALL:toolName:{"param1":"value1","param2":"value2"}'
+   ```
+
+3. **MCP is automatically enabled** when `mcp-config.yml` exists. If the file doesn't exist, MCP features are disabled.
+
+**Note:** All MCP configuration is managed through the YAML file. There are no environment variables for MCP configuration.
 
 ### Docker Compose for MCP Server
 
@@ -663,15 +682,16 @@ Error: Failed to connect to MCP server
 ```
 **Solution:**
 - Check if MCP server is running: `curl http://localhost:8080/actuator/health`
-- Verify MCP_SERVER_URL environment variable
+- Verify `base_url` in `backend/config/mcp-config.yml`
 - Check network connectivity
+- Verify the MCP config file exists and is valid YAML
 
 #### 2. Tool Call Timeout
 ```
 Error: MCP tool call timeout
 ```
 **Solution:**
-- Increase MCP_TIMEOUT value
+- Increase `timeout` value in `backend/config/mcp-config.yml`
 - Check MCP server performance
 - Verify tool execution time
 

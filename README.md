@@ -79,13 +79,31 @@ JWT_SECRET="your_jwt_secret"
 
 # CORS
 FRONTEND_URL="http://localhost:5173"
-
-# MCP Configuration
-MCP_ENABLED=true
-MCP_SERVER_URL=http://localhost:8080
-MCP_TIMEOUT=10000
-MCP_RETRY_ATTEMPTS=3
 ```
+
+### MCP Server Configuration
+
+MCP (Model Context Protocol) server is configured via YAML file:
+
+1. **Copy the example configuration:**
+   ```bash
+   cd backend
+   cp config/mcp-config.yml.example config/mcp-config.yml
+   ```
+
+2. **Edit `backend/config/mcp-config.yml`** with your MCP server settings:
+   ```yaml
+   base_url: 'http://localhost:8080'
+   timeout: 10000  # milliseconds
+   retry_attempts: 3
+   system_prompt: |
+     Your custom system prompt here...
+   tool_call_format: 'TOOL_CALL:toolName:{"param1":"value1"}'
+   ```
+
+3. **MCP is automatically enabled** if `mcp-config.yml` exists, otherwise it's disabled.
+
+For detailed MCP configuration options, see `backend/config/mcp-config.yml.example`.
 
 ### Docker Commands
 

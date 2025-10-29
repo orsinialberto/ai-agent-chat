@@ -70,9 +70,9 @@ const isMCPEnabled = yamlConfig !== null;
 
 export const MCP_CONFIG: MCPConfig = {
   enabled: isMCPEnabled,
-  baseUrl: yamlConfig?.base_url || process.env.MCP_SERVER_URL || 'http://localhost:8080',
-  timeout: yamlConfig?.timeout || parseInt(process.env.MCP_TIMEOUT || '10000'),
-  retryAttempts: yamlConfig?.retry_attempts || parseInt(process.env.MCP_RETRY_ATTEMPTS || '3'),
+  baseUrl: yamlConfig?.base_url || 'http://localhost:8080',
+  timeout: yamlConfig?.timeout || 10000,
+  retryAttempts: yamlConfig?.retry_attempts || 3,
   systemPrompt: yamlConfig?.system_prompt?.trim() || 'You are an AI assistant with access to MCP (Model Context Protocol) tools.',
   toolCallFormat: yamlConfig?.tool_call_format || 'TOOL_CALL:toolName:{"param1":"value1","param2":"value2"}'
 };
