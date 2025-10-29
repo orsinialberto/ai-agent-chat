@@ -25,16 +25,38 @@ export const useChat = (): UseChatReturn => {
     setIsLoading(true);
     setError(null);
     
+    // Add user message immediately if initialMessage is provided
+    let tempUserMessage: Message | null = null;
+    if (request.initialMessage) {
+      tempUserMessage = {
+        id: `temp_${Date.now()}`,
+        chatId: '', // Will be updated when chat is created
+        role: 'user',
+        content: request.initialMessage.trim(),
+        createdAt: new Date()
+      };
+      setMessages([tempUserMessage]);
+    }
+    
     try {
       const response = await apiService.createChat(request);
       
       if (response.success && response.data) {
         setCurrentChat(response.data);
+        // Replace temp message with real messages from server
         setMessages(response.data.messages || []);
       } else {
+        // Remove temp message on error
+        if (tempUserMessage) {
+          setMessages([]);
+        }
         setError(response.error || 'Failed to create chat');
       }
     } catch (err) {
+      // Remove temp message on error
+      if (tempUserMessage) {
+        setMessages([]);
+      }
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsLoading(false);
