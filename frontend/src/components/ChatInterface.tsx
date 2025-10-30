@@ -13,6 +13,8 @@ interface ChatInterfaceProps {
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onChatCreated }) => {
   const [inputValue, setInputValue] = useState('')
   const [textAreaHeight, setTextAreaHeight] = useState<number>(40)
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash')
+  const availableModels = ['gemini-2.5-flash', 'gemini-2.5-pro']
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const notifiedChatIdsRef = useRef<Set<string>>(new Set())
@@ -65,11 +67,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
     if (!currentChat) {
       await createChat({
         title: t('chat.new_chat'),
-        initialMessage: messageContent
+      initialMessage: messageContent,
+      model: selectedModel
       })
     } else {
       // Send message to existing chat
-      await sendMessage(messageContent)
+    await sendMessage(messageContent, { model: selectedModel })
     }
   }
 
@@ -181,6 +184,20 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
               onHeightChange={setTextAreaHeight}
               className="aic-textarea--withSend"
             />
+          {/* Model selector - bottom-left, minimal */}
+          <div className="absolute left-3.5 bottom-3.5">
+            <label htmlFor="model-select" className="sr-only">Model</label>
+            <select
+              id="model-select"
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="text-xs bg-transparent hover:bg-gray-50/30 focus:bg-white border-none px-2 py-1 text-gray-600 hover:text-gray-800 focus:text-gray-800 focus:outline-none focus:ring-0 shadow-none"
+            >
+              {availableModels.map((m) => (
+                <option key={m} value={m}>{m.replace('gemini-2.5-', 'gemini 2.5 ')}</option>
+              ))}
+            </select>
+          </div>
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}

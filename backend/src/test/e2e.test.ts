@@ -149,6 +149,12 @@ describe('AI Agent Chat - E2E Tests', () => {
         return;
       }
 
+      // Skip this test if no Gemini API key is configured to avoid long external calls/timeouts in CI
+      if (!process.env.GEMINI_API_KEY) {
+        console.log('⏭️  Skipping message send - GEMINI_API_KEY not set');
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/chats/${chatId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

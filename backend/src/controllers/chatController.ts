@@ -19,7 +19,8 @@ export class ChatController {
   private mcpEnabled: boolean;
 
   constructor() {
-    this.mcpEnabled = MCP_CONFIG.enabled;
+    // Disable MCP during tests to avoid async side effects in Jest
+    this.mcpEnabled = MCP_CONFIG.enabled && process.env.NODE_ENV !== 'test';
     
     if (this.mcpEnabled) {
       this.mcpClient = new MCPClient(MCP_CONFIG);
@@ -56,13 +57,25 @@ export class ChatController {
    */
   async createChat(req: Request<{}, ApiResponse<Chat>, CreateChatRequest>, res: Response<ApiResponse<Chat>>) {
     try {
-      const { title, initialMessage } = req.body;
+      const { title, initialMessage, model } = req.body;
 
       // Create chat in database
       const chat = await databaseService.createChat(title);
 
       // If there's an initial message, process it
       if (initialMessage) {
+        // Switch model if requested
+        if (model) {
+          try {
+            geminiService.switchModel(model);
+          } catch (e: any) {
+            return res.status(400).json({
+              success: false,
+              error: 'INVALID_MODEL',
+              message: e?.message || 'Invalid model'
+            });
+          }
+        }
         // Add user message to database
         const userMessage = await databaseService.addMessage(
           chat.id,
@@ -92,13 +105,13 @@ export class ChatController {
         } catch (error) {
           console.error('Error getting AI response:', error);
           
-          // Return error to frontend with specific error type
+          // Return error to frontend with specific error type and chatId
           return res.status(503).json({
             success: false,
             error: 'AI_SERVICE_UNAVAILABLE',
             errorType: 'LLM_UNAVAILABLE',
             message: 'The AI service is temporarily unavailable. The chat was created but the AI could not respond.',
-            chatId: chat.id // Still return the chat ID so the user can retry
+            chatId: chat.id
           });
         }
       }
@@ -122,7 +135,7 @@ export class ChatController {
   async sendMessage(req: Request<{ chatId: string }, ApiResponse<Message>, CreateMessageRequest>, res: Response<ApiResponse<Message>>) {
     try {
       const { chatId } = req.params;
-      const { content, role = MessageRole.USER } = req.body;
+      const { content, role = MessageRole.USER, model } = req.body;
 
       if (!content || !content.trim()) {
         return res.status(400).json({
@@ -138,6 +151,19 @@ export class ChatController {
           success: false,
           error: 'Chat not found'
         });
+      }
+
+      // Switch model if requested
+      if (model) {
+        try {
+          geminiService.switchModel(model);
+        } catch (e: any) {
+          return res.status(400).json({
+            success: false,
+            error: 'INVALID_MODEL',
+            message: e?.message || 'Invalid model'
+          });
+        }
       }
 
       // Add user message to database

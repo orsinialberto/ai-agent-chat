@@ -22,12 +22,14 @@ export interface Message {
 export interface CreateChatRequest {
   title?: string;
   initialMessage?: string;
+  model?: string;
 }
 
 export interface CreateMessageRequest {
   chatId: string;
   content: string;
   role?: 'user' | 'system';
+  model?: string;
 }
 
 export interface ApiResponse<T = any> {

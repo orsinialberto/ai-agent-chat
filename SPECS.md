@@ -231,10 +231,40 @@ app.use(cors({
 - [x] Verificare la compatibilità con diversi tipi di contenuto AI
 
 ### Fase 7 - Multi-LLM
-- [ ] Architettura modulare LLM
-- [ ] Implementazione provider multipli
-- [ ] UI per selezione LLM
-- [ ] Configurazione dinamica
+- [x] UI selezione modello Gemini (dropdown minimal in `ChatInterface`)
+- [x] Propagazione modello al backend tramite campo `model` opzionale
+- [x] Backend: `geminiService.switchModel(model)` e validazione modelli
+- [x] Testing: unit + E2E con skip condizionale se `GEMINI_API_KEY` assente
+- [ ] Architettura modulare provider (plugin) e multi-LLM completa
+- [ ] Configurazione dinamica provider (cache, warmup, policy)
+
+#### Dettagli Implementativi
+- Frontend
+  - Componente: `frontend/src/components/ChatInterface.tsx`
+  - Dropdown posizionato in basso a sinistra della text area, stile minimal senza bordi
+  - Opzioni predefinite: `gemini-2.5-flash`, `gemini-2.5-pro`
+  - Il modello selezionato viene inviato sia in creazione chat sia in invio messaggio
+
+- API Frontend
+  - `CreateChatRequest`: `{ title?: string; initialMessage?: string; model?: string }`
+  - `CreateMessageRequest`: `{ chatId: string; content: string; role?: 'user'|'system'; model?: string }`
+
+- Backend
+  - Tipi condivisi aggiornati: `backend/src/types/shared.ts` include `model?: string` nelle request
+  - Controller: `backend/src/controllers/chatController.ts`
+    - Se presente `model`, viene invocato `geminiService.switchModel(model)` con validazione
+    - In caso di errore LLM durante creazione/invio, risposta `503` con `errorType: 'LLM_UNAVAILABLE'` e `chatId` quando applicabile
+  - Servizio Gemini: `backend/src/services/geminiService.ts`
+    - Modelli disponibili: `getAvailableModels() => ['gemini-2.5-flash','gemini-2.5-pro']`
+    - `switchModel(modelName: string)` per cambiare modello runtime
+
+- Testing
+  - Unit e integrazione aggiornati per i nuovi percorsi di errore
+  - E2E: skip del test "send message" se `GEMINI_API_KEY` non è settata per evitare timeout locali
+
+#### Note UX
+- Hover del selettore alleggerito (grigio molto trasparente), focus con sfondo bianco
+- Allineamento a sinistra coerente con il padding della text area
 
 ### Fase 8 - Autenticazione Oauth
 - [ ] Autenticazione Oauth per accesso alla chat

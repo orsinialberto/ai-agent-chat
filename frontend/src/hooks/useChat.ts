@@ -12,7 +12,7 @@ export interface UseChatReturn {
   // Actions
   createChat: (request: CreateChatRequest) => Promise<void>;
   loadChat: (chatId: string) => Promise<void>;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, options?: { model?: string }) => Promise<void>;
   clearError: () => void;
 }
 
@@ -108,7 +108,7 @@ export const useChat = (): UseChatReturn => {
     }
   }, []);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, options?: { model?: string }) => {
     if (!currentChat || !content.trim()) return;
     
     setIsLoading(true);
@@ -131,6 +131,9 @@ export const useChat = (): UseChatReturn => {
         content: content.trim(),
         role: 'user'
       };
+      if (options?.model) {
+        (request as any).model = options.model;
+      }
 
       const response = await apiService.sendMessage(currentChat.id, request);
       
