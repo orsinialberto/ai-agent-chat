@@ -17,15 +17,15 @@
 
 ### Communication Diagram
 ```
-┌─────────────────┐    HTTP/JSON-RPC 2.0    ┌─────────────────┐
+┌─────────────────┐    HTTP/JSON-RPC 2.0       ┌─────────────────┐
 │  AI Agent Chat  │ ────────────────────────▶ │  MCP Server     │
-│  (Node.js)      │                          │  (Java/Spring)  │
+│  (Node.js)      │                            │  (Java/Spring)  │
 │                 │ ◀──────────────────────── │                 │
-└─────────────────┘                          └─────────────────┘
+└─────────────────┘                            └─────────────────┘
          │                                           │
          ▼                                           ▼
 ┌─────────────────┐                          ┌─────────────────┐
-│   PostgreSQL    │                          │  Plan API       │
+│   PostgreSQL    │                          │  Server API     │
 │   Database      │                          │  (External)     │
 └─────────────────┘                          └─────────────────┘
 ```
@@ -34,7 +34,7 @@
 1. **User Message** → Chat Controller
 2. **Message Analysis** → Determines if MCP tools should be used
 3. **MCP Tool Call** → JSON-RPC 2.0 request to MCP Server
-4. **MCP Server** → Calls external Plan API
+4. **MCP Server** → Calls external Server API
 5. **Response** → MCP Server → AI Agent Chat → User
 
 ---
@@ -563,8 +563,8 @@ services:
     container_name: ai-agent-chat-mcp
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - PLAN_API_URL=${PLAN_API_URL}
-      - PLAN_API_KEY=${PLAN_API_KEY}
+      - SERVER_API_URL=${SERVER_API_URL}
+      - SERVER_API_KEY=${SERVER_API_KEY}
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -659,7 +659,7 @@ describe('MCP Integration', () => {
     const response = await request(app)
       .post('/api/chats/test-chat/messages')
       .send({
-        content: 'Show me all segments for tenant 12992',
+        content: 'Show me all segments for tenant 10000',
         role: 'user'
       })
       .expect(200);

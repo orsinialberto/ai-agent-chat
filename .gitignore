@@ -120,6 +120,7 @@ backend/dist/
 backend/.env
 backend/logs/
 backend/node_modules/
+backend/config/mcp-config.yml
 
 # Frontend specific
 frontend/dist/

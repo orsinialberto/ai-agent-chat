@@ -154,7 +154,7 @@ User: "Mostrami tutti i segmenti"
 → Attempt 1: 503 Service Unavailable
 → Wait 1.2s → Attempt 2: 503 Service Unavailable  
 → Wait 2.8s → Attempt 3: Success ✅
-→ Response: "Ecco tutti i segmenti per il tenant 12992: [lista]"
+→ Response: "Ecco tutti i segmenti per il tenant 10000: [lista]"
 ```
 
 ### **Scenario 2: Persistent Overload**
