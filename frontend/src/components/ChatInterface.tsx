@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Fragment } from 'react'
 import { useChat } from '../hooks/useChat'
 import { Message, Chat } from '../services/api'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { useTranslation } from '../hooks/useTranslation'
 import { TextArea } from './TextArea'
+import { Listbox, Transition } from '@headlessui/react'
 
 interface ChatInterfaceProps {
   currentChatId?: string;
@@ -184,19 +185,51 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
               onHeightChange={setTextAreaHeight}
               className="aic-textarea--withSend"
             />
-          {/* Model selector - bottom-left, minimal */}
+          {/* Model selector - bottom-left, accessible Listbox */}
           <div className="absolute left-3.5 bottom-3.5">
-            <label htmlFor="model-select" className="sr-only">Model</label>
-            <select
-              id="model-select"
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="text-xs bg-transparent hover:bg-gray-50/30 focus:bg-white border-none px-2 py-1 text-gray-600 hover:text-gray-800 focus:text-gray-800 focus:outline-none focus:ring-0 shadow-none"
-            >
-              {availableModels.map((m) => (
-                <option key={m} value={m}>{m.replace('gemini-2.5-', 'gemini 2.5 ')}</option>
-              ))}
-            </select>
+            <Listbox value={selectedModel} onChange={setSelectedModel}>
+              <div className="relative text-xs">
+                <Listbox.Button
+                  className="px-2 py-1 text-gray-600 hover:text-gray-800 bg-transparent hover:bg-gray-50/30 focus:bg-white border-none outline-none rounded shadow-none inline-flex items-center gap-1"
+                  aria-label={t('chat.model') ?? 'Model'}
+                >
+                  {selectedModel.replace('gemini-2.5-', 'gemini 2.5 ')}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    className="w-3.5 h-3.5 opacity-70"
+                  >
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.084l3.71-3.853a.75.75 0 111.08 1.04l-4.24 4.4a.75.75 0 01-1.08 0l-4.24-4.4a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </Listbox.Button>
+                <Transition
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options
+                    className="absolute mt-1 max-h-60 w-max min-w-[10rem] overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black/5 focus:outline-none z-[60]"
+                  >
+                    {availableModels.map((model) => (
+                      <Listbox.Option
+                        key={model}
+                        value={model}
+                        className={({ active, selected }: { active: boolean; selected: boolean }) => `
+                          cursor-pointer select-none px-3 py-1.5 rounded
+                          ${active ? 'bg-sky-100/50 text-sky-800' : 'text-gray-700'}
+                          ${selected ? 'font-medium' : 'font-normal'}
+                        `}
+                      >
+                        {model.replace('gemini-2.5-', 'gemini 2.5 ')}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </Listbox>
           </div>
             <button
               onClick={handleSendMessage}

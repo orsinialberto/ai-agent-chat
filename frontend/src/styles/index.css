@@ -116,4 +116,12 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Safari and Chrome */
   }
+
+  /* Dropdown option hover to match sidebar hover/active feel */
+  #model-select option:hover {
+    /* sky-100 with 50% opacity */
+    background-color: rgba(224, 242, 254, 0.5) !important;
+    /* improve contrast similar to sidebar text-sky-800 */
+    color: #075985;
+  }
 }
