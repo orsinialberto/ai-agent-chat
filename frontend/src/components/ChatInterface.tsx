@@ -3,6 +3,7 @@ import { useChat } from '../hooks/useChat'
 import { Message, Chat } from '../services/api'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { useTranslation } from '../hooks/useTranslation'
+import { TextArea } from './TextArea'
 
 interface ChatInterfaceProps {
   currentChatId?: string;
@@ -11,6 +12,7 @@ interface ChatInterfaceProps {
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onChatCreated }) => {
   const [inputValue, setInputValue] = useState('')
+  const [textAreaHeight, setTextAreaHeight] = useState<number>(40)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const notifiedChatIdsRef = useRef<Set<string>>(new Set())
@@ -143,41 +145,60 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
       )}
         
         {/* Input Area */}
-        <div className="px-6">
+        <div
+          className="px-6 mt-2"
+        >
+          <div
+            className="aic-input-container"
+            style={{
+              // compute pill factor from height (min ~40px, max ~40vh)
+              // clamp to [0,1]
+              // @ts-ignore: CSS var inline
+              '--pillFactor': (() => {
+                const minH = 40
+                const maxH = typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.4) : 320
+                const h = Math.max(minH, Math.min(textAreaHeight, maxH))
+                const ratio = (maxH - h) / (maxH - minH)
+                return Math.max(0, Math.min(1, Number.isFinite(ratio) ? ratio : 1))
+              })()
+            }}
+          >
+          <label htmlFor="chat-input" className="sr-only">
+            {t('chat.type_message')}
+          </label>
           <div className="relative">
-            <textarea
+            <TextArea
+              id="chat-input"
+              ariaLabelledBy={undefined}
+              ariaLabel={t('chat.type_message')}
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={setInputValue}
               onKeyDown={handleKeyDown}
               placeholder={t('chat.type_message')}
-              className="input-field flex-1 resize-none min-h-[2.5rem] max-h-32 overflow-y-auto pr-10"
               disabled={isLoading}
-              rows={1}
-              style={{
-                height: 'auto',
-                minHeight: '2.5rem'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 128) + 'px';
-              }}
+              minRows={1}
+              maxHeightVh={40}
+              onHeightChange={setTextAreaHeight}
+              className="aic-textarea--withSend"
             />
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}
               className="absolute right-2 bottom-2 p-2 text-gray-600 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               type="button"
+              aria-label={t('chat.send') ?? 'Invia'}
+              title={t('chat.send') ?? 'Invia'}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
-                className="w-5 h-5"
+                className="w-6 h-6"
               >
                 <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
               </svg>
             </button>
+          </div>
           </div>
         </div>
       </div>
