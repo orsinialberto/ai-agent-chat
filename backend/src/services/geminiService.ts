@@ -158,71 +158,13 @@ export class GeminiService {
   }
 
   /**
-   * Send message with fallback response if Gemini is unavailable
+   * Send message - removed fallback, errors are now propagated to controller
+   * The controller will handle errors and return appropriate HTTP status codes
    */
   async sendMessageWithFallback(messages: Message[]): Promise<GeminiResponse> {
-    try {
-      return await this.sendMessage(messages);
-    } catch (error) {
-      console.warn('⚠️ Gemini API unavailable, providing fallback response');
-      return this.getFallbackResponse(messages);
-    }
-  }
-
-  /**
-   * Get fallback response when Gemini is unavailable
-   */
-  private getFallbackResponse(messages: Message[]): GeminiResponse {
-    const lastMessage = messages[messages.length - 1];
-    const userMessage = lastMessage?.content || '';
-
-    // Simple keyword-based fallback responses
-    const fallbackResponses = {
-      greeting: [
-        "Ciao! Mi dispiace, ma al momento il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Salve! Il sistema AI è momentaneamente sovraccarico. Ti risponderò appena possibile.",
-        "Buongiorno! Stiamo riscontrando alcuni problemi tecnici con l'AI. Riprova tra poco."
-      ],
-      question: [
-        "Mi dispiace, ma al momento non posso rispondere alle tue domande perché il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Il sistema AI è momentaneamente sovraccarico. Non posso elaborare la tua richiesta in questo momento. Riprova tra poco.",
-        "Stiamo riscontrando problemi tecnici con l'AI. La tua domanda non può essere elaborata al momento. Riprova tra qualche minuto."
-      ],
-      mcp: [
-        "Mi dispiace, ma al momento non posso accedere ai tool MCP perché il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Il sistema AI è sovraccarico e non posso utilizzare i tool MCP. Riprova tra poco per accedere alle funzionalità complete.",
-        "Stiamo riscontrando problemi tecnici. I tool MCP non sono al momento disponibili. Riprova tra qualche minuto."
-      ],
-      default: [
-        "Mi dispiace, ma il servizio AI è temporaneamente non disponibile. Riprova tra qualche minuto.",
-        "Il sistema AI è momentaneamente sovraccarico. Riprova tra poco.",
-        "Stiamo riscontrando problemi tecnici. Riprova tra qualche minuto."
-      ]
-    };
-
-    // Determine response type based on message content
-    const lowerMessage = userMessage.toLowerCase();
-    let responseType = 'default';
-
-    if (lowerMessage.includes('ciao') || lowerMessage.includes('salve') || lowerMessage.includes('buongiorno') || lowerMessage.includes('buonasera')) {
-      responseType = 'greeting';
-    } else if (lowerMessage.includes('segmento') || lowerMessage.includes('contatto') || lowerMessage.includes('evento') || lowerMessage.includes('tenant')) {
-      responseType = 'mcp';
-    } else if (lowerMessage.includes('?') || lowerMessage.includes('come') || lowerMessage.includes('cosa') || lowerMessage.includes('perché')) {
-      responseType = 'question';
-    }
-
-    const responses = fallbackResponses[responseType as keyof typeof fallbackResponses];
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-
-    return {
-      content: randomResponse,
-      usage: {
-        promptTokens: 0,
-        responseTokens: 0,
-        totalTokens: 0,
-      }
-    };
+    // Simply call sendMessage - it has retry logic built-in
+    // If it fails after all retries, let the error propagate to the controller
+    return await this.sendMessage(messages);
   }
 
   /**

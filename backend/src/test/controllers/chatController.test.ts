@@ -80,7 +80,7 @@ describe('ChatController', () => {
         .mockResolvedValueOnce(mockUserMessage)
         .mockResolvedValueOnce(mockAssistantMessage);
       
-      (geminiService.sendMessage as jest.Mock).mockResolvedValue({
+      (geminiService.sendMessageWithFallback as jest.Mock).mockResolvedValue({
         content: 'Hi there!'
       });
       (databaseService.getChat as jest.Mock).mockResolvedValue({
@@ -97,7 +97,7 @@ describe('ChatController', () => {
 
       expect(databaseService.createChat).toHaveBeenCalledWith('Test Chat');
       expect(databaseService.addMessage).toHaveBeenCalledTimes(2);
-      expect(geminiService.sendMessage).toHaveBeenCalled();
+      expect(geminiService.sendMessageWithFallback).toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(201);
     });
 

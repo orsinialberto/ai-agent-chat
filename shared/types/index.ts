@@ -44,11 +44,15 @@ export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
+  errorType?: string;
   message?: string;
+  retryAfter?: number;
+  chatId?: string;
 }
 
 export interface CreateChatRequest {
   title?: string;
+  initialMessage?: string;
 }
 
 export interface CreateMessageRequest {

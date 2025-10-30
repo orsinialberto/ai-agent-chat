@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { apiService, Chat, Message, CreateChatRequest, CreateMessageRequest } from '../services/api';
+import { apiService, Chat, Message, CreateChatRequest, CreateMessageRequest, ApiResponse } from '../services/api';
+import { t } from '../utils/i18n';
 
 export interface UseChatReturn {
   // State
@@ -13,6 +14,38 @@ export interface UseChatReturn {
   loadChat: (chatId: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   clearError: () => void;
+}
+
+/**
+ * Convert API error response to localized error message
+ */
+function getErrorMessage(response: ApiResponse<any>, context: 'send' | 'load' | 'create'): string {
+  // Handle specific error types
+  if (response.errorType === 'LLM_UNAVAILABLE') {
+    return context === 'create' 
+      ? t('errors.llm_unavailable_on_create')
+      : t('errors.llm_unavailable');
+  }
+  
+  if (response.error === 'NETWORK_ERROR') {
+    return t('errors.network_error');
+  }
+  
+  // Use backend message if available, otherwise use localized defaults
+  if (response.message) {
+    return response.message;
+  }
+  
+  // Fallback to context-specific errors
+  switch (context) {
+    case 'send':
+    case 'create':
+      return t('errors.failed_to_send');
+    case 'load':
+      return t('errors.failed_to_load');
+    default:
+      return t('errors.unknown_error');
+  }
 }
 
 export const useChat = (): UseChatReturn => {
@@ -50,14 +83,26 @@ export const useChat = (): UseChatReturn => {
         if (tempUserMessage) {
           setMessages([]);
         }
-        setError(response.error || 'Failed to create chat');
+        
+        // If chat was created but LLM failed, still set the chat
+        if (response.chatId) {
+          // Load the created chat
+          const chatResponse = await apiService.getChat(response.chatId);
+          if (chatResponse.success && chatResponse.data) {
+            setCurrentChat(chatResponse.data);
+            setMessages(chatResponse.data.messages || []);
+          }
+        }
+        
+        // Show localized error message
+        setError(getErrorMessage(response, 'create'));
       }
     } catch (err) {
       // Remove temp message on error
       if (tempUserMessage) {
         setMessages([]);
       }
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(t('errors.unknown_error'));
     } finally {
       setIsLoading(false);
     }
@@ -98,12 +143,14 @@ export const useChat = (): UseChatReturn => {
       } else {
         // Remove temp message on error
         setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
-        setError(response.error || 'Failed to send message');
+        
+        // Show localized error message
+        setError(getErrorMessage(response, 'send'));
       }
     } catch (err) {
       // Remove temp message on error
       setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(t('errors.unknown_error'));
     } finally {
       setIsLoading(false);
     }
@@ -120,10 +167,11 @@ export const useChat = (): UseChatReturn => {
         setCurrentChat(response.data);
         setMessages(response.data.messages || []);
       } else {
-        setError(response.error || 'Failed to load chat');
+        // Show localized error message
+        setError(getErrorMessage(response, 'load'));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(t('errors.unknown_error'));
     } finally {
       setIsLoading(false);
     }

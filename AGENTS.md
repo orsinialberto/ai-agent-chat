@@ -98,14 +98,15 @@ ai-agent-chat/
 - Keep layers separated (presentation, business, data)
 
 ### 2. **Error Handling**
-- Implement retry logic for API calls
-- Graceful fallback when an LLM is unavailable
+- Implement retry logic for API calls with exponential backoff
+- Return structured error codes (backend) and localized messages (frontend)
 - Structured logging for debugging
 - **Smart MCP error auto-correction:** When an MCP tool call fails, the system:
   1. Passes the error to the LLM along with the available MCP context
   2. The LLM analyzes the error and generates correct arguments
   3. Automatic retry up to 2 attempts
-  4. If it fails, shows a generic message in the user's language
+  4. If it fails, propagates error to frontend for localized message display
+- **Multilingual error support**: Error messages automatically adapt to user's browser language (EN, IT, ES, FR, DE)
 
 ### 3. **Performance**
 - Implement streaming for long responses

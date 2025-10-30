@@ -72,7 +72,7 @@ export class ChatController {
 
         // Get AI response
         try {
-          const aiResponse = await geminiService.sendMessage([userMessage]);
+          const aiResponse = await geminiService.sendMessageWithFallback([userMessage]);
           
           // Add AI response to database
           const assistantMessage = await databaseService.addMessage(
@@ -91,7 +91,15 @@ export class ChatController {
           }
         } catch (error) {
           console.error('Error getting AI response:', error);
-          // Continue with just the user message
+          
+          // Return error to frontend with specific error type
+          return res.status(503).json({
+            success: false,
+            error: 'AI_SERVICE_UNAVAILABLE',
+            errorType: 'LLM_UNAVAILABLE',
+            message: 'The AI service is temporarily unavailable. The chat was created but the AI could not respond.',
+            chatId: chat.id // Still return the chat ID so the user can retry
+          });
         }
       }
 
@@ -164,9 +172,15 @@ export class ChatController {
         });
       } catch (error) {
         console.error('Error getting AI response:', error);
-        return res.status(500).json({
+        
+        // Return specific error code for LLM unavailability
+        // The frontend can handle this error type appropriately
+        return res.status(503).json({
           success: false,
-          error: 'Failed to get AI response'
+          error: 'AI_SERVICE_UNAVAILABLE',
+          errorType: 'LLM_UNAVAILABLE',
+          message: 'The AI service is temporarily unavailable. Please try again in a few moments.',
+          retryAfter: 60 // Suggest retry after 60 seconds
         });
       }
     } catch (error) {
@@ -501,9 +515,8 @@ Please provide a helpful response based on these results.
         return await this.retryWithLLMCorrection(toolCalls, originalMessage, chatHistory, error, retryCount);
       }
       
-      // Max retries exceeded, return user-friendly error message
-      const language = this.detectUserLanguage(originalMessage, chatHistory);
-      return { content: this.getGenericErrorMessage(language) };
+      // Max retries exceeded, throw error to be handled by controller
+      throw new Error('MCP tool execution failed after maximum retry attempts');
     }
   }
 
@@ -555,8 +568,7 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
       // Check if LLM gave up
       if (llmCorrection.content.includes('ERROR_UNABLE_TO_FIX')) {
         console.log('❌ LLM unable to fix the error');
-        const language = this.detectUserLanguage(originalMessage, chatHistory);
-        return { content: this.getGenericErrorMessage(language) };
+        throw new Error('LLM was unable to correct the MCP tool call arguments');
       }
 
       // Extract corrected tool call
@@ -564,8 +576,7 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
       
       if (correctedToolCalls.length === 0) {
         console.log('❌ LLM did not provide a corrected tool call');
-        const language = this.detectUserLanguage(originalMessage, chatHistory);
-        return { content: this.getGenericErrorMessage(language) };
+        throw new Error('LLM did not provide a corrected tool call');
       }
 
       console.log(`✅ LLM provided corrected tool call:`, correctedToolCalls[0]);
@@ -580,40 +591,10 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
 
     } catch (correctionError: any) {
       console.error('Error during LLM correction:', correctionError);
-      const language = this.detectUserLanguage(originalMessage, chatHistory);
-      return { content: this.getGenericErrorMessage(language) };
+      throw new Error('Error occurred during LLM error correction attempt');
     }
   }
 
-  /**
-   * Detect user's language from their messages
-   */
-  private detectUserLanguage(currentMessage: string, chatHistory: Message[]): 'it' | 'en' {
-    // Analyze all messages to detect language
-    const italianKeywords = [
-      'italiano', 'italia', 'segmento', 'segmenti', 'uomo', 'donna', 'età', 
-      'data', 'dopo', 'prima', 'crea', 'nuovo', 'vorrei', 'puoi', 'per favore',
-      'grazie', 'prego', 'ok', 'okay', 'con', 'o', 'e', 'dovrei', 'elaborazione'
-    ];
-    
-    const allMessages = [currentMessage, ...chatHistory.map(m => m.content)].join(' ').toLowerCase();
-    
-    const italianCount = italianKeywords.filter(keyword => allMessages.includes(keyword)).length;
-    
-    return italianCount > 0 ? 'it' : 'en';
-  }
-
-  /**
-   * Get generic error message in user's language
-   */
-  private getGenericErrorMessage(language: 'it' | 'en'): string {
-    const messages = {
-      en: "I apologize, but I encountered an issue while processing your request. Please try rephrasing your request or being more specific about the parameters you need.",
-      it: "Mi dispiace, ma ho riscontrato un problema durante l'elaborazione della tua richiesta. Prova a riformulare la tua richiesta o sii più specifico sui parametri che necessiti."
-    };
-    
-    return messages[language];
-  }
 
   /**
    * Get MCP status

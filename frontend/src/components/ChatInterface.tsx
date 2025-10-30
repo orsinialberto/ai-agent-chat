@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useChat } from '../hooks/useChat'
 import { Message, Chat } from '../services/api'
 import { MarkdownRenderer } from './MarkdownRenderer'
+import { useTranslation } from '../hooks/useTranslation'
 
 interface ChatInterfaceProps {
   currentChatId?: string;
@@ -13,6 +14,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const notifiedChatIdsRef = useRef<Set<string>>(new Set())
+  const { t } = useTranslation()
   const { 
     currentChat, 
     messages, 
@@ -60,7 +62,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
     // If no chat exists, create one with the first message
     if (!currentChat) {
       await createChat({
-        title: 'New Chat',
+        title: t('chat.new_chat'),
         initialMessage: messageContent
       })
     } else {
@@ -130,7 +132,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
             <div className="flex justify-start">
               <div className="flex items-center space-x-2 text-gray-600">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
-                <span className="text-sm">AI is thinking...</span>
+                <span className="text-sm">{t('chat.thinking')}</span>
               </div>
             </div>
           )}
@@ -147,7 +149,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
+              placeholder={t('chat.type_message')}
               className="input-field flex-1 resize-none min-h-[2.5rem] max-h-32 overflow-y-auto pr-10"
               disabled={isLoading}
               rows={1}

@@ -34,7 +34,10 @@ export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
+  errorType?: string;
   message?: string;
+  retryAfter?: number;
+  chatId?: string;
 }
 
 class ApiService {
@@ -57,17 +60,30 @@ class ApiService {
         ...options,
       });
 
+      // Parse response body
+      const data = await response.json();
+
+      // If response is not OK, preserve error details from backend
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        return {
+          success: false,
+          error: data.error || `HTTP error! status: ${response.status}`,
+          errorType: data.errorType,
+          message: data.message,
+          retryAfter: data.retryAfter,
+          chatId: data.chatId
+        };
       }
 
-      const data = await response.json();
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // Network error or JSON parse error
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
