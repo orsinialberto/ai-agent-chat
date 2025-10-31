@@ -111,27 +111,33 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
         </div>
       ) : (
         <div ref={messagesContainerRef} className="space-y-4 mb-3 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-[calc(100vh-16rem)] scrollbar-hide px-6 pt-6">
-          {messages.map((message: Message) => (
-            <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] px-4 py-2 rounded-lg break-words ${
-                message.role === 'user' 
-                  ? 'bg-sky-200/60 text-sky-800' 
-                  : 'bg-gray-100 text-gray-700'
-              }`}>
-                {message.role === 'assistant' ? (
-                  <MarkdownRenderer 
-                    content={message.content} 
-                    className="text-sm"
-                  />
-                ) : (
-                  <p className="text-sm">{message.content}</p>
-                )}
-                <p className="text-xs opacity-70 mt-1">
-                  {new Date(message.createdAt).toLocaleTimeString()}
-                </p>
+          {messages.map((message: Message) => {
+            const isUser = message.role === 'user'
+
+            return (
+              <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`break-words ${
+                    isUser
+                      ? 'max-w-[70%] px-4 py-2 rounded-lg bg-sky-200/60 text-sky-800'
+                      : 'w-full py-2 text-gray-700'
+                  }`}
+                >
+                  {message.role === 'assistant' ? (
+                    <MarkdownRenderer 
+                      content={message.content} 
+                      className="text-sm"
+                    />
+                  ) : (
+                    <p className="text-sm">{message.content}</p>
+                  )}
+                  <p className={`text-xs opacity-70 mt-1 ${isUser ? '' : 'text-left'}`}>
+                    {new Date(message.createdAt).toLocaleTimeString()}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
           
           {/* Loading indicator */}
           {isLoading && (
