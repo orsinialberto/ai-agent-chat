@@ -102,7 +102,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               >
                 {chat.title || 'Untitled Chat'}
               </h3>
-              <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
+              <span className="text-xs text-gray-400 ml-2 mr-2 flex-shrink-0">
                 {formatDate(chat.updatedAt)}
               </span>
             </div>

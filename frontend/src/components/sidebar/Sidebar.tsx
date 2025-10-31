@@ -69,7 +69,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar */}
       <div className={`
-        group
         fixed top-0 left-0 h-screen bg-gray-800 border-r border-gray-700 z-50
         transform transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -79,26 +78,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex flex-col h-full relative">
           {isOpen ? (
             <>
-              {/* Toggle Button - visibile solo al hover quando aperta */}
-              <button
-                onClick={onToggle}
-                className="absolute top-2 right-1.5 p-1.5 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-all duration-200 z-10 opacity-0 group-hover:opacity-100"
-                title="Close sidebar"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                </svg>
-              </button>
+              {/* Header con group per il toggle */}
+              <div className="group relative">
+                {/* Toggle Button - visibile solo al hover quando aperta */}
+                <button
+                  onClick={onToggle}
+                  className="absolute top-2 right-1.5 p-1.5 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-all duration-200 z-10 opacity-0 group-hover:opacity-100"
+                  title="Close sidebar"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                  </svg>
+                </button>
 
-              {/* Header */}
-              <div className="flex items-end pl-6 pt-4 pb-6">
-                <div className="flex items-end gap-3">
-                  <img 
-                    src="/images/ai-icon.png" 
-                    alt="AI" 
-                    className="w-9 h-9 mb-1.5"
-                  />
-                  <span className="text-xl font-light text-gray-100 tracking-wider">AI Agent</span>
+                {/* Header */}
+                <div className="flex items-end pl-6 pt-4 pb-6">
+                  <div className="flex items-end gap-3">
+                    <img 
+                      src="/images/ai-icon.png" 
+                      alt="AI" 
+                      className="w-9 h-9 mb-1.5"
+                    />
+                    <span className="text-xl font-light text-gray-100 tracking-wider">AI Agent</span>
+                  </div>
                 </div>
               </div>
 
@@ -139,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isOpen && (
             <>
               {/* Chats Title with Toggle */}
-              <div className="pl-6 pr-3 py-2 flex items-center cursor-pointer hover:bg-gray-700/50 transition-colors" onClick={() => setShowChatList(!showChatList)}>
+              <div className="pl-6 pr-6 py-2 flex items-center cursor-pointer hover:bg-gray-700/50 transition-colors" onClick={() => setShowChatList(!showChatList)}>
                 <h1 className="text-sm font-medium text-gray-300 tracking-wide">Chats</h1>
                 <button
                   className="ml-1 p-1 text-gray-400 hover:text-gray-200 transition-colors"
