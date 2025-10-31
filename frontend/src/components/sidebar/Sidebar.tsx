@@ -21,6 +21,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen = true,
   onToggle
 }) => {
+  const [showChatList, setShowChatList] = React.useState(true);
+  
   const { 
     chats, 
     isLoading, 
@@ -123,24 +125,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {isOpen && (
             <>
-              {/* Chats Title */}
-              <div className="pl-6 pr-3 py-2">
+              {/* Chats Title with Toggle */}
+              <div className="pl-6 pr-3 py-2 flex items-center cursor-pointer hover:bg-gray-50/50 transition-colors" onClick={() => setShowChatList(!showChatList)}>
                 <h1 className="text-sm font-medium text-gray-600 tracking-wide">Chats</h1>
+                <button
+                  className="ml-1 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  title={showChatList ? "Hide chats" : "Show chats"}
+                >
+                  <svg 
+                    className={`w-4 h-4 transition-transform duration-200 ${showChatList ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
               </div>
 
               {/* Chat List */}
-              <div className="flex-1 overflow-y-auto scrollbar-hide">
-                <ChatList
-                  chats={chats}
-                  currentChatId={currentChatId}
-                  isLoading={isLoading}
-                  error={error}
-                  onChatSelect={handleChatSelect}
-                  onUpdateTitle={updateChatTitle}
-                  onDeleteChat={deleteChat}
-                  onClearError={clearError}
-                />
-              </div>
+              {showChatList && (
+                <div className="flex-1 overflow-y-auto scrollbar-hide">
+                  <ChatList
+                    chats={chats}
+                    currentChatId={currentChatId}
+                    isLoading={isLoading}
+                    error={error}
+                    onChatSelect={handleChatSelect}
+                    onUpdateTitle={updateChatTitle}
+                    onDeleteChat={deleteChat}
+                    onClearError={clearError}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
