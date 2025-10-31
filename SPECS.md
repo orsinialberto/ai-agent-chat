@@ -153,31 +153,6 @@ app.use(cors({
 
 ## 🚀 Roadmap di Sviluppo
 
-### Setup Base ✅
-- [x] Configurazione ambiente di sviluppo
-- [x] Setup database PostgreSQL + Prisma
-- [x] Struttura base backend Express
-- [x] Struttura base frontend React
-
-### Fase 1 - Gemini ✅
-- [x] Integrazione Gemini API
-- [x] Implementazione chat persistente
-- [x] Interfaccia utente base
-- [x] Test end-to-end
-
-### Fase 1.5 - Chat Sidebar ✅
-- [x] Sidebar component con lista chat
-- [x] Navigazione tra chat esistenti
-- [x] Gestione chat (crea/elimina)
-- [x] Design responsive
-- [x] Test integrazione sidebar
-
-### Fase 2 - MCP ✅
-- [x] Implementazione MCP client
-- [x] Estensione agent con tools
-- [x] Gestione dinamica funzionalità
-- [x] Testing MCP integration
-
 ### Fase 3 - MCP Tool Call Parser Fix ✅
 - [x] Fix parsing tool calls con JSON annidati (brace counting)
 - [x] Gestione strutture JSON complesse in tool call arguments
@@ -209,26 +184,7 @@ app.use(cors({
 - [x] Aggiunta prompt per creazione segmento semplice
 - [x] Aggiunta prompt per creazione segmento eventi
 - [ ] Aggiunta prompt per creazione segmento combinato (contatti + eventi)
-- [ ] Aggiunta prompt dinamici
-
-### Fase 4.5 - Miglioramenti UX ✅
-- [x] Text box chat con supporto wrap automatico
-- [x] Modifica titolo chat con doppio click (rimuovere bottone)
-
-### Fase 5 - Testing Strategy 
-- [x] Setup Jest per test unitari backend
-- [x] Setup Vitest per test frontend (React Testing Library)
-- [x] Test coverage per servizi core (Gemini service, E2E API)
-- [x] Test unitari backend (Gemini integration)
-- [x] Test E2E backend (Health checks, Chat management, Database)
-- [x] Test componenti React (Sidebar, ChatItem, DeleteChatModal, MarkdownRenderer)
-- [x] Test custom hooks (useSidebar)
-- [ ] Setup Playwright per test E2E browser
-
-### Fase 6 - Markdown Rendering Fix ✅
-- [x] Correggere il rendering del markdown nei messaggi
-- [x] Testare il rendering di elementi complessi (code blocks, tabelle, liste)
-- [x] Verificare la compatibilità con diversi tipi di contenuto AI
+- [ ] Aggiunta prompt per compleanno contatto
 
 ### Fase 7 - Multi-LLM
 - [x] UI selezione modello Gemini (dropdown minimal in `ChatInterface`)
@@ -237,6 +193,22 @@ app.use(cors({
 - [x] Testing: unit + E2E con skip condizionale se `GEMINI_API_KEY` assente
 - [ ] Architettura modulare provider (plugin) e multi-LLM completa
 - [ ] Configurazione dinamica provider (cache, warmup, policy)
+
+### Fase 8 - Refactoring sidebar
+- [ ] Aggiungere bottone per aprire e chiudere togglebar
+- [ ] Menù dropdown su chat recenti
+- [ ] Bottone minimal per creare nuova chat
+
+### Fase 9 - Refactoring chat
+- [ ] Eliminare box risposta e allargare la risposta
+- [ ] Spostare a sinistra box richiesta
+
+### Fase 10 - Autenticazione
+- [ ] Trovare il modo per comunicare con un server mcp autenticato
+
+### Fase 11 - Grafici
+- [ ] Mostrare grafici in interfaccia
+- [ ] Modificare prompt per migliorare visualizzazione dati (gli elenchi puntati non sempre sono la scelta migliore)
 
 #### Dettagli Implementativi
 - Frontend
