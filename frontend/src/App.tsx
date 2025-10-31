@@ -6,17 +6,15 @@ import { Chat } from './services/api'
 
 function App() {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const addChatToSidebarRef = useRef<((chat: Chat) => void) | null>(null)
 
   const handleChatSelect = (chatId: string) => {
     setCurrentChatId(chatId)
-    setSidebarOpen(false) // Close sidebar on mobile after selection
   }
 
   const handleNewChat = () => {
     setCurrentChatId(undefined)
-    setSidebarOpen(false) // Close sidebar on mobile after selection
   }
 
   const handleAddChatReady = (addChat: (chat: Chat) => void) => {
