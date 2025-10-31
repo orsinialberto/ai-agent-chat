@@ -77,13 +77,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       `}>
         <div className="flex flex-col h-full">
           {/* Header with Toggle Button */}
-          <div className={`flex items-center ${isOpen ? 'justify-between pl-6 pr-3' : 'justify-center'} pt-4 pb-2`}>
+          <div className={`flex items-center ${isOpen ? 'justify-between pl-6 pr-0' : 'justify-center'} pt-4 pb-2`}>
             {isOpen ? (
               <>
-                <span className="text-xs font-medium text-gray-400 tracking-wide">MENU</span>
+                <span className="text-base font-semibold text-gray-700 tracking-wide">MENU</span>
                 <button
                   onClick={onToggle}
-                  className="p-2 rounded-md hover:bg-gray-100/60 text-gray-900 hover:text-gray-700 transition-colors"
+                  className="p-2 pr-2 rounded-md hover:bg-gray-100/60 text-gray-900 hover:text-gray-700 transition-colors"
                   title="Close sidebar"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,11 +106,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* New Chat Button */}
           {isOpen ? (
-            <div className="pb-2">
+            <div className="pb-10">
               <NewChatButton onClick={handleNewChat} />
             </div>
           ) : (
-            <div className="pb-2 flex justify-center">
+            <div className="pb-10 flex justify-center">
               <button
                 onClick={handleNewChat}
                 className="p-2 rounded-md hover:bg-gray-100/60 text-gray-900 hover:text-gray-700 transition-colors"
