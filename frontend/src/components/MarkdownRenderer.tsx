@@ -1,17 +1,31 @@
-import React from 'react';
+import React, { type InputHTMLAttributes, type ReactNode } from 'react';
+import type { Pluggable, PluggableList } from 'unified';
+
+type ChildrenProps = {
+  children?: ReactNode;
+};
+
+type CodeProps = ChildrenProps & {
+  inline?: boolean;
+  className?: string;
+};
+
+type AnchorProps = ChildrenProps & {
+  href?: string;
+};
 
 interface MarkdownRendererProps {
   content: string;
   className?: string;
 }
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 
-  content, 
-  className = '' 
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  className = ''
 }) => {
   // Import dinamico per evitare problemi di build
-  const [ReactMarkdown, setReactMarkdown] = React.useState<any>(null);
-  const [remarkGfm, setRemarkGfm] = React.useState<any>(null);
+  const [ReactMarkdown, setReactMarkdown] = React.useState<typeof import('react-markdown')['default'] | null>(null);
+  const [remarkGfm, setRemarkGfm] = React.useState<typeof import('remark-gfm')['default'] | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -36,6 +50,11 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     loadMarkdown();
   }, []);
 
+  const remarkPluginList = React.useMemo<PluggableList | undefined>(
+    () => (remarkGfm ? [remarkGfm as Pluggable] : undefined),
+    [remarkGfm]
+  );
+
   if (isLoading) {
     return (
       <div className={`markdown-content ${className}`} style={{ fontFamily: 'system-ui, sans-serif' }}>
@@ -58,7 +77,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
   return (
     <div 
-      className={`markdown-content ${className}`} 
+      className={`markdown-content ${className}`}
       style={{ 
         fontFamily: 'system-ui, -apple-system, sans-serif',
         lineHeight: '1.6',
@@ -66,14 +85,20 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       }}
     >
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={remarkPluginList}
         components={{
           // Code blocks
-          code({ node, inline, className, children, ...props }) {
+          code({ inline, className, children }: CodeProps) {
+            const inlineClassName = [
+              'bg-gray-100 text-gray-800 px-1 py-0 rounded text-sm font-mono border',
+              className
+            ]
+              .filter(Boolean)
+              .join(' ');
             if (inline) {
               return (
                 <code 
-                  className="bg-gray-100 text-gray-800 px-1 py-0 rounded text-sm font-mono border"
+                  className={inlineClassName}
                   style={{ 
                     backgroundColor: '#f3f4f6', 
                     color: '#1f2937',
@@ -91,6 +116,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               );
             }
             // Code block multi-linea con sfondo chiaro e dimensioni ridotte
+            const blockClassName = ['text-xs font-mono', className]
+              .filter(Boolean)
+              .join(' ');
             return (
               <pre 
                 className="bg-gray-50 text-gray-800 p-1 rounded overflow-x-auto my-1 border border-gray-200"
@@ -109,7 +137,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 }}
               >
                 <code 
-                  className="text-xs font-mono"
+                  className={blockClassName}
                   style={{
                     fontSize: '0.8125rem',
                     fontFamily: 'ui-monospace, SFMono-Regular, monospace',
@@ -124,7 +152,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Tables
-          table({ children }) {
+          table({ children }: ChildrenProps) {
             return (
               <div 
                 className="overflow-x-auto my-4 rounded-lg border border-gray-200"
@@ -149,7 +177,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Headers
-          h1({ children }) {
+          h1({ children }: ChildrenProps) {
             return (
               <h1 
                 className="text-2xl font-bold text-gray-900 mt-6 mb-4 pb-2 border-b border-gray-200"
@@ -168,7 +196,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             );
           },
           
-          h2({ children }) {
+          h2({ children }: ChildrenProps) {
             return (
               <h2 
                 className="text-xl font-semibold text-gray-800 mt-5 mb-3"
@@ -185,7 +213,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             );
           },
           
-          h3({ children }) {
+          h3({ children }: ChildrenProps) {
             return (
               <h3 
                 className="text-lg font-semibold text-gray-800 mt-4 mb-2"
@@ -202,7 +230,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             );
           },
           
-          h4({ children }) {
+          h4({ children }: ChildrenProps) {
             return (
               <h4 
                 className="text-base font-semibold text-gray-800 mt-3 mb-2"
@@ -219,7 +247,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             );
           },
           
-          h5({ children }) {
+          h5({ children }: ChildrenProps) {
             return (
               <h5 
                 className="text-sm font-semibold text-gray-800 mt-3 mb-1"
@@ -236,7 +264,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             );
           },
           
-          h6({ children }) {
+          h6({ children }: ChildrenProps) {
             return (
               <h6 
                 className="text-xs font-semibold text-gray-800 mt-3 mb-1"
@@ -254,7 +282,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Paragraphs
-          p({ children }) {
+          p({ children }: ChildrenProps) {
             return (
               <p 
                 className="mb-3 text-gray-700"
@@ -269,7 +297,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Lists
-          ul({ children }) {
+          ul({ children }: ChildrenProps) {
             return (
               <ul 
                 className="list-disc list-inside mb-4 space-y-1"
@@ -285,7 +313,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             );
           },
           
-          ol({ children }) {
+          ol({ children }: ChildrenProps) {
             return (
               <ol 
                 className="list-decimal list-inside mb-4 space-y-1"
@@ -301,7 +329,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             );
           },
           
-          li({ children }) {
+          li({ children }: ChildrenProps) {
             return (
               <li 
                 className="text-gray-700"
@@ -316,7 +344,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Blockquotes
-          blockquote({ children }) {
+          blockquote({ children }: ChildrenProps) {
             return (
               <blockquote 
                 className="border-l-4 border-blue-500 pl-4 my-4 italic text-gray-600 bg-blue-50 py-2 rounded-r"
@@ -337,7 +365,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Links
-          a({ href, children }) {
+          a({ href, children }: AnchorProps) {
             return (
               <a 
                 href={href} 
@@ -370,7 +398,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Strong/Bold
-          strong({ children }) {
+          strong({ children }: ChildrenProps) {
             return (
               <strong 
                 className="font-semibold text-gray-900"
@@ -385,7 +413,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Emphasis/Italic
-          em({ children }) {
+          em({ children }: ChildrenProps) {
             return (
               <em 
                 className="italic text-gray-700"
@@ -400,7 +428,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Strikethrough (GFM)
-          del({ children }) {
+          del({ children }: ChildrenProps) {
             return (
               <del 
                 className="line-through text-gray-500"
@@ -415,7 +443,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           
           // Task lists (GFM)
-          input({ type, checked, ...props }) {
+          input({ type, checked, ...props }: InputHTMLAttributes<HTMLInputElement>) {
             if (type === 'checkbox') {
               return (
                 <input 

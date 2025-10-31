@@ -2,19 +2,22 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { detectBrowserLanguage, getTranslations, t, SupportedLanguage } from '../i18n';
 
 describe('i18n', () => {
-  let originalNavigator: any;
+  let originalLanguage: string;
 
   beforeEach(() => {
-    originalNavigator = global.navigator;
+    originalLanguage = globalThis.navigator.language;
   });
 
   afterEach(() => {
-    global.navigator = originalNavigator;
+    Object.defineProperty(globalThis.navigator, 'language', {
+      value: originalLanguage,
+      configurable: true
+    });
   });
 
   describe('detectBrowserLanguage', () => {
     it('should detect Italian language', () => {
-      Object.defineProperty(global.navigator, 'language', {
+      Object.defineProperty(globalThis.navigator, 'language', {
         value: 'it-IT',
         configurable: true
       });
@@ -22,7 +25,7 @@ describe('i18n', () => {
     });
 
     it('should detect English language', () => {
-      Object.defineProperty(global.navigator, 'language', {
+      Object.defineProperty(globalThis.navigator, 'language', {
         value: 'en-US',
         configurable: true
       });
@@ -30,7 +33,7 @@ describe('i18n', () => {
     });
 
     it('should detect Spanish language', () => {
-      Object.defineProperty(global.navigator, 'language', {
+      Object.defineProperty(globalThis.navigator, 'language', {
         value: 'es-ES',
         configurable: true
       });
@@ -38,7 +41,7 @@ describe('i18n', () => {
     });
 
     it('should detect French language', () => {
-      Object.defineProperty(global.navigator, 'language', {
+      Object.defineProperty(globalThis.navigator, 'language', {
         value: 'fr-FR',
         configurable: true
       });
@@ -46,7 +49,7 @@ describe('i18n', () => {
     });
 
     it('should detect German language', () => {
-      Object.defineProperty(global.navigator, 'language', {
+      Object.defineProperty(globalThis.navigator, 'language', {
         value: 'de-DE',
         configurable: true
       });
@@ -54,7 +57,7 @@ describe('i18n', () => {
     });
 
     it('should default to English for unsupported languages', () => {
-      Object.defineProperty(global.navigator, 'language', {
+      Object.defineProperty(globalThis.navigator, 'language', {
         value: 'ja-JP',
         configurable: true
       });
