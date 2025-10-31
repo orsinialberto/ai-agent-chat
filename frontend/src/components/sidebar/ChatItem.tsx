@@ -97,7 +97,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
             {/* Title and timestamp row */}
             <div className="flex items-center justify-between mb-1">
               <h3 
-                className={`text-xs font-medium truncate flex-1 ${isActive ? 'text-gray-100' : 'text-gray-200'}`}
+                className={`text-sm font-medium truncate flex-1 ${isActive ? 'text-gray-100' : 'text-gray-200'}`}
                 title="Double-click to rename"
               >
                 {chat.title || 'Untitled Chat'}

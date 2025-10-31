@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         transform transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto
-        ${isOpen ? 'w-80' : 'w-14'}
+        ${isOpen ? 'w-96' : 'w-14'}
       `}>
         <div className="flex flex-col h-full relative">
           {isOpen ? (
@@ -97,9 +97,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <img 
                       src="/images/ai-icon.png" 
                       alt="AI" 
-                      className="w-9 h-9 mb-1.5"
+                      className="w-10 h-10 mb-1.5"
                     />
-                    <span className="text-xl font-light text-gray-100 tracking-wider">AI Agent</span>
+                    <span className="text-2xl font-light text-gray-100 tracking-wider">AI Agent</span>
                   </div>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <>
               {/* Chats Title with Toggle */}
               <div className="pl-6 pr-6 py-2 flex items-center cursor-pointer hover:bg-gray-700/50 transition-colors" onClick={() => setShowChatList(!showChatList)}>
-                <h1 className="text-sm font-medium text-gray-300 tracking-wide">Chats</h1>
+                <h1 className="text-base font-medium text-gray-300 tracking-wide">Chats</h1>
                 <button
                   className="ml-1 p-1 text-gray-400 hover:text-gray-200 transition-colors"
                   title={showChatList ? "Hide chats" : "Show chats"}
