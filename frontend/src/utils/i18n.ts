@@ -18,6 +18,11 @@ export interface Translations {
     thinking: string;
     type_message: string;
     new_chat: string;
+    download_message: string;
+    copy_message: string;
+    copied: string;
+    send: string;
+    model: string;
   };
 }
 
@@ -34,7 +39,12 @@ const translations: Record<SupportedLanguage, Translations> = {
     chat: {
       thinking: 'AI is thinking...',
       type_message: 'Type your message...',
-      new_chat: 'New Chat'
+      new_chat: 'New Chat',
+      download_message: 'Download message',
+      copy_message: 'Copy message',
+      copied: 'Copied!',
+      send: 'Send',
+      model: 'Model'
     }
   },
   it: {
@@ -49,7 +59,12 @@ const translations: Record<SupportedLanguage, Translations> = {
     chat: {
       thinking: 'L\'AI sta pensando...',
       type_message: 'Scrivi il tuo messaggio...',
-      new_chat: 'Nuova Chat'
+      new_chat: 'Nuova Chat',
+      download_message: 'Scarica messaggio',
+      copy_message: 'Copia messaggio',
+      copied: 'Copiato!',
+      send: 'Invia',
+      model: 'Modello'
     }
   },
   es: {
@@ -64,7 +79,12 @@ const translations: Record<SupportedLanguage, Translations> = {
     chat: {
       thinking: 'La IA está pensando...',
       type_message: 'Escribe tu mensaje...',
-      new_chat: 'Nuevo Chat'
+      new_chat: 'Nuevo Chat',
+      download_message: 'Descargar mensaje',
+      copy_message: 'Copiar mensaje',
+      copied: '¡Copiado!',
+      send: 'Enviar',
+      model: 'Modelo'
     }
   },
   fr: {
@@ -79,7 +99,12 @@ const translations: Record<SupportedLanguage, Translations> = {
     chat: {
       thinking: 'L\'IA réfléchit...',
       type_message: 'Tapez votre message...',
-      new_chat: 'Nouveau Chat'
+      new_chat: 'Nouveau Chat',
+      download_message: 'Télécharger le message',
+      copy_message: 'Copier le message',
+      copied: 'Copié!',
+      send: 'Envoyer',
+      model: 'Modèle'
     }
   },
   de: {
@@ -94,7 +119,12 @@ const translations: Record<SupportedLanguage, Translations> = {
     chat: {
       thinking: 'KI denkt nach...',
       type_message: 'Geben Sie Ihre Nachricht ein...',
-      new_chat: 'Neuer Chat'
+      new_chat: 'Neuer Chat',
+      download_message: 'Nachricht herunterladen',
+      copy_message: 'Nachricht kopieren',
+      copied: 'Kopiert!',
+      send: 'Senden',
+      model: 'Modell'
     }
   }
 };
