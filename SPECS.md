@@ -198,6 +198,8 @@ app.use(cors({
 - [ ] Aggiungere bottone per aprire e chiudere togglebar
 - [ ] Menù dropdown su chat recenti
 - [ ] Bottone minimal per creare nuova chat
+- [ ] Lasciare solo titolo della chat con inizio della chat
+- [ ] Rimuovere data chat
 
 ### Fase 9 - Refactoring chat
 - [ ] Eliminare box risposta e allargare la risposta

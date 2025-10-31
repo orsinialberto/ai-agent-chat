@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChatList } from './ChatList';
+import { NewChatButton } from './NewChatButton';
 import { useSidebar } from '../../hooks/useSidebar';
 import { Chat } from '../../services/api';
 
@@ -73,18 +74,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         w-80
       `}>
         <div className="flex flex-col h-full">
-          {/* Chats Title with New Chat Button */}
-          <div className="pl-6 pr-3 py-2 flex items-center justify-between">
+          {/* New Chat Button - Above Chats Title */}
+          <div className="pt-4 pb-2">
+            <NewChatButton onClick={handleNewChat} />
+          </div>
+
+          {/* Chats Title */}
+          <div className="pl-6 pr-3 py-2">
             <h1 className="text-sm font-medium text-gray-600 tracking-wide">Chats</h1>
-            <button
-              onClick={handleNewChat}
-              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 rounded transition-colors"
-              title="New Chat"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
           </div>
 
           {/* Chat List */}
