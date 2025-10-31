@@ -194,16 +194,6 @@ app.use(cors({
 - [ ] Architettura modulare provider (plugin) e multi-LLM completa
 - [ ] Configurazione dinamica provider (cache, warmup, policy)
 
-### Fase 8 - Refactoring sidebar
-- [ ] Aggiungere bottone per aprire e chiudere togglebar
-- [ ] Menù dropdown su chat recenti
-- [ ] Bottone minimal per creare nuova chat
-- [ ] Lasciare solo titolo della chat con inizio della chat
-- [ ] Rimuovere data chat
-
-### Fase 9 - Refactoring chat
-- [ ] Eliminare box risposta e allargare la risposta
-- [ ] Spostare a sinistra box richiesta
 
 ### Fase 10 - Autenticazione
 - [ ] Trovare il modo per comunicare con un server mcp autenticato
