@@ -69,17 +69,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar */}
       <div className={`
+        group
         fixed top-0 left-0 h-screen bg-gray-800 border-r border-gray-700 z-50
         transform transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto
         ${isOpen ? 'w-80' : 'w-14'}
       `}>
-        <div className="flex flex-col h-full">
-          {/* Header with Toggle Button */}
-          <div className={`flex items-end ${isOpen ? 'justify-between pl-6 pr-0' : 'justify-center'} pt-4 pb-6`}>
-            {isOpen ? (
-              <>
+        <div className="flex flex-col h-full relative">
+          {isOpen ? (
+            <>
+              {/* Toggle Button - visibile solo al hover quando aperta */}
+              <button
+                onClick={onToggle}
+                className="absolute top-2 right-1.5 p-1.5 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-all duration-200 z-10 opacity-0 group-hover:opacity-100"
+                title="Close sidebar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Header */}
+              <div className="flex items-end pl-6 pt-4 pb-6">
                 <div className="flex items-end gap-3">
                   <img 
                     src="/images/ai-icon.png" 
@@ -88,46 +100,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   />
                   <span className="text-xl font-light text-gray-100 tracking-wider">AI Agent</span>
                 </div>
+              </div>
+
+              {/* New Chat Button */}
+              <div className="pb-10">
+                <NewChatButton onClick={handleNewChat} />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Bottoni incolonnati quando chiusa */}
+              <div className="pt-4 pb-10 flex flex-col items-center gap-2">
+                {/* Toggle Button - sempre visibile quando chiusa */}
                 <button
                   onClick={onToggle}
-                  className="p-2 pr-2 pb-0 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
-                  title="Close sidebar"
+                  className="p-2 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
+                  title="Open sidebar"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                   </svg>
                 </button>
-              </>
-            ) : (
-              <button
-                onClick={onToggle}
-                className="p-2 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
-                title="Open sidebar"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-          </div>
 
-          {/* New Chat Button */}
-          {isOpen ? (
-            <div className="pb-10">
-              <NewChatButton onClick={handleNewChat} />
-            </div>
-          ) : (
-            <div className="pb-10 flex justify-center">
-              <button
-                onClick={handleNewChat}
-                className="p-2 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
-                title="New Chat"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
+                {/* New Chat Button */}
+                <button
+                  onClick={handleNewChat}
+                  className="p-2 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
+                  title="New Chat"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            </>
           )}
 
           {isOpen && (
