@@ -22,6 +22,7 @@ Welcome to the comprehensive documentation for the AI Agent Chat project. This d
 - **[Chat System](./features/chat-system.md)** - Core chat functionality
 - **[Sidebar](./features/sidebar.md)** - Chat navigation sidebar
 - **[Markdown Support](./features/markdown-support.md)** - Message rendering
+- **[Chart Visualization](./features/chart-visualization.md)** - Interactive data charts
 - **[Error Handling](./features/error-handling.md)** - Robust error management
 
 ### 🔌 [Integrations](./integrations/)
@@ -59,6 +60,7 @@ Welcome to the comprehensive documentation for the AI Agent Chat project. This d
 - **Responsive Sidebar** - Mobile-friendly chat navigation
 - **MCP Integration** - Model Context Protocol for external tools
 - **Markdown Support** - Rich text message rendering
+- **Chart Visualization** - Interactive charts (line, bar, pie, area) with Recharts
 - **Error Handling** - Robust error management with fallbacks
 
 ### 🚧 In Development

@@ -198,9 +198,19 @@ app.use(cors({
 ### Fase 10 - Autenticazione
 - [ ] Trovare il modo per comunicare con un server mcp autenticato
 
-### Fase 11 - Grafici
-- [ ] Mostrare grafici in interfaccia
-- [ ] Modificare prompt per migliorare visualizzazione dati (gli elenchi puntati non sempre sono la scelta migliore)
+### Fase 11 - Grafici ✅
+- [x] Mostrare grafici in interfaccia
+- [x] Modificare prompt per migliorare visualizzazione dati (gli elenchi puntati non sempre sono la scelta migliore)
+
+**Implementation Details:**
+- **Library**: Recharts for chart rendering
+- **Supported chart types**: Line, Bar, Pie, Area
+- **Syntax**: Markdown code blocks with `chart:TYPE` language identifier
+- **Features**: Multiple series, custom colors, responsive design, error handling
+- **Components**: `ChartRenderer.tsx` + `MarkdownRenderer.tsx` integration
+- **Backend**: System instruction in `geminiService.ts` teaches LLM chart syntax
+- **Tests**: Full test coverage for all chart types and error scenarios
+- **Documentation**: Complete user and developer documentation in `docs/features/chart-visualization.md`
 
 #### Dettagli Implementativi
 - Frontend
