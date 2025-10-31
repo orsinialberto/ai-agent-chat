@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         transform transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto
-        ${isOpen ? 'w-96' : 'w-14'}
+        ${isOpen ? 'w-72' : 'w-14'}
       `}>
         <div className="flex flex-col h-full relative">
           {isOpen ? (
