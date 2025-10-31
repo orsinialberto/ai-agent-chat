@@ -92,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
 
                 {/* Header */}
-                <div className="flex items-end pl-5 pt-4 pb-6">
+                <div className="flex items-end pl-6 pt-4 pb-6">
                   <div className="flex items-end gap-3">
                     <img 
                       src="/images/ai-icon.png" 
@@ -105,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {/* New Chat Button */}
-              <div className="pb-10">
+              <div className="pb-4">
                 <NewChatButton onClick={handleNewChat} />
               </div>
             </>

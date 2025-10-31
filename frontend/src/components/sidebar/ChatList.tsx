@@ -64,8 +64,8 @@ export const ChatList: React.FC<ChatListProps> = ({
   }
 
   return (
-    <div>
-      <div className="space-y-0">
+    <div className="px-3">
+      <div className="space-y-1">
         {chats.map((chat) => (
           <ChatItem
             key={chat.id}

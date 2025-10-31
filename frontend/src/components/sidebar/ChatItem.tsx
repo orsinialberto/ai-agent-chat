@@ -68,7 +68,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
     <>
       <div
         className={`
-          group relative pl-6 pr-3 py-3 rounded-lg cursor-pointer transition-colors
+          group relative pl-6 pr-6 py-2 rounded-lg cursor-pointer transition-colors
           ${isActive 
             ? 'bg-gray-700 border border-gray-600' 
             : 'hover:bg-gray-700/50'
@@ -114,13 +114,13 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               </p>
               
               {/* Action buttons aligned with message preview */}
-              <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1 ml-13">
+              <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1 ml-2">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowDeleteModal(true);
                   }}
-                  className="p-1 rounded hover:bg-rose-900/60 text-gray-400 hover:text-rose-400"
+                  className="p-1 rounded hover:bg-gray-600 text-gray-400 hover:text-rose-400"
                   title="Delete chat"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
