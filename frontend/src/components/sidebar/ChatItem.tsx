@@ -70,8 +70,8 @@ export const ChatItem: React.FC<ChatItemProps> = ({
         className={`
           group relative pl-6 pr-3 py-3 rounded-lg cursor-pointer transition-colors
           ${isActive 
-            ? 'bg-sky-100/50 border border-sky-200/60' 
-            : 'hover:bg-sky-50/40'
+            ? 'bg-gray-700 border border-gray-600' 
+            : 'hover:bg-gray-700/50'
           }
         `}
         onClick={onSelect}
@@ -88,7 +88,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={handleTitleSubmit}
-              className="w-full text-sm font-medium bg-transparent border-none outline-none"
+              className="w-full text-sm font-medium bg-transparent border-none outline-none text-gray-100"
               autoFocus
             />
           </form>
@@ -97,19 +97,19 @@ export const ChatItem: React.FC<ChatItemProps> = ({
             {/* Title and timestamp row */}
             <div className="flex items-center justify-between mb-1">
               <h3 
-                className={`text-xs font-medium truncate flex-1 ${isActive ? 'text-sky-800' : 'text-gray-900'}`}
+                className={`text-xs font-medium truncate flex-1 ${isActive ? 'text-gray-100' : 'text-gray-200'}`}
                 title="Double-click to rename"
               >
                 {chat.title || 'Untitled Chat'}
               </h3>
-              <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+              <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
                 {formatDate(chat.updatedAt)}
               </span>
             </div>
             
             {/* Last message and action buttons row */}
             <div className="flex items-center justify-between">
-              <p className={`text-xs truncate flex-1 ${isActive ? 'text-sky-700' : 'text-gray-500'}`}>
+              <p className={`text-xs truncate flex-1 ${isActive ? 'text-gray-300' : 'text-gray-400'}`}>
                 {getLastMessage()}
               </p>
               
@@ -120,7 +120,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
                     e.stopPropagation();
                     setShowDeleteModal(true);
                   }}
-                  className="p-1 rounded hover:bg-rose-100/60 text-gray-500 hover:text-rose-600"
+                  className="p-1 rounded hover:bg-rose-900/60 text-gray-400 hover:text-rose-400"
                   title="Delete chat"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

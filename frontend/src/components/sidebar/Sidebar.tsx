@@ -69,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-screen bg-white border-r border-gray-100 z-50
+        fixed top-0 left-0 h-screen bg-gray-800 border-r border-gray-700 z-50
         transform transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto
@@ -77,13 +77,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       `}>
         <div className="flex flex-col h-full">
           {/* Header with Toggle Button */}
-          <div className={`flex items-center ${isOpen ? 'justify-between pl-6 pr-0' : 'justify-center'} pt-4 pb-2`}>
+          <div className={`flex items-end ${isOpen ? 'justify-between pl-6 pr-0' : 'justify-center'} pt-4 pb-6`}>
             {isOpen ? (
               <>
-                <span className="text-base font-semibold text-gray-700 tracking-wide">MENU</span>
+                <div className="flex items-end gap-3">
+                  <img 
+                    src="/images/ai-icon.png" 
+                    alt="AI" 
+                    className="w-9 h-9 mb-1.5"
+                  />
+                  <span className="text-xl font-light text-gray-100 tracking-wider">AI Agent</span>
+                </div>
                 <button
                   onClick={onToggle}
-                  className="p-2 pr-2 rounded-md hover:bg-gray-100/60 text-gray-900 hover:text-gray-700 transition-colors"
+                  className="p-2 pr-2 pb-0 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
                   title="Close sidebar"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             ) : (
               <button
                 onClick={onToggle}
-                className="p-2 rounded-md hover:bg-gray-100/60 text-gray-900 hover:text-gray-700 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
                 title="Open sidebar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="pb-10 flex justify-center">
               <button
                 onClick={handleNewChat}
-                className="p-2 rounded-md hover:bg-gray-100/60 text-gray-900 hover:text-gray-700 transition-colors"
+                className="p-2 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors"
                 title="New Chat"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,10 +133,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isOpen && (
             <>
               {/* Chats Title with Toggle */}
-              <div className="pl-6 pr-3 py-2 flex items-center cursor-pointer hover:bg-gray-50/50 transition-colors" onClick={() => setShowChatList(!showChatList)}>
-                <h1 className="text-sm font-medium text-gray-600 tracking-wide">Chats</h1>
+              <div className="pl-6 pr-3 py-2 flex items-center cursor-pointer hover:bg-gray-700/50 transition-colors" onClick={() => setShowChatList(!showChatList)}>
+                <h1 className="text-sm font-medium text-gray-300 tracking-wide">Chats</h1>
                 <button
-                  className="ml-1 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="ml-1 p-1 text-gray-400 hover:text-gray-200 transition-colors"
                   title={showChatList ? "Hide chats" : "Show chats"}
                 >
                   <svg 

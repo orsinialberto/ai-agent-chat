@@ -26,12 +26,12 @@ export const ChatList: React.FC<ChatListProps> = ({
   if (error) {
     return (
       <div className="pl-6 pr-3 py-4">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded">
           <div className="flex justify-between items-center">
             <span className="text-sm">{error}</span>
             <button 
               onClick={onClearError}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-400 hover:text-red-200"
             >
               ×
             </button>
@@ -45,8 +45,8 @@ export const ChatList: React.FC<ChatListProps> = ({
     return (
       <div className="pl-6 pr-3 py-4">
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Loading chats...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
+          <span className="ml-2 text-gray-400">Loading chats...</span>
         </div>
       </div>
     );
@@ -55,7 +55,7 @@ export const ChatList: React.FC<ChatListProps> = ({
   if (chats.length === 0) {
     return (
       <div className="pl-6 pr-3 py-4">
-        <div className="text-center text-gray-500 py-8">
+        <div className="text-center text-gray-400 py-8">
           <p className="text-sm">No chats yet</p>
           <p className="text-xs mt-1">Create your first chat to get started</p>
         </div>

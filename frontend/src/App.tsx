@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react'
-import { Header } from './components/Header'
 import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
 import { Chat } from './services/api'
@@ -23,10 +22,7 @@ function App() {
 
   return (
     <div className="h-screen bg-white overflow-hidden">
-      {/* Header */}
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      
-      <div className="flex h-[calc(100vh-5rem)]">
+      <div className="flex h-screen">
         {/* Sidebar */}
         <Sidebar 
           currentChatId={currentChatId}
