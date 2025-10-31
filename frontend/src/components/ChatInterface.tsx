@@ -142,7 +142,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
           </div>
         </div>
       ) : (
-        <div ref={messagesContainerRef} className="space-y-4 mb-3 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-[calc(100vh-16rem)] scrollbar-hide px-6 pt-6">
+        <div ref={messagesContainerRef} className="space-y-2 mb-3 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-[calc(100vh-16rem)] scrollbar-hide px-6 pt-6">
           {messages.map((message: Message) => {
             const isUser = message.role === 'user'
 
