@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
 import { Settings } from './components/Settings'
@@ -16,13 +16,22 @@ function MainApp() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const addChatToSidebarRef = useRef<((chat: Chat) => void) | null>(null)
   const location = useLocation()
+  const navigate = useNavigate()
 
   const handleChatSelect = (chatId: string) => {
     setCurrentChatId(chatId)
+    // Navigate to home if we're on settings page
+    if (location.pathname === '/settings') {
+      navigate('/')
+    }
   }
 
   const handleNewChat = () => {
     setCurrentChatId(undefined)
+    // Navigate to home if we're on settings page
+    if (location.pathname === '/settings') {
+      navigate('/')
+    }
   }
 
   const handleAddChatReady = (addChat: (chat: Chat) => void) => {
