@@ -213,6 +213,12 @@ class ApiService {
     return this.request<User>('/auth/me');
   }
 
+  async deleteAccount(): Promise<ApiResponse<{ message: string }>> {
+    return this.request<{ message: string }>('/auth/account', {
+      method: 'DELETE',
+    });
+  }
+
   // Test endpoints
   async testGeminiConnection(): Promise<ApiResponse> {
     return this.request('/test/gemini');

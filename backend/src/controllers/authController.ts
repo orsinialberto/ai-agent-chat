@@ -195,6 +195,48 @@ export class AuthController {
       });
     }
   }
+
+  /**
+   * Delete user account
+   * DELETE /api/auth/account
+   */
+  async deleteAccount(req: Request, res: Response<ApiResponse>) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Not authenticated'
+        });
+      }
+
+      const userId = req.user.userId;
+      await authService.deleteUser(userId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Account deleted successfully'
+      });
+    } catch (error) {
+      console.error('Delete account error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete account';
+      
+      if (errorMessage.includes('not found')) {
+        return res.status(404).json({
+          success: false,
+          error: 'USER_NOT_FOUND',
+          message: errorMessage
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: 'DELETE_ERROR',
+        message: 'An error occurred while deleting account'
+      });
+    }
+  }
 }
 
 export const authController = new AuthController();

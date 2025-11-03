@@ -1,19 +1,21 @@
 import { useState, useRef } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
+import { Settings } from './components/Settings'
 import { Chat } from './services/api'
 import { AuthProvider } from './contexts/AuthContext'
 import { LoginPage, RegisterPage, ProtectedRoute } from './components/auth'
 
 /**
  * Main App Component (protected)
- * Contains the chat interface with sidebar
+ * Contains the sidebar and main content (chat or settings)
  */
 function MainApp() {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const addChatToSidebarRef = useRef<((chat: Chat) => void) | null>(null)
+  const location = useLocation()
 
   const handleChatSelect = (chatId: string) => {
     setCurrentChatId(chatId)
@@ -26,6 +28,8 @@ function MainApp() {
   const handleAddChatReady = (addChat: (chat: Chat) => void) => {
     addChatToSidebarRef.current = addChat
   }
+
+  const isSettingsPage = location.pathname === '/settings'
 
   return (
     <div className="h-screen bg-white overflow-hidden">
@@ -43,14 +47,18 @@ function MainApp() {
         {/* Main Content - Centered */}
         <main className="flex-1 overflow-hidden flex justify-center items-center py-6">
           <div className="w-full max-w-4xl px-4">
-            <ChatInterface 
-              currentChatId={currentChatId} 
-              onChatCreated={(chat) => {
-                if (addChatToSidebarRef.current) {
-                  addChatToSidebarRef.current(chat)
-                }
-              }}
-            />
+            {isSettingsPage ? (
+              <Settings />
+            ) : (
+              <ChatInterface 
+                currentChatId={currentChatId} 
+                onChatCreated={(chat) => {
+                  if (addChatToSidebarRef.current) {
+                    addChatToSidebarRef.current(chat)
+                  }
+                }}
+              />
+            )}
           </div>
         </main>
       </div>
@@ -74,6 +82,14 @@ function App() {
           {/* Protected routes */}
           <Route
             path="/"
+            element={
+              <ProtectedRoute>
+                <MainApp />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
             element={
               <ProtectedRoute>
                 <MainApp />

@@ -255,6 +255,28 @@ export class AuthService {
       }
     });
   }
+
+  /**
+   * Delete user account
+   * This will cascade delete all user's chats and messages
+   */
+  async deleteUser(userId: string): Promise<void> {
+    // Verify user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Delete user (chats and messages will be deleted via cascade)
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+
+    console.log(`✅ User ${user.username} (${userId}) deleted successfully`);
+  }
 }
 
 export const authService = new AuthService();
