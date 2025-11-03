@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
+import { authService } from '../services/authService';
 
 export const Settings: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -29,8 +30,15 @@ export const Settings: React.FC = () => {
       const response = await apiService.deleteAccount();
 
       if (response.success) {
-        // Logout and redirect to register
-        logout();
+        // Clear token locally (user is already deleted on backend)
+        authService.removeToken();
+        
+        // Clear remembered credentials
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('savedUsername');
+        localStorage.removeItem('savedPassword');
+        
+        // Redirect to register
         navigate('/register');
       } else {
         setError(response.message || response.error || 'Failed to delete account');
