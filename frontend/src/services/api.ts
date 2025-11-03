@@ -1,5 +1,7 @@
 // API service for communicating with the backend
 
+import { authService } from './authService';
+
 const API_BASE_URL = 'http://localhost:3001/api';
 
 export interface Chat {
@@ -42,6 +44,32 @@ export interface ApiResponse<T = any> {
   chatId?: string;
 }
 
+// Auth types
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  usernameOrEmail: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+  expiresAt: string;
+}
+
 class ApiService {
   private baseUrl: string;
 
@@ -54,16 +82,50 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
+      // Check if token is expired before making request
+      if (authService.hasToken() && authService.isTokenExpired()) {
+        console.log('Token expired, logging out');
+        authService.removeToken();
+        // Redirect to login page
+        window.location.href = '/login';
+        return {
+          success: false,
+          error: 'TOKEN_EXPIRED',
+          message: 'Your session has expired. Please log in again.'
+        };
+      }
+
+      // Get token and add to headers if available
+      const token = authService.getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
         ...options,
+        headers,
       });
 
       // Parse response body
       const data = await response.json();
+
+      // Handle 401 Unauthorized (token invalid or expired)
+      if (response.status === 401) {
+        console.log('Unauthorized, logging out');
+        authService.removeToken();
+        // Redirect to login page
+        window.location.href = '/login';
+        return {
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Authentication required. Please log in.'
+        };
+      }
 
       // If response is not OK, preserve error details from backend
       if (!response.ok) {
@@ -124,6 +186,31 @@ class ApiService {
     return this.request<{ message: string }>(`/chats/${chatId}`, {
       method: 'DELETE',
     });
+  }
+
+  // Auth endpoints
+  async register(request: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
+    return this.request<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async login(request: LoginRequest): Promise<ApiResponse<AuthResponse>> {
+    return this.request<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async logout(): Promise<ApiResponse> {
+    return this.request('/auth/logout', {
+      method: 'POST',
+    });
+  }
+
+  async getCurrentUser(): Promise<ApiResponse<User>> {
+    return this.request<User>('/auth/me');
   }
 
   // Test endpoints

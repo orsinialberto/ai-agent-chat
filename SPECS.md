@@ -195,8 +195,24 @@ app.use(cors({
 - [ ] Configurazione dinamica provider (cache, warmup, policy)
 
 
-### Fase 10 - Autenticazione
-- [ ] Trovare il modo per comunicare con un server mcp autenticato
+### Fase 10 - Autenticazione ✅
+- [x] Sistema di autenticazione completo con JWT
+- [x] Registrazione e login utenti
+- [x] OAuth token per MCP (opzionale, solo se MCP abilitato)
+- [x] Protezione endpoint con middleware
+- [x] Frontend con routing protetto (React Router)
+- [x] MockServer per OAuth mock (Docker)
+
+**Dettagli implementazione:**
+- **Database**: Tabella `users` con username, email, password (bcrypt hash), oauthToken opzionale
+- **Backend**: AuthService, AuthController, authenticate middleware
+- **Frontend**: AuthContext, LoginPage, RegisterPage, ProtectedRoute
+- **Token Flow**: 
+  - JWT per frontend ↔ backend (sempre)
+  - OAuth token per backend ↔ MCP server (solo se MCP abilitato)
+- **Sicurezza**: Password hash con bcrypt, JWT con scadenza, logout automatico su token scaduto
+- **Configurazione**: oauth-config.yml opzionale, MockServer Docker commentato di default
+- **Documentazione completa**: `docs/features/authentication.md`
 
 ### Fase 11 - Grafici ✅
 - [x] Mostrare grafici in interfaccia
@@ -240,10 +256,11 @@ app.use(cors({
 - Hover del selettore alleggerito (grigio molto trasparente), focus con sfondo bianco
 - Allineamento a sinistra coerente con il padding della text area
 
-### Fase 8 - Autenticazione Oauth
-- [ ] Autenticazione Oauth per accesso alla chat
-- [ ] Set apikey Gemini alla creazione dell'utente
-- [ ] UI configurazione mcp server + oauth
+### Fase 8 - Autenticazione Oauth ✅
+- [x] Autenticazione JWT per accesso alla chat
+- [x] OAuth token per server MCP (opzionale)
+- [ ] Set apikey Gemini alla creazione dell'utente (non implementato - fuori scope)
+- [ ] UI configurazione mcp server + oauth (futuro enhancement)
 
 ## 🎨 Chat Sidebar - Specifiche Tecniche
 

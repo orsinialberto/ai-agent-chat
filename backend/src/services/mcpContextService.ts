@@ -16,6 +16,13 @@ export class MCPContextService {
   }
 
   /**
+   * Get MCP client instance
+   */
+  getMCPClient(): MCPClient {
+    return this.mcpClient;
+  }
+
+  /**
    * Get MCP tools context for LLM
    */
   async getMCPToolsContext(): Promise<string> {

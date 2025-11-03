@@ -1,9 +1,16 @@
 import { useState, useRef } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
 import { Chat } from './services/api'
+import { AuthProvider } from './contexts/AuthContext'
+import { LoginPage, RegisterPage, ProtectedRoute } from './components/auth'
 
-function App() {
+/**
+ * Main App Component (protected)
+ * Contains the chat interface with sidebar
+ */
+function MainApp() {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const addChatToSidebarRef = useRef<((chat: Chat) => void) | null>(null)
@@ -48,6 +55,37 @@ function App() {
         </main>
       </div>
     </div>
+  )
+}
+
+/**
+ * Root App Component
+ * Provides routing and authentication context
+ */
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Protected routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <MainApp />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Redirect any unknown routes to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
   )
 }
 

@@ -14,42 +14,36 @@ import {
 } from '../types/shared';
 
 export class ChatController {
-  private mcpClient?: MCPClient;
-  private mcpContextService?: MCPContextService;
   private mcpEnabled: boolean;
 
   constructor() {
     // Disable MCP during tests to avoid async side effects in Jest
     this.mcpEnabled = MCP_CONFIG.enabled && process.env.NODE_ENV !== 'test';
-    
-    if (this.mcpEnabled) {
-      this.mcpClient = new MCPClient(MCP_CONFIG);
-      this.mcpContextService = new MCPContextService(this.mcpClient, MCP_CONFIG);
-      this.initializeMCP();
-    }
   }
 
-  private async initializeMCP(): Promise<void> {
-    try {
-      const isHealthy = await this.mcpClient!.healthCheck();
-      if (!isHealthy) {
-        console.warn('⚠️ MCP Server is not healthy, disabling MCP features');
-        this.mcpEnabled = false;
-        return;
-      }
-
-      const initialized = await this.mcpClient!.initialize();
-      if (!initialized) {
-        console.warn('⚠️ Failed to initialize MCP Server, disabling MCP features');
-        this.mcpEnabled = false;
-        return;
-      }
-
-      console.log('✅ MCP Server initialized successfully');
-    } catch (error) {
-      console.error('❌ MCP initialization failed:', error);
-      this.mcpEnabled = false;
+  /**
+   * Create MCP client with OAuth token from request
+   * This is called per-request to include the user's OAuth token
+   */
+  private createMCPClient(oauthToken?: string): MCPClient | null {
+    if (!this.mcpEnabled) {
+      return null;
     }
+    return new MCPClient(MCP_CONFIG, oauthToken);
+  }
+
+  /**
+   * Create MCP context service with OAuth token
+   */
+  private createMCPContextService(oauthToken?: string): MCPContextService | null {
+    if (!this.mcpEnabled) {
+      return null;
+    }
+    const mcpClient = this.createMCPClient(oauthToken);
+    if (!mcpClient) {
+      return null;
+    }
+    return new MCPContextService(mcpClient, MCP_CONFIG);
   }
 
   /**
@@ -58,9 +52,18 @@ export class ChatController {
   async createChat(req: Request<{}, ApiResponse<Chat>, CreateChatRequest>, res: Response<ApiResponse<Chat>>) {
     try {
       const { title, initialMessage, model } = req.body;
+      
+      // Ensure user is authenticated
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        });
+      }
 
-      // Create chat in database
-      const chat = await databaseService.createChat(title);
+      // Create chat in database with userId
+      const chat = await databaseService.createChat(req.user.userId, title);
 
       // If there's an initial message, process it
       if (initialMessage) {
@@ -137,6 +140,15 @@ export class ChatController {
       const { chatId } = req.params;
       const { content, role = MessageRole.USER, model } = req.body;
 
+      // Ensure user is authenticated
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        });
+      }
+
       if (!content || !content.trim()) {
         return res.status(400).json({
           success: false,
@@ -144,8 +156,8 @@ export class ChatController {
         });
       }
 
-      // Check if chat exists
-      const chat = await databaseService.getChat(chatId);
+      // Check if chat exists and belongs to user
+      const chat = await databaseService.getChat(chatId, req.user.userId);
       if (!chat) {
         return res.status(404).json({
           success: false,
@@ -179,8 +191,14 @@ export class ChatController {
         
         // Get AI response with MCP integration
         let aiResponse;
-        if (this.mcpEnabled && this.mcpContextService) {
-          aiResponse = await this.processWithMCPIntegration(content, chatHistory);
+        if (this.mcpEnabled) {
+          // Create MCP context service with user's OAuth token
+          const mcpContextService = this.createMCPContextService(req.user.oauthToken);
+          if (mcpContextService) {
+            aiResponse = await this.processWithMCPIntegration(content, chatHistory, mcpContextService);
+          } else {
+            aiResponse = await geminiService.sendMessageWithFallback(chatHistory);
+          }
         } else {
           aiResponse = await geminiService.sendMessageWithFallback(chatHistory);
         }
@@ -223,7 +241,16 @@ export class ChatController {
    */
   async getChats(req: Request, res: Response<ApiResponse<Chat[]>>) {
     try {
-      const chats = await databaseService.getChats();
+      // Ensure user is authenticated
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        });
+      }
+
+      const chats = await databaseService.getChats(req.user.userId);
       return res.json({
         success: true,
         data: chats
@@ -242,8 +269,17 @@ export class ChatController {
    */
   async getChat(req: Request<{ chatId: string }>, res: Response<ApiResponse<Chat>>) {
     try {
+      // Ensure user is authenticated
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        });
+      }
+
       const { chatId } = req.params;
-      const chat = await databaseService.getChat(chatId);
+      const chat = await databaseService.getChat(chatId, req.user.userId);
 
       if (!chat) {
         return res.status(404).json({
@@ -291,6 +327,15 @@ export class ChatController {
    */
   async updateChat(req: Request<{ chatId: string }, ApiResponse<Chat>, { title: string }>, res: Response<ApiResponse<Chat>>) {
     try {
+      // Ensure user is authenticated
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        });
+      }
+
       const { chatId } = req.params;
       const { title } = req.body;
 
@@ -301,8 +346,8 @@ export class ChatController {
         });
       }
 
-      // Check if chat exists
-      const existingChat = await databaseService.getChat(chatId);
+      // Check if chat exists and belongs to user
+      const existingChat = await databaseService.getChat(chatId, req.user.userId);
       if (!existingChat) {
         return res.status(404).json({
           success: false,
@@ -314,7 +359,7 @@ export class ChatController {
       await databaseService.updateChatTitle(chatId, title.trim());
 
       // Get updated chat
-      const updatedChat = await databaseService.getChat(chatId);
+      const updatedChat = await databaseService.getChat(chatId, req.user.userId);
       if (!updatedChat) {
         return res.status(500).json({
           success: false,
@@ -340,10 +385,19 @@ export class ChatController {
    */
   async deleteChat(req: Request<{ chatId: string }>, res: Response<ApiResponse<{ message: string }>>) {
     try {
+      // Ensure user is authenticated
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        });
+      }
+
       const { chatId } = req.params;
 
-      // Check if chat exists
-      const existingChat = await databaseService.getChat(chatId);
+      // Check if chat exists and belongs to user
+      const existingChat = await databaseService.getChat(chatId, req.user.userId);
       if (!existingChat) {
         return res.status(404).json({
           success: false,
@@ -391,10 +445,10 @@ export class ChatController {
   /**
    * Process message with MCP integration
    */
-  private async processWithMCPIntegration(message: string, chatHistory: Message[]): Promise<{ content: string }> {
+  private async processWithMCPIntegration(message: string, chatHistory: Message[], mcpContextService: MCPContextService): Promise<{ content: string }> {
     try {
       // Get MCP tools context
-      const mcpContext = await this.mcpContextService!.getMCPToolsContext();
+      const mcpContext = await mcpContextService.getMCPToolsContext();
       
       // Create enhanced prompt with MCP context
       const systemPrompt = `
@@ -423,7 +477,8 @@ Respond with either:
       const toolCalls = this.extractToolCalls(llmResponse.content);
       
       if (toolCalls.length > 0) {
-        return await this.executeToolCallsAndRespond(toolCalls, message, chatHistory, 0);
+        const mcpClient = mcpContextService.getMCPClient();
+        return await this.executeToolCallsAndRespond(toolCalls, message, chatHistory, mcpClient, mcpContextService, 0);
       } else {
         return llmResponse;
       }
@@ -504,6 +559,8 @@ Respond with either:
     toolCalls: Array<{toolName: string, arguments: any}>, 
     originalMessage: string,
     chatHistory: Message[],
+    mcpClient: MCPClient,
+    mcpContextService: MCPContextService,
     retryCount: number = 0
   ): Promise<{ content: string }> {
     const MAX_RETRIES = 2;
@@ -513,7 +570,7 @@ Respond with either:
       
       // Execute all tool calls
       for (const toolCall of toolCalls) {
-        const result = await this.mcpClient!.callTool(toolCall.toolName, toolCall.arguments);
+        const result = await mcpClient.callTool(toolCall.toolName, toolCall.arguments);
         toolResults.push(`Tool ${toolCall.toolName}: ${result}`);
       }
       
@@ -538,7 +595,7 @@ Please provide a helpful response based on these results.
       
       // If we haven't exceeded max retries, try to auto-fix with LLM
       if (retryCount < MAX_RETRIES) {
-        return await this.retryWithLLMCorrection(toolCalls, originalMessage, chatHistory, error, retryCount);
+        return await this.retryWithLLMCorrection(toolCalls, originalMessage, chatHistory, mcpClient, mcpContextService, error, retryCount);
       }
       
       // Max retries exceeded, throw error to be handled by controller
@@ -553,6 +610,8 @@ Please provide a helpful response based on these results.
     toolCalls: Array<{toolName: string, arguments: any}>, 
     originalMessage: string,
     chatHistory: Message[],
+    mcpClient: MCPClient,
+    mcpContextService: MCPContextService,
     error: any,
     retryCount: number
   ): Promise<{ content: string }> {
@@ -560,7 +619,7 @@ Please provide a helpful response based on these results.
     
     try {
       // Get MCP tools context for LLM to know what's available
-      const mcpContext = await this.mcpContextService!.getMCPToolsContext();
+      const mcpContext = await mcpContextService.getMCPToolsContext();
       
       // Create prompt to let LLM analyze the error and fix it
       const correctionPrompt = `
@@ -612,6 +671,8 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
         correctedToolCalls,
         originalMessage,
         chatHistory,
+        mcpClient,
+        mcpContextService,
         retryCount + 1
       );
 

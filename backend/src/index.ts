@@ -67,17 +67,24 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Import controllers
+// Import controllers and middleware
 import { chatController } from './controllers/chatController';
 import { healthController } from './controllers/healthController';
+import { authenticate } from './middleware/authMiddleware';
+import authRoutes from './routes/auth';
 
-// API routes
-app.post('/api/chats', (req, res) => chatController.createChat(req, res));
-app.get('/api/chats', (req, res) => chatController.getChats(req, res));
-app.get('/api/chats/:chatId', (req, res) => chatController.getChat(req, res));
-app.put('/api/chats/:chatId', (req, res) => chatController.updateChat(req, res));
-app.delete('/api/chats/:chatId', (req, res) => chatController.deleteChat(req, res));
-app.post('/api/chats/:chatId/messages', (req, res) => chatController.sendMessage(req, res));
+// Authentication routes (public)
+app.use('/api/auth', authRoutes);
+
+// Chat API routes (protected - require authentication)
+app.post('/api/chats', authenticate, (req, res) => chatController.createChat(req, res));
+app.get('/api/chats', authenticate, (req, res) => chatController.getChats(req, res));
+app.get('/api/chats/:chatId', authenticate, (req, res) => chatController.getChat(req, res));
+app.put('/api/chats/:chatId', authenticate, (req, res) => chatController.updateChat(req, res));
+app.delete('/api/chats/:chatId', authenticate, (req, res) => chatController.deleteChat(req, res));
+app.post('/api/chats/:chatId/messages', authenticate, (req, res) => chatController.sendMessage(req, res));
+
+// Test endpoints (can be public for development)
 app.get('/api/test/gemini', (req, res) => chatController.testConnection(req, res));
 app.get('/api/test/gemini/error-handling', (req, res) => chatController.testGeminiErrorHandling(req, res));
 app.get('/api/test/database', (req, res) => chatController.testDatabase(req, res));

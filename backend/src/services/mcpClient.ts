@@ -24,9 +24,11 @@ export interface MCPResponse {
 export class MCPClient {
   private config: MCPConfig;
   private requestId: number = 0;
+  private oauthToken?: string;
 
-  constructor(config: MCPConfig) {
+  constructor(config: MCPConfig, oauthToken?: string) {
     this.config = config;
+    this.oauthToken = oauthToken;
   }
 
   /**
@@ -50,9 +52,19 @@ export class MCPClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add OAuth token if present
+      if (this.oauthToken) {
+        headers['Authorization'] = `Bearer ${this.oauthToken}`;
+        console.log('🔐 Adding OAuth token to MCP request');
+      }
+
       const response = await fetch(this.config.baseUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });
@@ -112,9 +124,18 @@ export class MCPClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add OAuth token if present
+      if (this.oauthToken) {
+        headers['Authorization'] = `Bearer ${this.oauthToken}`;
+      }
+
       const response = await fetch(this.config.baseUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });
@@ -152,9 +173,18 @@ export class MCPClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add OAuth token if present
+      if (this.oauthToken) {
+        headers['Authorization'] = `Bearer ${this.oauthToken}`;
+      }
+
       const response = await fetch(this.config.baseUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });

@@ -67,3 +67,43 @@ export interface ChatResponse {
   chat: Chat;
   messages: Message[];
 }
+
+// Authentication types
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  usernameOrEmail: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+  expiresAt: string;
+}
+
+// Extend Express Request type for authentication
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: string;
+        username: string;
+        email: string;
+        oauthToken?: string; // opzionale, presente solo se MCP è abilitato
+      };
+    }
+  }
+}

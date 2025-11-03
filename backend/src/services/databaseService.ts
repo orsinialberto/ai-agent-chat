@@ -7,9 +7,10 @@ export class DatabaseService {
   /**
    * Create a new chat
    */
-  async createChat(title?: string): Promise<SharedChat> {
+  async createChat(userId: string, title?: string): Promise<SharedChat> {
     const chat = await prisma.chat.create({
       data: {
+        userId,
         title: title || 'New Chat',
       },
       include: {
@@ -25,11 +26,16 @@ export class DatabaseService {
   }
 
   /**
-   * Get a chat by ID
+   * Get a chat by ID and userId (for authorization)
    */
-  async getChat(chatId: string): Promise<SharedChat | null> {
-    const chat = await prisma.chat.findUnique({
-      where: { id: chatId },
+  async getChat(chatId: string, userId?: string): Promise<SharedChat | null> {
+    const where: any = { id: chatId };
+    if (userId) {
+      where.userId = userId;
+    }
+
+    const chat = await prisma.chat.findFirst({
+      where,
       include: {
         messages: {
           orderBy: {
@@ -43,10 +49,16 @@ export class DatabaseService {
   }
 
   /**
-   * Get all chats
+   * Get all chats for a user
    */
-  async getChats(): Promise<SharedChat[]> {
+  async getChats(userId?: string): Promise<SharedChat[]> {
+    const where: any = {};
+    if (userId) {
+      where.userId = userId;
+    }
+
     const chats = await prisma.chat.findMany({
+      where,
       include: {
         messages: {
           orderBy: {
