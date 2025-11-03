@@ -84,33 +84,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
         lg:translate-x-0 lg:static lg:z-auto
         ${isOpen ? 'w-72' : 'w-14'}
       `}>
-        <div className="flex flex-col h-full relative">
+        <div className="flex flex-col h-full relative group/sidebar">
           {isOpen ? (
             <>
-              {/* Header con group per il toggle */}
-              <div className="group relative">
+              {/* Header con toggle allineato */}
+              <div className="flex items-end justify-between pl-6 pr-4 pt-4 pb-6">
+                <div className="flex items-end gap-3">
+                  <img 
+                    src="/images/ai-icon.png" 
+                    alt="AI" 
+                    className="w-10 h-10 mb-1.5"
+                  />
+                  <span className="text-2xl font-light text-gray-100 tracking-wider">AI Agent</span>
+                </div>
+                
                 {/* Toggle Button - visibile solo al hover quando aperta */}
                 <button
                   onClick={onToggle}
-                  className="absolute top-2 right-1.5 p-1.5 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-all duration-200 z-10 opacity-0 group-hover:opacity-100"
+                  className="p-1.5 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-all duration-200 opacity-0 group-hover/sidebar:opacity-100 mb-0.5"
                   title="Close sidebar"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                   </svg>
                 </button>
-
-                {/* Header */}
-                <div className="flex items-end pl-6 pt-4 pb-6">
-                  <div className="flex items-end gap-3">
-                    <img 
-                      src="/images/ai-icon.png" 
-                      alt="AI" 
-                      className="w-10 h-10 mb-1.5"
-                    />
-                    <span className="text-2xl font-light text-gray-100 tracking-wider">AI Agent</span>
-                  </div>
-                </div>
               </div>
 
               {/* New Chat Button */}
