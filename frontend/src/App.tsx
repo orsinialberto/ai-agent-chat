@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
@@ -17,6 +17,13 @@ function MainApp() {
   const addChatToSidebarRef = useRef<((chat: Chat) => void) | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Reset currentChatId when navigating to settings page
+  useEffect(() => {
+    if (location.pathname === '/settings') {
+      setCurrentChatId(undefined)
+    }
+  }, [location.pathname])
 
   const handleChatSelect = (chatId: string) => {
     setCurrentChatId(chatId)
