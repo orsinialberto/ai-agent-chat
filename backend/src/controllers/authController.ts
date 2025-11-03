@@ -5,7 +5,7 @@
 
 import { Request, Response } from 'express';
 import { authService } from '../services/authService';
-import { RegisterRequest, LoginRequest, AuthResponse, ApiResponse } from '../types/shared';
+import { RegisterRequest, LoginRequest, ChangePasswordRequest, AuthResponse, ApiResponse } from '../types/shared';
 
 export class AuthController {
   /**
@@ -192,6 +192,78 @@ export class AuthController {
         success: false,
         error: 'SERVER_ERROR',
         message: 'An error occurred'
+      });
+    }
+  }
+
+  /**
+   * Change password
+   * PUT /api/auth/password
+   */
+  async changePassword(
+    req: Request<{}, ApiResponse, ChangePasswordRequest>,
+    res: Response<ApiResponse>
+  ) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Not authenticated'
+        });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      // Validation
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          error: 'VALIDATION_ERROR',
+          message: 'Current password and new password are required'
+        });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          error: 'WEAK_PASSWORD',
+          message: 'New password must be at least 6 characters long'
+        });
+      }
+
+      const userId = req.user.userId;
+      await authService.changePassword(userId, currentPassword, newPassword);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Password changed successfully'
+      });
+    } catch (error) {
+      console.error('Change password error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
+      
+      if (errorMessage.includes('incorrect')) {
+        return res.status(401).json({
+          success: false,
+          error: 'INVALID_PASSWORD',
+          message: 'Current password is incorrect'
+        });
+      }
+
+      if (errorMessage.includes('not found')) {
+        return res.status(404).json({
+          success: false,
+          error: 'USER_NOT_FOUND',
+          message: errorMessage
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: 'PASSWORD_CHANGE_ERROR',
+        message: 'An error occurred while changing password'
       });
     }
   }

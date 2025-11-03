@@ -70,6 +70,11 @@ export interface AuthResponse {
   expiresAt: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 class ApiService {
   private baseUrl: string;
 
@@ -211,6 +216,13 @@ class ApiService {
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
     return this.request<User>('/auth/me');
+  }
+
+  async changePassword(request: ChangePasswordRequest): Promise<ApiResponse<{ message: string }>> {
+    return this.request<{ message: string }>('/auth/password', {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    });
   }
 
   async deleteAccount(): Promise<ApiResponse<{ message: string }>> {

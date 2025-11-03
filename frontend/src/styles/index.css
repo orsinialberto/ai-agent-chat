@@ -4,7 +4,26 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-weight: 400; /* Normal weight for lighter text */
+  }
+  
+  /* Default normal weight for body and text elements */
+  body, p, span, div {
+    font-weight: 400; /* Normal weight for lighter text */
+  }
+  
+  /* Keep semibold weight for headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600; /* Semibold for headings */
+  }
+  
+  /* Maintain weight for buttons and explicitly weighted elements */
+  button:not([class*="font-"]), 
+  .font-semibold, 
+  .font-bold,
+  .font-medium {
+    font-weight: inherit; /* Respect explicit font-weight classes */
   }
   :root {
     --aic-textarea-bg: #FFFFFF; /* light: now pure white */
