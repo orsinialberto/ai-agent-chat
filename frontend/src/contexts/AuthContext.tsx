@@ -108,6 +108,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Clear token
     authService.removeToken();
     
+    // Clear remembered credentials
+    localStorage.removeItem('rememberMe');
+    localStorage.removeItem('savedUsername');
+    localStorage.removeItem('savedPassword');
+    
     // Clear user
     setUser(null);
   };

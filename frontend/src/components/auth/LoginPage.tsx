@@ -3,18 +3,35 @@
  * Allows users to log in with username/email and password
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+
+const REMEMBER_ME_KEY = 'rememberMe';
+const SAVED_USERNAME_KEY = 'savedUsername';
+const SAVED_PASSWORD_KEY = 'savedPassword';
 
 export const LoginPage: React.FC = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedRememberMe = localStorage.getItem(REMEMBER_ME_KEY) === 'true';
+    if (savedRememberMe) {
+      const savedUsername = localStorage.getItem(SAVED_USERNAME_KEY) || '';
+      const savedPassword = localStorage.getItem(SAVED_PASSWORD_KEY) || '';
+      setUsernameOrEmail(savedUsername);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +42,17 @@ export const LoginPage: React.FC = () => {
       const result = await login(usernameOrEmail, password);
       
       if (result.success) {
+        // Save or clear credentials based on rememberMe
+        if (rememberMe) {
+          localStorage.setItem(REMEMBER_ME_KEY, 'true');
+          localStorage.setItem(SAVED_USERNAME_KEY, usernameOrEmail);
+          localStorage.setItem(SAVED_PASSWORD_KEY, password);
+        } else {
+          localStorage.removeItem(REMEMBER_ME_KEY);
+          localStorage.removeItem(SAVED_USERNAME_KEY);
+          localStorage.removeItem(SAVED_PASSWORD_KEY);
+        }
+        
         // Redirect to main app
         navigate('/');
       } else {
@@ -100,6 +128,42 @@ export const LoginPage: React.FC = () => {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center">
+              <div className="relative flex items-center">
+                <input
+                  id="rememberMe"
+                  name="rememberMe"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={isLoading}
+                  className="sr-only"
+                />
+                <div 
+                  onClick={() => !isLoading && setRememberMe(!rememberMe)}
+                  className={`h-3.5 w-3.5 cursor-pointer transition-colors ${
+                    rememberMe 
+                      ? 'bg-gray-700' 
+                      : 'bg-gray-800'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600'}`}
+                >
+                  {rememberMe && (
+                    <svg className="w-full h-full text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <label 
+                htmlFor="rememberMe" 
+                onClick={() => !isLoading && setRememberMe(!rememberMe)}
+                className="ml-2 block text-xs text-gray-400 cursor-pointer"
+              >
+                Remember me
+              </label>
             </div>
 
             {/* Login Button */}
