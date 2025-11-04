@@ -45,19 +45,21 @@ A modern chat application with AI agents that supports multiple LLM providers an
    npm install
    ```
 
-### Running the Application
-
-1. **Start backend** (from backend directory)
+5. **Running the Application**
+   
+   Start backend (from backend directory):
    ```bash
    npm run dev
    ```
    Server runs on http://localhost:3001
 
-2. **Start frontend** (from frontend directory)
+   Start frontend (from frontend directory):
    ```bash
    npm run dev
    ```
    App runs on http://localhost:5173
+
+## Configuration
 
 ### Environment Variables
 
@@ -84,32 +86,6 @@ OAUTH_SERVER_URL="http://localhost:9000"
 # CORS
 FRONTEND_URL="http://localhost:5173"
 ```
-
-### Authentication
-
-The application includes a complete authentication system:
-
-**First Time Setup:**
-
-1. Start the application (both backend and frontend)
-2. Navigate to `http://localhost:5173/register`
-3. Create an account with username, email, and password
-4. You'll be automatically logged in and redirected to the chat
-
-**Login:**
-
-- All routes are protected and require authentication
-- If not logged in, you'll be automatically redirected to `/login`
-- Login with your username or email and password
-
-**How it works:**
-
-- **JWT tokens**: Used for frontend ↔ backend authentication (always required)
-- **OAuth tokens**: Used for backend ↔ MCP server authentication (optional, only if MCP is configured)
-- **Password security**: Passwords are hashed with bcrypt before storage
-- **Auto-logout**: Token expiration triggers automatic logout
-
-For detailed authentication documentation, see [`docs/features/authentication.md`](./docs/features/authentication.md).
 
 ### MCP Server Configuration
 
@@ -176,60 +152,12 @@ docker-compose down -v
 docker-compose up -d
 ```
 
-### pgAdmin Setup
-
-1. Access pgAdmin at `http://localhost:5050`
-2. Login with:
-   - Email: `admin@admin.com`
-   - Password: `admin`
-3. Add server connection:
-   - Host: `postgres` (container name)
-   - Port: `5432`
-   - Database: `ai_agent_chat`
-   - Username: `postgres`
-   - Password: `postgres`
-
-## Testing
-
-### Backend Tests
-```bash
-cd backend
-npm test
-```
-
-### Frontend Tests
-```bash
-cd frontend
-npm test
-```
-
-For more information on testing, see [Testing Documentation](./docs/development/testing/README.md).
-
-## API Examples
-
-```bash
-# Health check
-curl http://localhost:3001/api/health
-
-# Create chat
-curl -X POST http://localhost:3001/api/chats \
-  -H "Content-Type: application/json" \
-  -d '{"title": "My Chat", "initialMessage": "Hello!"}'
-
-# Send message
-curl -X POST http://localhost:3001/api/chats/chat123/messages \
-  -H "Content-Type: application/json" \
-  -d '{"content": "Hello AI!", "role": "user"}'
-```
-
-## Contributing
-
-See [AGENTS.md](./AGENTS.md) for development process and guidelines.
-
 ## Documentation
 
+For complete documentation, including authentication, testing, API examples, architecture details, and contributing guidelines, see:
+
 - [Documentation Overview](./docs/README.md)
-- [Architecture Overview](./docs/architecture/overview.md) - System architecture and technology stack
+- [Architecture Overview](./docs/architecture/overview.md)
 - [Architecture Diagrams](./docs/architecture/diagrams.md)
 - [Development Process](./AGENTS.md)
-- [Technical Specifications](./SPECS.md) - Detailed technical specs
+- [Technical Specifications](./SPECS.md)

@@ -122,3 +122,31 @@ ai-agent-chat/
 - Unit tests for core services
 - Integration tests for API endpoints
 - E2E tests for complete chat flows
+
+## 📝 README Guidelines
+
+The `README.md` file should be kept **minimal and focused on getting started quickly**. It should contain only:
+
+### Required Sections
+
+1. **Quick Start**
+   - Prerequisites
+   - Installation steps
+   - Running the application
+
+2. **Configuration**
+   - Environment variables (`.env` file setup)
+   - MCP Server Configuration (if applicable)
+   - Docker Commands (if applicable)
+
+3. **Documentation Link**
+   - Link to complete documentation for all other topics
+
+### Update Process
+
+When adding new features that require configuration:
+1. Update README **only if** it affects Quick Start or Configuration sections
+2. Add detailed documentation in `docs/` directory
+3. Add a link to the detailed documentation in README's "Documentation" section
+
+**Principle**: README = Quick Start Guide, everything else = Documentation
