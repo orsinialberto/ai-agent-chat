@@ -34,12 +34,14 @@ CREATE TABLE users (
   username VARCHAR UNIQUE NOT NULL,
   email VARCHAR UNIQUE NOT NULL,
   password VARCHAR NOT NULL,  -- bcrypt hash
-  oauth_token VARCHAR,         -- NULL se MCP non configurato
-  token_expiry TIMESTAMP,      -- NULL se MCP non configurato
+  oauth_token VARCHAR,         -- Deprecato: token ora è nel JWT, non nel DB
+  token_expiry TIMESTAMP,      -- Deprecato: expiry ora è nel JWT, non nel DB
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+**Nota:** I campi `oauth_token` e `token_expiry` sono ancora presenti nello schema per compatibilità, ma non vengono più utilizzati. Il token OAuth è ora memorizzato nel JWT payload.
 
 ### Relazione User-Chat
 
@@ -68,10 +70,10 @@ class AuthService {
   // Verifica JWT token
   verifyToken(token: string): JWTPayload
   
-  // Ottieni OAuth token (solo se MCP abilitato)
-  private async getOAuthToken(user): Promise<{access_token, expires_in}>
+  // Ottieni OAuth token (solo se MCP e OAuth abilitati)
+  private async getOAuthToken(username, password): Promise<{access_token, expires_in}>
   
-  // Logout (invalida OAuth token nel DB)
+  // Logout (OAuth token è nel JWT, quindi logout è gestito da scadenza JWT)
   async logout(userId: string): Promise<void>
 }
 ```
@@ -79,13 +81,16 @@ class AuthService {
 **Flow di Login:**
 
 1. Verifica credenziali (username/email + password)
-2. **SE** MCP è abilitato:
-   - Chiama MockServer OAuth (`POST /oauth/token`)
-   - Salva `oauthToken` e `tokenExpiry` nel database
+2. **SE** MCP è abilitato **E** OAuth è configurato:
+   - Chiama OAuth server (`POST /oauth/token?username=...&password=...`) con query params
+   - Ottiene `access_token` e `expires_in` dal server OAuth
+   - Calcola `oauthTokenExpiry` (Unix timestamp): `now + expires_in`
 3. Genera JWT contenente:
    - `userId`, `username`, `email`
-   - `oauthToken` (solo se MCP abilitato)
+   - `oauthToken` (solo se MCP e OAuth abilitati)
+   - `oauthTokenExpiry` (Unix timestamp, solo se OAuth abilitato)
 4. Ritorna JWT al frontend
+   - **Nota:** Token OAuth NON viene salvato nel DB, solo nel JWT
 
 ### 2. Auth Middleware (`backend/src/middleware/authMiddleware.ts`)
 
@@ -93,8 +98,11 @@ class AuthService {
 export const authenticate = async (req, res, next) => {
   // 1. Estrae token da header Authorization
   // 2. Verifica validità con authService.verifyToken()
-  // 3. Se valido: aggiunge req.user con userId, username, email, oauthToken
-  // 4. Se non valido: ritorna 401 Unauthorized
+  // 3. SE OAuth è configurato E oauthToken presente:
+  //    - Verifica scadenza oauthTokenExpiry
+  //    - Se scaduto: ritorna 401 OAUTH_TOKEN_EXPIRED
+  // 4. Se valido: aggiunge req.user con userId, username, email, oauthToken, oauthTokenExpiry
+  // 5. Se non valido: ritorna 401 Unauthorized
 }
 ```
 
@@ -114,7 +122,7 @@ export const authenticate = async (req, res, next) => {
 |----------|--------|-------------|---------------|
 | `/api/auth/register` | POST | Registra nuovo utente | No |
 | `/api/auth/login` | POST | Login utente | No |
-| `/api/auth/logout` | POST | Logout (invalida OAuth token) | Sì |
+| `/api/auth/logout` | POST | Logout (OAuth token è nel JWT) | Sì |
 | `/api/auth/me` | GET | Info utente corrente | Sì |
 
 ### 4. MCP Client OAuth Integration
@@ -133,7 +141,9 @@ class MCPClient {
 
 **Note:** 
 - Se MCP non è configurato, `oauthToken` sarà `undefined` e l'header non viene aggiunto
-- Il sistema funziona perfettamente anche senza MCP
+- Se OAuth non è configurato, `oauthToken` sarà `undefined` anche se MCP è abilitato
+- Il sistema funziona perfettamente anche senza MCP o OAuth
+- Token OAuth viene passato solo se `isOAuthEnabled()` ritorna `true`
 
 ### 5. OAuth Mock Configuration
 
@@ -167,7 +177,11 @@ mockserver:
   {
     "httpRequest": {
       "method": "POST",
-      "path": "/oauth/token"
+      "path": "/oauth/token",
+      "queryStringParameters": {
+        "username": [".*"],
+        "password": [".*"]
+      }
     },
     "httpResponse": {
       "statusCode": 200,
@@ -180,6 +194,8 @@ mockserver:
   }
 ]
 ```
+
+**Nota:** Il server OAuth deve accettare `username` e `password` come **query parameters** (non nel body).
 
 ## 🎨 Frontend
 
@@ -324,16 +340,24 @@ JWT_EXPIRES_IN="1h"
   "userId": "cuid123",
   "username": "john_doe",
   "email": "john@example.com",
-  "oauthToken": "mock_oauth_token_12345",  // opzionale
+  "oauthToken": "mock_oauth_token_12345",  // opzionale, solo se MCP e OAuth abilitati
+  "oauthTokenExpiry": 1704067200,          // Unix timestamp in secondi, solo se OAuth abilitato
   "exp": 1699999999
 }
 ```
 
 ### Token Scadenza
 
-- **Frontend check**: Prima di ogni richiesta API
-- **Backend check**: Middleware `authenticate` verifica `exp`
-- **Logout automatico**: Su token scaduto o invalido
+- **JWT Token Scadenza**:
+  - **Frontend check**: Prima di ogni richiesta API
+  - **Backend check**: Middleware `authenticate` verifica `exp`
+  - **Logout automatico**: Su token scaduto o invalido
+
+- **OAuth Token Scadenza** (solo se OAuth configurato):
+  - **Backend check**: Middleware `authenticate` verifica `oauthTokenExpiry` se presente
+  - **Se scaduto**: Ritorna `401 OAUTH_TOKEN_EXPIRED`
+  - **Frontend**: Gestisce `OAUTH_TOKEN_EXPIRED` e forza logout automatico
+  - **Logout automatico**: Su OAuth token scaduto
 
 ### Rate Limiting
 
@@ -377,7 +401,7 @@ Genera JWT → ritorna token + user
 Frontend → salva token → redirect a "/"
 ```
 
-### 3. Login (con MCP)
+### 3. Login (con MCP e OAuth)
 
 ```
 User → LoginPage → apiService.login()
@@ -386,16 +410,19 @@ Backend → AuthController.login()
   ↓
 AuthService → verifica credenziali
   ↓
-MCP abilitato → chiama MockServer OAuth
+MCP abilitato E OAuth configurato → chiama OAuth server
+  POST /oauth/token?username=...&password=...
   ↓
-MockServer → ritorna access_token
+OAuth Server → ritorna {access_token, expires_in}
   ↓
-Salva oauthToken in DB → genera JWT con oauthToken
+Calcola oauthTokenExpiry = now + expires_in
+  ↓
+Genera JWT con oauthToken e oauthTokenExpiry (NON salva in DB)
   ↓
 Frontend → salva token → redirect a "/"
 ```
 
-### 4. Chiamata API Protetta (con MCP)
+### 4. Chiamata API Protetta (con MCP e OAuth)
 
 ```
 Frontend → apiService.createChat()
@@ -404,16 +431,26 @@ Aggiunge header: Authorization: Bearer <JWT>
   ↓
 Backend → authenticate middleware
   ↓
-Verifica JWT → estrae user.oauthToken
+Verifica JWT → estrae payload
   ↓
-ChatController → crea MCPClient(config, oauthToken)
+SE OAuth configurato E oauthToken presente:
+  - Verifica oauthTokenExpiry
+  - SE scaduto → 401 OAUTH_TOKEN_EXPIRED → logout automatico
+  - SE valido → continua
+  ↓
+Estrae user.oauthToken dal payload
+  ↓
+ChatController → verifica isOAuthEnabled()
+  ↓
+SE OAuth abilitato:
+  → crea MCPClient(config, oauthToken)
   ↓
 MCPClient.callTool() → aggiunge header: Authorization: Bearer <oauthToken>
   ↓
 MCP Server riceve richiesta autenticata
 ```
 
-### 5. Token Scaduto
+### 5. JWT Token Scaduto
 
 ```
 Frontend → apiService.request()
@@ -423,6 +460,24 @@ authService.isTokenExpired() → true
 Rimuove token → redirect a /login
   ↓
 User effettua nuovo login
+```
+
+### 6. OAuth Token Scaduto
+
+```
+Frontend → apiService.request()
+  ↓
+Backend → authenticate middleware
+  ↓
+Verifica oauthTokenExpiry → scaduto
+  ↓
+Ritorna 401 OAUTH_TOKEN_EXPIRED
+  ↓
+Frontend → gestisce errore OAUTH_TOKEN_EXPIRED
+  ↓
+Rimuove token → redirect a /login?error=oauth_expired
+  ↓
+User effettua nuovo login (ottiene nuovo OAuth token)
 ```
 
 ## 🚀 Setup e Configurazione
@@ -501,8 +556,9 @@ docker-compose up mockserver
 1. Avvia MockServer: `docker-compose up mockserver`
 2. Crea `backend/config/oauth-config.yml`
 3. Fai login
-4. Verifica nei log backend: "OAuth token obtained for user..."
+4. Verifica nei log backend: "OAuth token obtained for user..., expires at: ..."
 5. Usa tool MCP e verifica header OAuth nei log
+6. **Test scadenza OAuth**: Modifica `expires_in` a 10 secondi, fai login, aspetta 11 secondi, prova chiamata API → verifica logout automatico
 
 ## 📊 Monitoraggio
 
@@ -510,21 +566,27 @@ docker-compose up mockserver
 
 ```bash
 # Login con OAuth
-✅ OAuth token obtained for user john_doe
+✅ OAuth token obtained for user john_doe, expires at: 2024-01-01T12:00:00.000Z
 
 # MCP tool call con OAuth
 🔐 Adding OAuth token to MCP request
 🔧 Calling MCP tool: createSegment
 
-# Token scaduto
+# OAuth token scaduto
+⚠️ OAuth token expired for user john_doe
+
+# JWT token scaduto
 ❌ Invalid or expired token
 ```
 
 ### Log Frontend
 
 ```bash
-# Token scaduto
+# JWT token scaduto
 Token expired, logging out
+
+# OAuth token scaduto
+OAuth token expired, logging out
 
 # 401 Unauthorized
 Unauthorized, logging out
@@ -547,9 +609,12 @@ Unauthorized, logging out
 ### OAuth non funziona
 
 - Verifica MockServer sia running: `docker ps`
-- Verifica `oauth-config.yml` esista
+- Verifica `oauth-config.yml` esista (se non esiste, OAuth è disabilitato)
+- Verifica che il server OAuth accetti query params: `POST /oauth/token?username=...&password=...`
 - Check logs MockServer: `docker logs ai-agent-chat-mockserver`
 - Verifica URL in config: `http://localhost:9000`
+- Verifica che `isOAuthEnabled()` ritorni `true` nei log backend
+- **Se OAuth non configurato**: Non viene fatta alcuna chiamata OAuth, sistema funziona normalmente
 
 ### 401 su tutte le richieste
 
@@ -563,8 +628,10 @@ Unauthorized, logging out
 2. **Password**: Minimo 6 caratteri (configurabile in validazione)
 3. **Token Expiry**: 1h per produzione, più corto per development/test
 4. **HTTPS**: Usare sempre HTTPS in produzione per proteggere i token
-5. **Logout**: Implementare logout anche su backend per invalidare OAuth token
-6. **Refresh Token**: Per il futuro, implementare refresh token mechanism
+5. **OAuth Token Management**: Token OAuth è nel JWT, non nel DB. Scadenza gestita automaticamente.
+6. **OAuth Configuration**: Se `oauth-config.yml` non esiste, nessuna chiamata OAuth viene fatta. Sistema funziona normalmente.
+7. **Query Params**: Server OAuth deve accettare `username` e `password` come query parameters (non nel body).
+8. **Refresh Token**: Per il futuro, implementare refresh token mechanism
 
 ## 📚 Riferimenti
 

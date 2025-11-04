@@ -107,7 +107,8 @@ declare global {
         userId: string;
         username: string;
         email: string;
-        oauthToken?: string; // opzionale, presente solo se MCP è abilitato
+        oauthToken?: string; // opzionale, presente solo se MCP e OAuth sono abilitati
+        oauthTokenExpiry?: number; // Unix timestamp in seconds, presente solo se OAuth è abilitato
       };
     }
   }

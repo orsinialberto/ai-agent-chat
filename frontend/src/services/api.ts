@@ -121,6 +121,19 @@ class ApiService {
 
       // Handle 401 Unauthorized (token invalid or expired)
       if (response.status === 401) {
+        // Handle OAuth token expiration specifically
+        if (data.error === 'OAUTH_TOKEN_EXPIRED') {
+          console.log('OAuth token expired, logging out');
+          authService.removeToken();
+          // Redirect to login page with error message
+          window.location.href = '/login?error=oauth_expired';
+          return {
+            success: false,
+            error: 'OAUTH_TOKEN_EXPIRED',
+            message: data.message || 'OAuth token has expired. Please log in again.'
+          };
+        }
+        
         console.log('Unauthorized, logging out');
         authService.removeToken();
         // Redirect to login page

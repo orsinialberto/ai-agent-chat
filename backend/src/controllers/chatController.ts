@@ -4,6 +4,7 @@ import { databaseService } from '../services/databaseService';
 import { MCPClient } from '../services/mcpClient';
 import { MCPContextService } from '../services/mcpContextService';
 import { MCP_CONFIG } from '../config/mcpConfig';
+import { isOAuthEnabled } from '../config/oauthConfig';
 import { 
   Chat, 
   Message, 
@@ -24,22 +25,28 @@ export class ChatController {
   /**
    * Create MCP client with OAuth token from request
    * This is called per-request to include the user's OAuth token
+   * Only includes token if OAuth is enabled
    */
   private createMCPClient(oauthToken?: string): MCPClient | null {
     if (!this.mcpEnabled) {
       return null;
     }
-    return new MCPClient(MCP_CONFIG, oauthToken);
+    // Only pass token if OAuth is configured
+    const tokenToUse = isOAuthEnabled() ? oauthToken : undefined;
+    return new MCPClient(MCP_CONFIG, tokenToUse);
   }
 
   /**
    * Create MCP context service with OAuth token
+   * Only includes token if OAuth is enabled
    */
   private createMCPContextService(oauthToken?: string): MCPContextService | null {
     if (!this.mcpEnabled) {
       return null;
     }
-    const mcpClient = this.createMCPClient(oauthToken);
+    // Only pass token if OAuth is configured
+    const tokenToUse = isOAuthEnabled() ? oauthToken : undefined;
+    const mcpClient = this.createMCPClient(tokenToUse);
     if (!mcpClient) {
       return null;
     }

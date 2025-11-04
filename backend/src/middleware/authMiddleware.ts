@@ -6,6 +6,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/authService';
 import { ApiResponse } from '../types/shared';
+import { isOAuthEnabled } from '../config/oauthConfig';
 
 /**
  * Middleware to authenticate requests using JWT
@@ -55,12 +56,29 @@ export const authenticate = async (
     try {
       const payload = authService.verifyToken(token);
       
+      // Verify OAuth token expiry only if OAuth is enabled
+      if (isOAuthEnabled() && payload.oauthToken && payload.oauthTokenExpiry) {
+        const now = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
+        
+        if (now >= payload.oauthTokenExpiry) {
+          // OAuth token expired - force logout
+          console.log(`⚠️ OAuth token expired for user ${payload.username}`);
+          res.status(401).json({
+            success: false,
+            error: 'OAUTH_TOKEN_EXPIRED',
+            message: 'OAuth token has expired. Please log out and log in again.'
+          });
+          return;
+        }
+      }
+      
       // Add user info to request object
       req.user = {
         userId: payload.userId,
         username: payload.username,
         email: payload.email,
-        oauthToken: payload.oauthToken // May be undefined if MCP not enabled
+        oauthToken: payload.oauthToken, // May be undefined if MCP or OAuth not enabled
+        oauthTokenExpiry: payload.oauthTokenExpiry // May be undefined if OAuth not enabled
       };
 
       // Continue to next middleware/route handler
@@ -105,7 +123,8 @@ export const optionalAuthenticate = async (
           userId: payload.userId,
           username: payload.username,
           email: payload.email,
-          oauthToken: payload.oauthToken
+          oauthToken: payload.oauthToken,
+          oauthTokenExpiry: payload.oauthTokenExpiry
         };
       } catch (error) {
         // Token invalid but we don't fail - just continue without user

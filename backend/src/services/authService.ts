@@ -21,6 +21,7 @@ export interface JWTPayload {
   username: string;
   email: string;
   oauthToken?: string;
+  oauthTokenExpiry?: number; // Unix timestamp in seconds
 }
 
 export class AuthService {
@@ -61,14 +62,12 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create user (no OAuth token on registration)
+    // Create user
     const user = await prisma.user.create({
       data: {
         username,
         email,
-        password: hashedPassword,
-        oauthToken: null,
-        tokenExpiry: null
+        password: hashedPassword
       }
     });
 
@@ -127,40 +126,35 @@ export class AuthService {
     }
 
     let oauthToken: string | undefined = undefined;
-    let tokenExpiry: Date | null = null;
+    let oauthTokenExpiry: number | undefined = undefined;
 
     // If MCP is enabled AND OAuth is configured, get OAuth token
     if (MCP_CONFIG.enabled && isOAuthEnabled()) {
       try {
-        const oauthResponse = await this.getOAuthToken(user);
+        // Pass username and password from login request (password in plain text)
+        const oauthResponse = await this.getOAuthToken(user.username, password);
         oauthToken = oauthResponse.access_token;
-        tokenExpiry = new Date(Date.now() + oauthResponse.expires_in * 1000);
+        // Calculate expiry timestamp (Unix timestamp in seconds)
+        oauthTokenExpiry = Math.floor(Date.now() / 1000) + oauthResponse.expires_in;
 
-        // Save OAuth token in database
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            oauthToken,
-            tokenExpiry
-          }
-        });
-
-        console.log(`✅ OAuth token obtained for user ${user.username}`);
+        console.log(`✅ OAuth token obtained for user ${user.username}, expires at: ${new Date(oauthTokenExpiry * 1000).toISOString()}`);
       } catch (error) {
         console.error('❌ Failed to get OAuth token:', error);
         // Continue without OAuth token if it fails
         oauthToken = undefined;
+        oauthTokenExpiry = undefined;
       }
     } else {
       console.log('ℹ️ MCP or OAuth not enabled, skipping OAuth token generation');
     }
 
-    // Generate JWT with or without OAuth token
+    // Generate JWT with or without OAuth token and expiry
     const token = this.generateJWT({
       userId: user.id,
       username: user.username,
       email: user.email,
-      oauthToken
+      oauthToken,
+      oauthTokenExpiry
     });
 
     const decodedToken = jwt.decode(token) as any;
@@ -180,27 +174,36 @@ export class AuthService {
   }
 
   /**
-   * Get OAuth token from mock server
+   * Get OAuth token from OAuth server
    * Only called if MCP and OAuth are enabled
+   * Uses query params instead of body
+   * @param username - Username for OAuth authentication
+   * @param password - Password in plain text (only available during login)
    */
-  private async getOAuthToken(user: User): Promise<{ access_token: string; expires_in: number }> {
-    const url = `${OAUTH_CONFIG.mockServerUrl}${OAUTH_CONFIG.tokenEndpoint}`;
+  private async getOAuthToken(
+    username: string,
+    password: string
+  ): Promise<{ access_token: string; expires_in: number }> {
+    const oauthServerUrl = OAUTH_CONFIG.mockServerUrl;
+    const tokenEndpoint = OAUTH_CONFIG.tokenEndpoint;
     
-    console.log(`🔐 Requesting OAuth token from: ${url}`);
+    // Build URL with query params
+    const url = new URL(`${oauthServerUrl}${tokenEndpoint}`);
+    url.searchParams.append('username', username);
+    url.searchParams.append('password', password);
+    
+    console.log(`🔐 Requesting OAuth token from: ${url.toString()}`);
 
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), OAUTH_CONFIG.timeout);
 
-      const response = await fetch(url, {
+      // POST request with query params (no body)
+      const response = await fetch(url.toString(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          username: user.username,
-          password: 'mock' // Mock server doesn't validate actual password
-        }),
         signal: controller.signal
       });
 
@@ -216,7 +219,10 @@ export class AuthService {
         throw new Error('Invalid OAuth response format');
       }
 
-      return data;
+      return {
+        access_token: data.access_token,
+        expires_in: data.expires_in
+      };
     } catch (error) {
       console.error('❌ OAuth token request failed:', error);
       throw new Error(`Failed to get OAuth token: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -244,16 +250,14 @@ export class AuthService {
   }
 
   /**
-   * Logout user (optional - can be used to invalidate OAuth token in DB)
+   * Logout user
+   * OAuth token is stored in JWT, so logout is handled by JWT expiration
+   * This method is kept for compatibility but doesn't need to clear DB (token is in JWT)
    */
   async logout(userId: string): Promise<void> {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        oauthToken: null,
-        tokenExpiry: null
-      }
-    });
+    // OAuth token is in JWT, not DB, so no DB update needed
+    // JWT will expire and be invalidated naturally
+    console.log(`✅ User ${userId} logged out (JWT will expire naturally)`);
   }
 
   /**
