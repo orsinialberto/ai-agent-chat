@@ -6,6 +6,8 @@ Welcome to the comprehensive documentation for the AI Agent Chat project. This d
 
 ### 🏗️ [Architecture](./architecture/)
 - **[Overview](./architecture/overview.md)** - System architecture overview
+- **[Frontend Architecture](./architecture/frontend.md)** - Frontend structure, components, and authentication
+- **[Backend Architecture](./architecture/backend.md)** - Backend services, controllers, and API endpoints
 - **[Diagrams](./architecture/diagrams.md)** - Visual architecture diagrams
 - **[Database Schema](./architecture/database-schema.md)** - Database structure and relationships
 - **[Deployment](./architecture/deployment.md)** - Deployment and infrastructure

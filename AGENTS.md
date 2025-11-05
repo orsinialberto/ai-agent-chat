@@ -77,6 +77,7 @@ ai-agent-chat/
 4. **Documentation**
    - Write documentation for the feature
    - Update existing documentation files
+   - **If architectural changes**: Update relevant architecture documentation (see [Architecture Documentation Guidelines](#-architecture-documentation-guidelines))
 
 5. **Commit**
    - Commit changes with descriptive message
@@ -150,3 +151,97 @@ When adding new features that require configuration:
 3. Add a link to the detailed documentation in README's "Documentation" section
 
 **Principle**: README = Quick Start Guide, everything else = Documentation
+
+## 🏗️ Architecture Documentation Guidelines
+
+When making architectural changes, the corresponding documentation **must** be updated to reflect the changes.
+
+### Architecture Documentation Structure
+
+The architecture documentation is organized in `docs/architecture/`:
+
+- **[Overview](./docs/architecture/overview.md)** - High-level system architecture
+- **[Frontend Architecture](./docs/architecture/frontend.md)** - Frontend structure, components, and patterns
+- **[Backend Architecture](./docs/architecture/backend.md)** - Backend services, controllers, and API design
+
+### When to Update Architecture Documentation
+
+Update architecture documentation when making changes to:
+
+#### Frontend Changes
+- **Components**: Adding new components, changing component structure, or modifying component architecture
+- **State Management**: Changes to React Query setup, new contexts, or state management patterns
+- **Routing**: New routes, route protection changes, or navigation structure
+- **Services**: New API services, changes to API client structure, or authentication flows
+- **Styling**: Major styling architecture changes or new design system implementations
+
+**Update**: `docs/architecture/frontend.md`
+
+#### Backend Changes
+- **Controllers**: New controllers, changes to controller structure, or endpoint modifications
+- **Services**: New services, changes to service architecture, or business logic restructuring
+- **Middleware**: New middleware, authentication changes, or request/response processing changes
+- **Database**: Schema changes, new models, or database architecture modifications
+- **API Design**: New endpoints, changes to API structure, or response format changes
+
+**Update**: `docs/architecture/backend.md`
+
+#### MCP Integration Changes
+- **MCP Client**: Changes to MCP client implementation, protocol handling, or communication patterns
+- **OAuth Integration**: OAuth authentication changes, token management, or OAuth flow modifications
+- **Tool Execution**: Changes to tool call parsing, execution flow, or error handling
+- **Configuration**: MCP configuration structure changes or new configuration options
+
+**Update**: `docs/architecture/backend.md` (MCP section) and `docs/integrations/mcp-protocol.md`
+
+#### System-Wide Changes
+- **Authentication**: Changes to authentication flow, JWT handling, or security architecture
+- **Data Flow**: Changes to overall data flow, request/response patterns, or system integration
+- **External Services**: New integrations, changes to external service communication, or API changes
+- **Infrastructure**: Deployment changes, Docker configuration, or infrastructure architecture
+
+**Update**: `docs/architecture/overview.md` and relevant specific architecture documents
+
+### Update Process
+
+1. **Identify Affected Documentation**
+   - Determine which architecture document(s) are affected by the change
+   - Check if multiple documents need updates (e.g., authentication affects frontend, backend, and overview)
+
+2. **Update Documentation**
+   - Update the relevant architecture document(s) with the changes
+   - Include code examples, diagrams, or flow descriptions as needed
+   - Ensure documentation reflects the current implementation
+
+3. **Update Cross-References**
+   - Update links in `docs/architecture/overview.md` if needed
+   - Update `docs/README.md` if new architecture sections are added
+   - Ensure all references between documents are accurate
+
+4. **Verify Consistency**
+   - Ensure documentation matches the actual code implementation
+   - Check that diagrams and descriptions are accurate
+   - Verify all file paths and component names are correct
+
+### Documentation Standards
+
+- **Code Examples**: Include actual code snippets from the codebase (with line references when possible)
+- **Diagrams**: Update ASCII diagrams to reflect structural changes
+- **Flow Descriptions**: Document data flows, authentication flows, and request/response patterns
+- **Configuration**: Document any new configuration options or requirements
+- **Dependencies**: Update technology stack and dependency information
+
+### Checklist for Architecture Changes
+
+When making architectural changes, ensure:
+
+- [ ] Relevant architecture document(s) updated
+- [ ] Code examples reflect current implementation
+- [ ] Diagrams updated to show new structure
+- [ ] Flow descriptions accurate
+- [ ] Cross-references between documents updated
+- [ ] Technology stack information current
+- [ ] Configuration options documented
+- [ ] Related documentation (features, integrations) updated if needed
+
+**Principle**: Architecture documentation must always reflect the current state of the codebase. Outdated documentation is worse than no documentation.

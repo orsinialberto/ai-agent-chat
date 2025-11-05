@@ -1,0 +1,327 @@
+# Frontend Architecture
+
+## 📋 Overview
+
+The frontend is a modern React application built with TypeScript, providing a responsive chat interface with AI agents. It uses React Query for state management and Tailwind CSS for styling.
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Frontend (React)                     │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │   App.tsx    │  │  AuthContext │  │  React Query │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+│         │                  │                  │         │
+│  ┌──────▼──────────────────▼──────────────────▼───────┐ │
+│  │            Components Layer                        │ │
+│  │  ┌─────────────┐  ┌────────────┐  ┌────────────┐   │ │
+│  │  │ChatInterface│  │  Sidebar   │  │  Settings  │   │ │
+│  │  └─────────────┘  └────────────┘  └────────────┘   │ │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐    │ │
+│  │  │ LoginPage  │  │RegisterPage│  │ Markdown   │    │ │
+│  │  └────────────┘  └────────────┘  └────────────┘    │ │
+│  └────────────────────────────────────────────────────┘ │
+│         │                                               │
+│  ┌──────▼──────────────────────────────────────────────┐│
+│  │            Services Layer                           ││
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐     ││
+│  │  │ api.ts     │  │ authService│  │ hooks/     │     ││
+│  │  └────────────┘  └────────────┘  └────────────┘     ││
+│  └─────────────────────────────────────────────────────┘│
+│         │                                               │
+│  ┌──────▼─────────────────────────────────────────────┐ │
+│  │            Backend API (Express)                   │ │
+│  └────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 🛠️ Technology Stack
+
+### Core Technologies
+- **React 18** - UI framework with hooks and functional components
+- **TypeScript** - Type safety and better DX
+- **Vite** - Fast build tool and dev server
+- **React Router v7** - Client-side routing
+- **React Query (TanStack Query)** - Server state management
+- **Tailwind CSS** - Utility-first CSS framework
+
+### Key Libraries
+- **axios** - HTTP client for API calls
+- **react-markdown** - Markdown rendering
+- **recharts** - Chart visualization
+- **jwt-decode** - JWT token decoding
+- **@headlessui/react** - Accessible UI components
+
+## 📁 Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/                 # React components
+│   │   ├── auth/                   # Authentication components
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── RegisterPage.tsx
+│   │   │   └── ProtectedRoute.tsx
+│   │   ├── sidebar/                # Sidebar components
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── ChatList.tsx
+│   │   ├── ChatInterface.tsx
+│   │   ├── MarkdownRenderer.tsx
+│   │   ├── Settings.tsx
+│   │   └── TextArea.tsx
+│   ├── contexts/                   # React contexts
+│   │   └── AuthContext.tsx
+│   ├── hooks/                      # Custom React hooks
+│   │   ├── useChat.ts
+│   │   └── useTranslation.ts
+│   ├── services/                   # API and business logic
+│   │   ├── api.ts                  # Main API service
+│   │   └── authService.ts          # Authentication utilities
+│   ├── types/                      # TypeScript types
+│   ├── utils/                      # Utility functions
+│   ├── styles/                     # CSS files
+│   │   ├── index.css
+│   │   └── markdown.css
+│   ├── App.tsx                     # Main app component
+│   └── main.tsx                    # Entry point
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+## 🔐 Authentication Flow
+
+### Authentication Components
+
+1. **AuthContext** (`contexts/AuthContext.tsx`)
+   - Global authentication state management
+   - Provides `user`, `isAuthenticated`, `login()`, `register()`, `logout()`
+   - Persists JWT token in localStorage
+
+2. **AuthService** (`services/authService.ts`)
+   - Token management (set, get, remove)
+   - Token expiration checking
+   - JWT decoding
+
+3. **ProtectedRoute** (`components/auth/ProtectedRoute.tsx`)
+   - Route guard component
+   - Redirects to `/login` if not authenticated
+   - Wraps protected routes
+
+4. **LoginPage** (`components/auth/LoginPage.tsx`)
+   - Login form with username/email and password
+   - Client-side validation
+   - Automatic redirect after successful login
+
+5. **RegisterPage** (`components/auth/RegisterPage.tsx`)
+   - Registration form (username, email, password, confirm password)
+   - Validation rules:
+     - Username: min 3 characters
+     - Email: valid format
+     - Password: min 6 characters
+     - Password match confirmation
+
+### Authentication Flow Diagram
+
+```
+User → LoginPage/RegisterPage
+  ↓
+AuthService.login() / AuthService.register()
+  ↓
+API Call → Backend /api/auth/login or /api/auth/register
+  ↓
+Backend validates → Returns JWT token
+  ↓
+Frontend saves token to localStorage
+  ↓
+AuthContext updates state
+  ↓
+Redirect to / (MainApp)
+  ↓
+ProtectedRoute checks authentication
+  ↓
+Renders MainApp
+```
+
+### Token Management
+
+- **Storage**: JWT token stored in `localStorage`
+- **Expiration Check**: Before each API request, token expiration is verified
+- **Auto-logout**: If token expired or invalid, user is automatically logged out and redirected to `/login`
+- **Header Injection**: Token is automatically added to `Authorization: Bearer <token>` header for all API requests
+
+## 🎨 Component Architecture
+
+### Main Components
+
+#### 1. **App.tsx**
+- Root component with routing
+- Sets up `AuthProvider` and `QueryClientProvider`
+- Defines routes:
+  - `/login` - Public route
+  - `/register` - Public route
+  - `/` - Protected route (MainApp)
+  - `/settings` - Protected route
+
+#### 2. **MainApp** (within App.tsx)
+- Main application container
+- Manages sidebar state and current chat selection
+- Contains `Sidebar` and main content area
+
+#### 3. **ChatInterface** (`components/ChatInterface.tsx`)
+- Main chat interface component
+- Features:
+  - Message display with markdown rendering
+  - Input area with auto-resize
+  - Model selection dropdown (Gemini models)
+  - Loading states
+  - Error handling
+  - Auto-scroll to latest message
+  - Copy message functionality
+
+#### 4. **Sidebar** (`components/sidebar/Sidebar.tsx`)
+- Chat navigation sidebar
+- Features:
+  - List of all user's chats
+  - New chat button
+  - Chat selection
+  - Responsive design (collapsible on mobile)
+  - Logout button
+
+#### 5. **MarkdownRenderer** (`components/MarkdownRenderer.tsx`)
+- Renders markdown content with syntax highlighting
+- Supports:
+  - Code blocks with syntax highlighting
+  - Tables (GFM)
+  - Links and images
+  - Sanitized HTML for security
+
+#### 6. **Settings** (`components/Settings.tsx`)
+- User settings page
+- (Future: User preferences, model settings, etc.)
+
+## 🔄 State Management
+
+### React Query (TanStack Query)
+
+Used for server state management:
+
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+```
+
+**Benefits:**
+- Automatic caching
+- Background refetching
+- Error retry logic
+- Loading states
+
+### Custom Hooks
+
+#### **useChat** (`hooks/useChat.ts`)
+- Manages chat-related state and operations
+- Provides:
+  - `currentChat` - Current chat object
+  - `messages` - Messages array
+  - `isLoading` - Loading state
+  - `error` - Error state
+  - `createChat()` - Create new chat
+  - `loadChat()` - Load existing chat
+  - `sendMessage()` - Send message to chat
+  - `clearError()` - Clear error state
+
+#### **useTranslation** (`hooks/useTranslation.ts`)
+- Internationalization support
+- Provides `t()` function for translations
+- Supports multiple languages (EN, IT, ES, FR, DE)
+
+## 🌐 API Integration
+
+### API Service (`services/api.ts`)
+
+Main API service that handles:
+- Base URL configuration
+- Request/response interceptors
+- Automatic token injection
+- Error handling
+- Token expiration handling
+
+**Key Methods:**
+- `createChat()` - Create new chat
+- `getChats()` - Get all user's chats
+- `getChat()` - Get chat by ID
+- `sendMessage()` - Send message to chat
+- `register()` - User registration
+- `login()` - User login
+- `logout()` - User logout
+
+**Request Flow:**
+```
+Component → apiService method
+  ↓
+Check token expiration
+  ↓
+Add Authorization header
+  ↓
+Make HTTP request (axios)
+  ↓
+Handle response/error
+  ↓
+Return data or throw error
+```
+
+## 🎨 Styling
+
+### Tailwind CSS
+- Utility-first CSS framework
+- Responsive design with breakpoints
+- Custom color palette
+- Dark mode support (future)
+
+### Custom Styles
+- `styles/index.css` - Global styles
+- `styles/markdown.css` - Markdown-specific styles
+
+## 🔒 Security
+
+### Client-Side Security
+- JWT token stored in localStorage (HTTPS required in production)
+- Token expiration checked before requests
+- Automatic logout on token expiration
+- Protected routes with `ProtectedRoute` component
+- XSS protection in markdown rendering (sanitization)
+
+## 📱 Responsive Design
+
+- **Desktop**: Full sidebar (300px fixed width)
+- **Tablet**: Collapsible sidebar
+- **Mobile**: Drawer overlay sidebar
+- Breakpoints: `sm`, `md`, `lg`, `xl`
+
+## 🚀 Performance Optimizations
+
+1. **React Query Caching**: Reduces unnecessary API calls
+2. **Code Splitting**: Lazy loading for routes (future)
+3. **Memoization**: React.memo for expensive components
+4. **Virtual Scrolling**: For long message lists (future)
+
+## 🧪 Testing
+
+See [Frontend Testing Documentation](../development/testing/frontend-testing.md) for details.
+
+## 📚 Related Documentation
+
+- [Authentication System](../features/authentication.md) - Complete authentication documentation
+- [Chat System](../features/chat-system.md) - Chat functionality details
+- [Error Handling](../features/error-handling-v2.md) - Error handling implementation
+- [Markdown Support](../features/markdown-support.md) - Markdown rendering details
+
