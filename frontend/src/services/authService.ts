@@ -12,6 +12,7 @@ interface JWTPayload {
   username: string;
   email: string;
   oauthToken?: string;
+  oauthTokenExpiry?: number; // Unix timestamp in seconds
   exp: number; // Expiration timestamp
 }
 
@@ -62,21 +63,45 @@ export class AuthService {
   }
 
   /**
-   * Check if token is expired
+   * Check if OAuth token is expired
+   * Returns true if OAuth token exists and is expired, false otherwise
+   */
+  isOAuthTokenExpired(): boolean {
+    const payload = this.decodeToken();
+    if (!payload || !payload.oauthToken || !payload.oauthTokenExpiry) {
+      // No OAuth token, so it's not expired (not applicable)
+      return false;
+    }
+
+    // oauthTokenExpiry is in seconds, Date.now() is in milliseconds
+    const currentTime = Math.floor(Date.now() / 1000);
+    return currentTime >= payload.oauthTokenExpiry;
+  }
+
+  /**
+   * Check if token is expired (JWT or OAuth)
+   * Returns true if either JWT or OAuth token is expired
    */
   isTokenExpired(): boolean {
+    // Check JWT expiration
     const payload = this.decodeToken();
     if (!payload) {
       return true;
     }
 
-    // exp is in seconds, Date.now() is in milliseconds
     const currentTime = Date.now() / 1000;
-    return payload.exp < currentTime;
+    const jwtExpired = payload.exp < currentTime;
+
+    // Check OAuth token expiration if present
+    const oauthExpired = this.isOAuthTokenExpired();
+
+    // Token is expired if either JWT or OAuth token is expired
+    return jwtExpired || oauthExpired;
   }
 
   /**
    * Check if user is authenticated (has valid token)
+   * Now also checks OAuth token expiration if present
    */
   isAuthenticated(): boolean {
     return this.hasToken() && !this.isTokenExpired();

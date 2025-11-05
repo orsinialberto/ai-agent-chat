@@ -87,16 +87,25 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      // Check if token is expired before making request
+      // Check if token is expired before making request (JWT or OAuth)
       if (authService.hasToken() && authService.isTokenExpired()) {
-        console.log('Token expired, logging out');
+        // Check if it's OAuth token expiration before removing token
+        const payload = authService.decodeToken();
+        const isOAuthExpired = payload?.oauthTokenExpiry && 
+          Math.floor(Date.now() / 1000) >= payload.oauthTokenExpiry;
+        
+        console.log(isOAuthExpired ? 'OAuth token expired, logging out' : 'Token expired (JWT), logging out');
         authService.removeToken();
-        // Redirect to login page
-        window.location.href = '/login';
+        
+        // Redirect to login page with appropriate error
+        const errorParam = isOAuthExpired ? '?error=oauth_expired' : '';
+        window.location.href = `/login${errorParam}`;
         return {
           success: false,
-          error: 'TOKEN_EXPIRED',
-          message: 'Your session has expired. Please log in again.'
+          error: isOAuthExpired ? 'OAUTH_TOKEN_EXPIRED' : 'TOKEN_EXPIRED',
+          message: isOAuthExpired 
+            ? 'OAuth token has expired. Please log in again.'
+            : 'Your session has expired. Please log in again.'
         };
       }
 

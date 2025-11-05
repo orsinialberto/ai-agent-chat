@@ -210,12 +210,27 @@ class AuthService {
   removeToken(): void
   
   isAuthenticated(): boolean
-  isTokenExpired(): boolean
+  isTokenExpired(): boolean  // Controlla sia JWT che OAuth token
+  isOAuthTokenExpired(): boolean  // Controlla solo OAuth token expiry
   
   getUser(): { userId, username, email } | null
   decodeToken(): JWTPayload | null
 }
+
+interface JWTPayload {
+  userId: string
+  username: string
+  email: string
+  oauthToken?: string
+  oauthTokenExpiry?: number  // Unix timestamp in seconds
+  exp: number
+}
 ```
+
+**Metodi principali:**
+- `isOAuthTokenExpired()`: Verifica se il token OAuth è scaduto (controlla `oauthTokenExpiry` nel JWT payload)
+- `isTokenExpired()`: Verifica se JWT o OAuth token è scaduto (ritorna `true` se uno dei due è scaduto)
+- `isAuthenticated()`: Verifica se l'utente è autenticato (ha token valido e non scaduto)
 
 ### 2. Auth Context (`frontend/src/contexts/AuthContext.tsx`)
 
@@ -236,17 +251,28 @@ interface AuthContextType {
 const { user, isAuthenticated, login, logout } = useAuth()
 ```
 
+**Controllo periodico token scadenza:**
+- Ogni 30 secondi, `AuthContext` verifica automaticamente se il token (JWT o OAuth) è scaduto
+- Se scaduto, forza logout automatico e redirect a `/login` con parametro di errore appropriato
+- Funziona anche quando l'utente non fa richieste API, garantendo logout automatico
+
 ### 3. API Service (`frontend/src/services/api.ts`)
 
 **Gestione automatica token:**
 
 ```typescript
 private async request(endpoint, options) {
-  // 1. Verifica scadenza token PRIMA della richiesta
-  if (authService.isTokenExpired()) {
+  // 1. Verifica scadenza token PRIMA della richiesta (JWT o OAuth)
+  if (authService.hasToken() && authService.isTokenExpired()) {
+    // Determina se è scadenza OAuth o JWT
+    const payload = authService.decodeToken()
+    const isOAuthExpired = payload?.oauthTokenExpiry && 
+      Math.floor(Date.now() / 1000) >= payload.oauthTokenExpiry
+    
     authService.removeToken()
-    window.location.href = '/login'
-    return
+    const errorParam = isOAuthExpired ? '?error=oauth_expired' : ''
+    window.location.href = `/login${errorParam}`
+    return { success: false, error: isOAuthExpired ? 'OAUTH_TOKEN_EXPIRED' : 'TOKEN_EXPIRED' }
   }
   
   // 2. Aggiunge Authorization header
@@ -255,13 +281,24 @@ private async request(endpoint, options) {
     headers['Authorization'] = `Bearer ${token}`
   }
   
-  // 3. Gestisce 401 Unauthorized
+  // 3. Gestisce 401 Unauthorized (incluso OAUTH_TOKEN_EXPIRED dal backend)
   if (response.status === 401) {
+    if (data.error === 'OAUTH_TOKEN_EXPIRED') {
+      authService.removeToken()
+      window.location.href = '/login?error=oauth_expired'
+      return { success: false, error: 'OAUTH_TOKEN_EXPIRED' }
+    }
     authService.removeToken()
     window.location.href = '/login'
   }
 }
 ```
+
+**Controllo preventivo:**
+- Prima di ogni richiesta API, verifica se JWT o OAuth token sono scaduti
+- Se OAuth token scaduto: redirect a `/login?error=oauth_expired`
+- Se JWT scaduto: redirect a `/login`
+- Evita di inviare richieste non necessarie al backend quando il token è già scaduto
 
 ### 4. UI Components
 
@@ -349,15 +386,19 @@ JWT_EXPIRES_IN="1h"
 ### Token Scadenza
 
 - **JWT Token Scadenza**:
-  - **Frontend check**: Prima di ogni richiesta API
+  - **Frontend check preventivo**: Prima di ogni richiesta API, `authService.isTokenExpired()` verifica `exp`
+  - **Frontend check periodico**: Ogni 30 secondi, `AuthContext` verifica la scadenza anche senza richieste attive
   - **Backend check**: Middleware `authenticate` verifica `exp`
   - **Logout automatico**: Su token scaduto o invalido
 
 - **OAuth Token Scadenza** (solo se OAuth configurato):
+  - **Frontend check preventivo**: Prima di ogni richiesta API, `authService.isOAuthTokenExpired()` verifica `oauthTokenExpiry` se presente
+  - **Frontend check periodico**: Ogni 30 secondi, `AuthContext` verifica la scadenza OAuth token anche senza richieste attive
   - **Backend check**: Middleware `authenticate` verifica `oauthTokenExpiry` se presente
-  - **Se scaduto**: Ritorna `401 OAUTH_TOKEN_EXPIRED`
-  - **Frontend**: Gestisce `OAUTH_TOKEN_EXPIRED` e forza logout automatico
-  - **Logout automatico**: Su OAuth token scaduto
+  - **Se scaduto**: 
+    - Frontend: Rileva preventivamente e forza logout automatico con redirect a `/login?error=oauth_expired`
+    - Backend: Ritorna `401 OAUTH_TOKEN_EXPIRED` se la richiesta arriva comunque
+  - **Logout automatico**: Su OAuth token scaduto con messaggio di errore specifico
 
 ### Rate Limiting
 
@@ -462,10 +503,44 @@ Rimuove token → redirect a /login
 User effettua nuovo login
 ```
 
-### 6. OAuth Token Scaduto
+### 6. OAuth Token Scaduto (Controllo Preventivo Frontend)
 
 ```
 Frontend → apiService.request()
+  ↓
+authService.isTokenExpired() → controlla anche oauthTokenExpiry
+  ↓
+OAuth token scaduto rilevato
+  ↓
+Rimuove token → redirect a /login?error=oauth_expired
+  ↓
+User effettua nuovo login (ottiene nuovo OAuth token)
+```
+
+**Nota**: Il controllo preventivo evita che la richiesta venga inviata al backend quando il token OAuth è già scaduto.
+
+### 7. OAuth Token Scaduto (Controllo Periodico Frontend)
+
+```
+AuthContext → periodic check (ogni 30 secondi)
+  ↓
+authService.hasToken() → true
+  ↓
+authService.isTokenExpired() → controlla anche oauthTokenExpiry
+  ↓
+OAuth token scaduto rilevato
+  ↓
+Rimuove token → setUser(null) → redirect a /login?error=oauth_expired
+  ↓
+User effettua nuovo login (ottiene nuovo OAuth token)
+```
+
+**Nota**: Il controllo periodico rileva la scadenza anche quando l'utente non fa richieste API, garantendo che l'utente venga disconnesso automaticamente.
+
+### 8. OAuth Token Scaduto (Backend Fallback)
+
+```
+Frontend → apiService.request() (se controllo preventivo fallisce)
   ↓
 Backend → authenticate middleware
   ↓
@@ -479,6 +554,8 @@ Rimuove token → redirect a /login?error=oauth_expired
   ↓
 User effettua nuovo login (ottiene nuovo OAuth token)
 ```
+
+**Nota**: Il backend funge da fallback nel caso raro in cui il controllo preventivo frontend non rilevi la scadenza.
 
 ## 🚀 Setup e Configurazione
 

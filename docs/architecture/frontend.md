@@ -99,11 +99,15 @@ frontend/
    - Global authentication state management
    - Provides `user`, `isAuthenticated`, `login()`, `register()`, `logout()`
    - Persists JWT token in localStorage
+   - Periodic token expiration check (every 30 seconds)
+   - Automatic logout on token expiration (JWT or OAuth)
 
 2. **AuthService** (`services/authService.ts`)
    - Token management (set, get, remove)
-   - Token expiration checking
+   - Token expiration checking (JWT and OAuth token)
    - JWT decoding
+   - OAuth token expiration checking (`isOAuthTokenExpired()`)
+   - Combined expiration check (`isTokenExpired()` checks both JWT and OAuth)
 
 3. **ProtectedRoute** (`components/auth/ProtectedRoute.tsx`)
    - Route guard component
@@ -148,8 +152,16 @@ Renders MainApp
 ### Token Management
 
 - **Storage**: JWT token stored in `localStorage`
-- **Expiration Check**: Before each API request, token expiration is verified
-- **Auto-logout**: If token expired or invalid, user is automatically logged out and redirected to `/login`
+  - JWT payload includes `oauthToken` and `oauthTokenExpiry` (if OAuth is enabled)
+- **Expiration Check**: 
+  - **Preventive Check**: Before each API request, token expiration is verified (both JWT and OAuth token)
+  - **Periodic Check**: Every 30 seconds, `AuthContext` checks token expiration even when user is not making requests
+- **OAuth Token Expiration**:
+  - `authService.isOAuthTokenExpired()` checks `oauthTokenExpiry` from JWT payload
+  - `authService.isTokenExpired()` checks both JWT `exp` and OAuth `oauthTokenExpiry`
+  - If OAuth token expired: redirect to `/login?error=oauth_expired`
+  - If JWT expired: redirect to `/login`
+- **Auto-logout**: If token expired or invalid (JWT or OAuth), user is automatically logged out and redirected to `/login` with appropriate error parameter
 - **Header Injection**: Token is automatically added to `Authorization: Bearer <token>` header for all API requests
 
 ## 🎨 Component Architecture

@@ -47,6 +47,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
+  // Periodic check for token expiration (every 30 seconds)
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (authService.hasToken()) {
+        // Check if token is expired (JWT or OAuth)
+        if (authService.isTokenExpired()) {
+          // Check if it's OAuth token expiration before removing token
+          const payload = authService.decodeToken();
+          const isOAuthExpired = payload?.oauthTokenExpiry && 
+            Math.floor(Date.now() / 1000) >= payload.oauthTokenExpiry;
+          
+          console.log(isOAuthExpired 
+            ? 'OAuth token expired detected by periodic check, logging out'
+            : 'Token expired detected by periodic check, logging out');
+          authService.removeToken();
+          setUser(null);
+          // Redirect to login page with appropriate error
+          const errorParam = isOAuthExpired ? '?error=oauth_expired' : '?error=session_expired';
+          window.location.href = `/login${errorParam}`;
+        }
+      }
+    }, 30000); // Check every 30 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
   const login = async (usernameOrEmail: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await apiService.login({ usernameOrEmail, password });
