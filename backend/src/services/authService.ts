@@ -189,6 +189,7 @@ export class AuthService {
     
     // Build URL with query params
     const url = new URL(`${oauthServerUrl}${tokenEndpoint}`);
+    url.searchParams.append('grant_type', 'password')
     url.searchParams.append('username', username);
     url.searchParams.append('password', password);
     

@@ -121,6 +121,7 @@ backend/.env
 backend/logs/
 backend/node_modules/
 backend/config/mcp-config.yml
+backend/config/oauth-config.yml
 
 # Frontend specific
 frontend/dist/
