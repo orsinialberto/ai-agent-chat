@@ -122,6 +122,7 @@ backend/logs/
 backend/node_modules/
 backend/config/mcp-config.yml
 backend/config/oauth-config.yml
+backend/config/prompts/*
 
 # Frontend specific
 frontend/dist/

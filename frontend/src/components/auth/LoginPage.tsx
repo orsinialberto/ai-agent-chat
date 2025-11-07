@@ -101,6 +101,9 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     required
                     className="flex-1 bg-transparent border-0 py-1.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-0"
+                    style={{ 
+                      letterSpacing: '0.1em'
+                    }}
                     placeholder="Username or Email"
                     value={usernameOrEmail}
                     onChange={(e) => setUsernameOrEmail(e.target.value)}
@@ -121,6 +124,9 @@ export const LoginPage: React.FC = () => {
                     type="password"
                     required
                     className="flex-1 bg-transparent border-0 py-1.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-0"
+                    style={{ 
+                      letterSpacing: '0.1em'
+                    }}
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
