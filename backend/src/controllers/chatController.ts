@@ -695,7 +695,7 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
    */
   async getMCPStatus(req: Request, res: Response) {
     try {
-      if (!this.mcpEnabled || !this.mcpContextService) {
+      if (!this.mcpEnabled) {
         return res.json({
           success: false,
           message: 'MCP is not enabled',
@@ -703,7 +703,17 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
         });
       }
 
-      const status = await this.mcpContextService.getMCPStatus();
+      // Create MCP context service with user's OAuth token if available
+      const mcpContextService = this.createMCPContextService(req.user?.oauthToken);
+      if (!mcpContextService) {
+        return res.json({
+          success: false,
+          message: 'MCP is not available',
+          mcpEnabled: false
+        });
+      }
+
+      const status = await mcpContextService.getMCPStatus();
       
       return res.json({
         success: true,

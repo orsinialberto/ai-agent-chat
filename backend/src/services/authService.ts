@@ -4,7 +4,7 @@
  */
 
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { OAUTH_CONFIG, isOAuthEnabled } from '../config/oauthConfig';
 import { MCP_CONFIG } from '../config/mcpConfig';
@@ -12,8 +12,8 @@ import { RegisterRequest, LoginRequest, AuthResponse, User } from '../types/shar
 
 const prisma = new PrismaClient();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_change_this';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
+const JWT_SECRET: string = process.env.JWT_SECRET || 'your_jwt_secret_change_this';
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '1h';
 const SALT_ROUNDS = 10;
 
 export interface JWTPayload {
@@ -214,7 +214,7 @@ export class AuthService {
         throw new Error(`OAuth server returned ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { access_token?: string; expires_in?: number };
       
       if (!data.access_token || !data.expires_in) {
         throw new Error('Invalid OAuth response format');
@@ -234,9 +234,17 @@ export class AuthService {
    * Generate JWT token
    */
   generateJWT(payload: JWTPayload): string {
-    return jwt.sign(payload, JWT_SECRET, {
+    if (!JWT_SECRET) {
+      throw new Error('JWT_SECRET is not configured');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN
-    });
+    } as SignOptions);
+    if (typeof token !== 'string') {
+      throw new Error('Failed to generate JWT token');
+    }
+    return token;
   }
 
   /**

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -77,12 +77,24 @@ import authRoutes from './routes/auth';
 app.use('/api/auth', authRoutes);
 
 // Chat API routes (protected - require authentication)
-app.post('/api/chats', authenticate, (req, res) => chatController.createChat(req, res));
-app.get('/api/chats', authenticate, (req, res) => chatController.getChats(req, res));
-app.get('/api/chats/:chatId', authenticate, (req, res) => chatController.getChat(req, res));
-app.put('/api/chats/:chatId', authenticate, (req, res) => chatController.updateChat(req, res));
-app.delete('/api/chats/:chatId', authenticate, (req, res) => chatController.deleteChat(req, res));
-app.post('/api/chats/:chatId/messages', authenticate, (req, res) => chatController.sendMessage(req, res));
+app.post('/api/chats', authenticate, (req, res, next) => {
+  chatController.createChat(req, res).catch(next);
+});
+app.get('/api/chats', authenticate, (req, res, next) => {
+  chatController.getChats(req, res).catch(next);
+});
+app.get('/api/chats/:chatId', authenticate, (req: Request<{ chatId: string }>, res: Response, next: NextFunction) => {
+  chatController.getChat(req, res).catch(next);
+});
+app.put('/api/chats/:chatId', authenticate, (req: Request<{ chatId: string }>, res: Response, next: NextFunction) => {
+  chatController.updateChat(req, res).catch(next);
+});
+app.delete('/api/chats/:chatId', authenticate, (req: Request<{ chatId: string }>, res: Response, next: NextFunction) => {
+  chatController.deleteChat(req, res).catch(next);
+});
+app.post('/api/chats/:chatId/messages', authenticate, (req: Request<{ chatId: string }>, res: Response, next: NextFunction) => {
+  chatController.sendMessage(req, res).catch(next);
+});
 
 // Test endpoints (can be public for development)
 app.get('/api/test/gemini', (req, res) => chatController.testConnection(req, res));
