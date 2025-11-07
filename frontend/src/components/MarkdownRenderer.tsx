@@ -182,16 +182,17 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           table({ children }: ChildrenProps) {
             return (
               <div 
-                className="overflow-x-auto my-4 rounded-lg border border-gray-200"
+                className="overflow-x-auto my-4 rounded-lg border border-gray-200 shadow-sm"
                 style={{
                   overflowX: 'auto',
                   margin: '1rem 0',
                   borderRadius: '0.5rem',
-                  border: '1px solid #e5e7eb'
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                 }}
               >
                 <table 
-                  className="min-w-full border-collapse"
+                  className="min-w-full border-collapse markdown-table"
                   style={{
                     minWidth: '100%',
                     borderCollapse: 'collapse'
@@ -200,6 +201,79 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
                   {children}
                 </table>
               </div>
+            );
+          },
+          
+          // Table head
+          thead({ children }: ChildrenProps) {
+            return (
+              <thead className="bg-gray-50">
+                {children}
+              </thead>
+            );
+          },
+          
+          // Table header cells
+          th({ children }: ChildrenProps) {
+            return (
+              <th 
+                className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b-2 border-gray-200 border-r border-gray-200 last:border-r-0 bg-gray-50"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  textAlign: 'left',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  color: '#374151',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  borderBottom: '2px solid #e5e7eb',
+                  borderRight: '1px solid #e5e7eb',
+                  backgroundColor: '#f9fafb'
+                }}
+              >
+                {children}
+              </th>
+            );
+          },
+          
+          // Table body
+          tbody({ children }: ChildrenProps) {
+            return (
+              <tbody className="bg-white divide-y divide-gray-200">
+                {children}
+              </tbody>
+            );
+          },
+          
+          // Table data cells
+          td({ children }: ChildrenProps) {
+            return (
+              <td 
+                className="px-6 py-4 text-sm text-gray-700 border-r border-gray-100 last:border-r-0"
+                style={{
+                  padding: '1rem 1.5rem',
+                  whiteSpace: 'normal',
+                  fontSize: '0.875rem',
+                  color: '#374151',
+                  borderRight: '1px solid #f3f4f6'
+                }}
+              >
+                {children}
+              </td>
+            );
+          },
+          
+          // Table rows
+          tr({ children }: ChildrenProps) {
+            return (
+              <tr 
+                className="hover:bg-gray-50 transition-colors"
+                style={{
+                  transition: 'background-color 0.15s ease-in-out'
+                }}
+              >
+                {children}
+              </tr>
             );
           },
           

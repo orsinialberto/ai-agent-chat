@@ -13,6 +13,13 @@
     font-weight: 400; /* Normal weight for lighter text */
   }
   
+  /* Light weight for textarea inputs to match chat response */
+  textarea {
+    font-weight: 300; /* Lighter weight for textarea */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
   /* Keep semibold weight for headings */
   h1, h2, h3, h4, h5, h6 {
     font-weight: 600; /* Semibold for headings */
@@ -76,6 +83,9 @@
     background: var(--aic-textarea-bg);
     color: var(--aic-textarea-fg);
     font-size: 16px;
+    font-weight: 300; /* Light weight to match chat response */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     line-height: 1.5;
     resize: none; /* auto-resize handled in JS */
     min-height: 2.5rem;
