@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Fragment } from 'react'
+import React, { useState, useEffect, useRef, Fragment, useCallback } from 'react'
 import { useChat } from '../hooks/useChat'
 import { Message, Chat } from '../services/api'
 import { MarkdownRenderer } from './MarkdownRenderer'
@@ -10,6 +10,132 @@ interface ChatInterfaceProps {
   currentChatId?: string;
   onChatCreated?: (chat: Chat) => void;
 }
+
+// Memoized Message Component to prevent unnecessary re-renders
+interface MessageItemProps {
+  message: Message;
+  copiedMessageId: string | null;
+  onCopy: (message: Message) => void;
+  onDownload: (message: Message) => void;
+  t: (key: string) => string;
+}
+
+const MessageItem: React.FC<MessageItemProps> = React.memo(({ 
+  message, 
+  copiedMessageId, 
+  onCopy, 
+  onDownload, 
+  t 
+}) => {
+  const isUser = message.role === 'user';
+
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`break-words relative group ${
+          isUser
+            ? 'max-w-[70%] px-4 py-2 rounded-lg bg-sky-200/60 text-sky-800'
+            : 'w-full py-2 text-gray-700'
+        }`}
+      >
+        {message.role === 'assistant' ? (
+          <>
+            <MarkdownRenderer 
+              content={message.content} 
+              className="text-sm"
+            />
+            {/* Copy, Download buttons and timestamp row */}
+            <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onCopy(message)}
+                  className="p-1 text-gray-400 hover:text-gray-600 bg-white/80 hover:bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  title={copiedMessageId === message.id ? (t('chat.copied') ?? 'Copied!') : (t('chat.copy_message') ?? 'Copy message')}
+                  aria-label={t('chat.copy_message') ?? 'Copy message'}
+                >
+                  {copiedMessageId === message.id ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-3.5 h-3.5 text-green-600"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-3.5 h-3.5"
+                    >
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onClick={() => onDownload(message)}
+                  className="p-1 text-gray-400 hover:text-gray-600 bg-white/80 hover:bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  title={t('chat.download_message') ?? 'Download message'}
+                  aria-label={t('chat.download_message') ?? 'Download message'}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-3.5 h-3.5"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-xs opacity-70 text-right">
+                {new Date(message.createdAt).toLocaleTimeString()}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm">{message.content}</p>
+            <p className="text-xs opacity-70 mt-1 text-right">
+              {new Date(message.createdAt).toLocaleTimeString()}
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Only re-render if message content changes or copied state changes for this specific message
+  const messageChanged = 
+    prevProps.message.id !== nextProps.message.id ||
+    prevProps.message.content !== nextProps.message.content ||
+    prevProps.message.createdAt !== nextProps.message.createdAt;
+  
+  const copiedStateChanged = 
+    (prevProps.copiedMessageId === prevProps.message.id) !== 
+    (nextProps.copiedMessageId === nextProps.message.id);
+  
+  // Re-render if message changed or copied state for this message changed
+  return !messageChanged && !copiedStateChanged;
+});
+
+MessageItem.displayName = 'MessageItem';
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onChatCreated }) => {
   const [inputValue, setInputValue] = useState('')
@@ -85,7 +211,20 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
     }
   }
 
-  const handleDownloadMessage = (message: Message) => {
+  const handleCopyMessage = useCallback(async (message: Message) => {
+    try {
+      await navigator.clipboard.writeText(message.content)
+      setCopiedMessageId(message.id)
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedMessageId(null)
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy message:', err)
+    }
+  }, [])
+
+  const handleDownloadMessage = useCallback((message: Message) => {
     // Create a blob with the message content
     const blob = new Blob([message.content], { type: 'text/markdown;charset=utf-8' })
     const url = URL.createObjectURL(blob)
@@ -101,20 +240,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
     // Cleanup
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }
-
-  const handleCopyMessage = async (message: Message) => {
-    try {
-      await navigator.clipboard.writeText(message.content)
-      setCopiedMessageId(message.id)
-      // Reset copied state after 2 seconds
-      setTimeout(() => {
-        setCopiedMessageId(null)
-      }, 2000)
-    } catch (err) {
-      console.error('Failed to copy message:', err)
-    }
-  }
+  }, [])
 
   return (
     <div className="w-full min-w-0 min-h-0 max-h-[calc(100vh-8rem)] flex flex-col bg-white/90 rounded-lg">
@@ -143,101 +269,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
         </div>
       ) : (
         <div ref={messagesContainerRef} className="space-y-2 mb-3 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-[calc(100vh-16rem)] scrollbar-hide px-6 pt-6">
-          {messages.map((message: Message) => {
-            const isUser = message.role === 'user'
-
-            return (
-              <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`break-words relative group ${
-                    isUser
-                      ? 'max-w-[70%] px-4 py-2 rounded-lg bg-sky-200/60 text-sky-800'
-                      : 'w-full py-2 text-gray-700'
-                  }`}
-                >
-                  {message.role === 'assistant' ? (
-                    <>
-                      <MarkdownRenderer 
-                        content={message.content} 
-                        className="text-sm"
-                      />
-                      {/* Copy, Download buttons and timestamp row */}
-                      <div className="flex items-center justify-between mt-1">
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleCopyMessage(message)}
-                            className="p-1 text-gray-400 hover:text-gray-600 bg-white/80 hover:bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                            title={copiedMessageId === message.id ? (t('chat.copied') ?? 'Copied!') : (t('chat.copy_message') ?? 'Copy message')}
-                            aria-label={t('chat.copy_message') ?? 'Copy message'}
-                          >
-                            {copiedMessageId === message.id ? (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="w-3.5 h-3.5 text-green-600"
-                              >
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                            ) : (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="w-3.5 h-3.5"
-                              >
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                              </svg>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleDownloadMessage(message)}
-                            className="p-1 text-gray-400 hover:text-gray-600 bg-white/80 hover:bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                            title={t('chat.download_message') ?? 'Download message'}
-                            aria-label={t('chat.download_message') ?? 'Download message'}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="w-3.5 h-3.5"
-                            >
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                              <polyline points="7 10 12 15 17 10" />
-                              <line x1="12" y1="15" x2="12" y2="3" />
-                            </svg>
-                          </button>
-                        </div>
-                        <p className="text-xs opacity-70 text-right">
-                          {new Date(message.createdAt).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm">{message.content}</p>
-                      <p className="text-xs opacity-70 mt-1 text-right">
-                        {new Date(message.createdAt).toLocaleTimeString()}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          {messages.map((message: Message) => (
+            <MessageItem
+              key={message.id}
+              message={message}
+              copiedMessageId={copiedMessageId}
+              onCopy={handleCopyMessage}
+              onDownload={handleDownloadMessage}
+              t={t}
+            />
+          ))}
           
           {/* Loading indicator */}
           {isLoading && (

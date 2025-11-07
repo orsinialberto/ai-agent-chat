@@ -20,7 +20,7 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
   content,
   className = ''
 }) => {
@@ -492,3 +492,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     </div>
   );
 };
+
+// Memoize MarkdownRenderer to prevent re-renders when content and className haven't changed
+export const MarkdownRenderer = React.memo(MarkdownRendererComponent, (prevProps, nextProps) => {
+  // Only re-render if content or className changes
+  return prevProps.content === nextProps.content && 
+         prevProps.className === nextProps.className;
+});

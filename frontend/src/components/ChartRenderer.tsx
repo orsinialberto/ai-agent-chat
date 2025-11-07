@@ -21,7 +21,7 @@ interface ChartRendererProps {
 
 const DEFAULT_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
-export const ChartRenderer: React.FC<ChartRendererProps> = ({ chartData }) => {
+const ChartRendererComponent: React.FC<ChartRendererProps> = ({ chartData }) => {
   const { 
     title, 
     type = 'line', 
@@ -201,4 +201,44 @@ export const ChartRenderer: React.FC<ChartRendererProps> = ({ chartData }) => {
     </div>
   );
 };
+
+// Memoize ChartRenderer to prevent re-renders when props haven't changed
+export const ChartRenderer = React.memo(ChartRendererComponent, (prevProps, nextProps) => {
+  // Custom comparison function to prevent re-renders when data hasn't changed
+  const prev = prevProps.chartData;
+  const next = nextProps.chartData;
+  
+  // Compare primitive values
+  if (
+    prev.title !== next.title ||
+    prev.type !== next.type ||
+    prev.xKey !== next.xKey ||
+    prev.yKey !== next.yKey
+  ) {
+    return false; // Props changed, should re-render
+  }
+  
+  // Compare arrays using JSON.stringify (for yKeys and colors)
+  const prevYKeys = JSON.stringify(prev.yKeys || []);
+  const nextYKeys = JSON.stringify(next.yKeys || []);
+  if (prevYKeys !== nextYKeys) {
+    return false; // Props changed, should re-render
+  }
+  
+  const prevColors = JSON.stringify(prev.colors || DEFAULT_COLORS);
+  const nextColors = JSON.stringify(next.colors || DEFAULT_COLORS);
+  if (prevColors !== nextColors) {
+    return false; // Props changed, should re-render
+  }
+  
+  // Compare data array - deep comparison
+  const prevData = JSON.stringify(prev.data || []);
+  const nextData = JSON.stringify(next.data || []);
+  if (prevData !== nextData) {
+    return false; // Props changed, should re-render
+  }
+  
+  // All props are equal, skip re-render
+  return true;
+});
 
