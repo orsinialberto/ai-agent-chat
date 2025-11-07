@@ -4,6 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts';
+import type { PieLabelRenderProps } from 'recharts';
 
 interface ChartData {
   title?: string;
@@ -91,10 +92,14 @@ const ChartRendererComponent: React.FC<ChartRendererProps> = ({ chartData }) => 
               cx="50%"
               cy="50%"
               outerRadius={100}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              labelStyle={{ fontSize: '0.75rem' }}
+              label={(props: PieLabelRenderProps) => {
+                const { name, percent } = props;
+                const percentValue = typeof percent === 'number' ? percent : 0;
+                return `${name}: ${(percentValue * 100).toFixed(0)}%`;
+              }}
+              labelLine={false}
             >
-              {data.map((entry, index) => (
+              {data.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
               ))}
             </Pie>

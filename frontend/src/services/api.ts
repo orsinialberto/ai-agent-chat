@@ -111,9 +111,9 @@ class ApiService {
 
       // Get token and add to headers if available
       const token = authService.getToken();
-      const headers: HeadersInit = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...(options.headers as Record<string, string>),
       };
 
       if (token) {
@@ -122,7 +122,7 @@ class ApiService {
 
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
-        headers,
+        headers: headers as HeadersInit,
       });
 
       // Parse response body

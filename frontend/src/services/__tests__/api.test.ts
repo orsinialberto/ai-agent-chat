@@ -25,13 +25,13 @@ Object.defineProperty(window, 'location', {
 });
 
 // Mock fetch
-global.fetch = vi.fn();
+(globalThis as any).fetch = vi.fn() as unknown as typeof fetch;
 
 describe('ApiService - OAuth Token Expiration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocation.href = '';
-    (global.fetch as any).mockClear();
+    ((globalThis as any).fetch as any).mockClear();
   });
 
   afterEach(() => {
@@ -127,7 +127,7 @@ describe('ApiService - OAuth Token Expiration', () => {
       mockAuthService.isTokenExpired.mockReturnValue(false);
       mockAuthService.getToken.mockReturnValue('valid-token');
       
-      (global.fetch as any).mockResolvedValueOnce({
+      ((globalThis as any).fetch as any).mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockResponse
@@ -148,7 +148,7 @@ describe('ApiService - OAuth Token Expiration', () => {
       mockAuthService.isTokenExpired.mockReturnValue(false);
       mockAuthService.getToken.mockReturnValue('valid-token');
 
-      (global.fetch as any).mockResolvedValueOnce({
+      ((globalThis as any).fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 401,
         json: async () => ({
