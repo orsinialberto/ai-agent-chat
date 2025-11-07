@@ -157,33 +157,24 @@ app.use(cors({
 - [x] Fix parsing tool calls con JSON annidati (brace counting)
 - [x] Gestione strutture JSON complesse in tool call arguments
 - [x] Implementazione gestione errori migliorata con auto-correzione LLM
-- [ ] Migrazione a @modelcontextprotocol/sdk per parsing robusto
-- [ ] Test con strutture JSON deep
 
 ### Fase 3.5 - Ottimizzazioni e Fix Tecnici
 - [x] Fix errori build backend (npm run build)
 - [x] Fix errori build frontend (npm run build)
-- [ ] Implementare cache per MCP tool/list
-  - [ ] Valutare best practice per caching tools disponibili
-  - [ ] Implementare sistema cache con TTL
-  - [ ] Gestire refresh automatico cache
 - [x] Slegare prompt MCP dal backend ✅
   - [x] Valutare approccio: esterno vs server MCP endpoint
   - [x] Implementare caricamento dinamico prompt
   - [x] Definire best practice architetturale
   - [x] Creare file YAML configurazione completa (mcp-config.yml)
   - [x] Rendere configurazione MCP opzionale
-- [ ] Cleanup log e debug MCP
-  - [ ] Rimuovere/movare a debug i log verbose
-  - [ ] Mantenere solo log essenziali
-- [ ] Verificare troncamento risposte MCP su liste lunghe
-  - [ ] Test con liste estese (tenant, etc.)
-  - [ ] Implementare paginazione se necessario
+- [x] Cleanup log e debug MCP
+  - [x] Rimuovere/movare a debug i log verbose
+  - [x] Mantenere solo log essenziali
 
 ### Fase 4 - Sistema di Prompting Intelligente + lettura swagger
 - [x] Aggiunta prompt per creazione segmento semplice
 - [x] Aggiunta prompt per creazione segmento eventi
-- [ ] Aggiunta prompt per creazione segmento combinato (contatti + eventi)
+- [x] Aggiunta prompt per creazione segmento combinato (contatti + eventi)
 - [ ] Aggiunta prompt per compleanno contatto
 
 ### Fase 7 - Multi-LLM
@@ -192,7 +183,6 @@ app.use(cors({
 - [x] Backend: `geminiService.switchModel(model)` e validazione modelli
 - [x] Testing: unit + E2E con skip condizionale se `GEMINI_API_KEY` assente
 - [ ] Architettura modulare provider (plugin) e multi-LLM completa
-- [ ] Configurazione dinamica provider (cache, warmup, policy)
 
 
 ### Fase 10 - Autenticazione ✅
@@ -259,8 +249,6 @@ app.use(cors({
 ### Fase 8 - Autenticazione Oauth ✅
 - [x] Autenticazione JWT per accesso alla chat
 - [x] OAuth token per server MCP (opzionale)
-- [ ] Set apikey Gemini alla creazione dell'utente (non implementato - fuori scope)
-- [ ] UI configurazione mcp server + oauth (futuro enhancement)
 
 ## 🎨 Chat Sidebar - Specifiche Tecniche
 

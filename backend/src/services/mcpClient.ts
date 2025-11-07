@@ -45,8 +45,8 @@ export class MCPClient {
       }
     };
 
-    console.log(`🔧 Calling MCP tool: ${toolName}`, args);
-    console.log(`📤 MCP Request (JSON-RPC):`, JSON.stringify(requestBody, null, 2));
+    console.log(`🔧 MCP call: tools/call - ${toolName}`);
+    console.debug(`📤 MCP Request (JSON-RPC):`, JSON.stringify(requestBody, null, 2));
 
     try {
       const controller = new AbortController();
@@ -59,7 +59,7 @@ export class MCPClient {
       // Add OAuth token if present
       if (this.oauthToken) {
         headers['Authorization'] = `Bearer ${this.oauthToken}`;
-        console.log('🔐 Adding OAuth token to MCP request');
+        console.debug('🔐 Adding OAuth token to MCP request');
       }
 
       const response = await fetch(this.config.baseUrl, {
@@ -76,7 +76,7 @@ export class MCPClient {
       }
 
       const data: MCPResponse = await response.json() as MCPResponse;
-      console.log(`📥 MCP Response (JSON-RPC):`, JSON.stringify(data, null, 2));
+      console.debug(`📥 MCP Response (JSON-RPC):`, JSON.stringify(data, null, 2));
       
       // Handle JSON-RPC error response (proper format)
       if (data.error) {
@@ -118,7 +118,8 @@ export class MCPClient {
       params: {}
     };
 
-    console.log('📤 MCP Request (JSON-RPC) - tools/list:', JSON.stringify(requestBody, null, 2));
+    console.log('🔧 MCP call: tools/list');
+    console.debug('📤 MCP Request (JSON-RPC) - tools/list:', JSON.stringify(requestBody, null, 2));
 
     try {
       const controller = new AbortController();
@@ -143,7 +144,7 @@ export class MCPClient {
       clearTimeout(timeoutId);
 
       const data = await response.json() as any;
-      console.log('📥 MCP Response (JSON-RPC) - tools/list:', JSON.stringify(data, null, 2));
+      console.debug('📥 MCP Response (JSON-RPC) - tools/list:', JSON.stringify(data, null, 2));
       
       if (data.error) {
         throw new Error(`MCP Error: ${data.error.message}`);
@@ -168,7 +169,8 @@ export class MCPClient {
         params: {}
       };
 
-      console.log('📤 MCP Request (JSON-RPC) - initialize:', JSON.stringify(requestBody, null, 2));
+      console.log('🔧 MCP call: initialize');
+      console.debug('📤 MCP Request (JSON-RPC) - initialize:', JSON.stringify(requestBody, null, 2));
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
@@ -192,7 +194,7 @@ export class MCPClient {
       clearTimeout(timeoutId);
 
       const data = await response.json() as any;
-      console.log('📥 MCP Response (JSON-RPC) - initialize:', JSON.stringify(data, null, 2));
+      console.debug('📥 MCP Response (JSON-RPC) - initialize:', JSON.stringify(data, null, 2));
       
       if (data.error) {
         throw new Error(`MCP Error: ${data.error.message}`);
