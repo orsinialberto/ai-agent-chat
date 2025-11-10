@@ -117,16 +117,7 @@ export class ChatController {
             return ResponseHelper.success(res, updatedChat, 201);
           }
         } catch (error) {
-          console.error('Error getting AI response:', error);
-          
-          // Return error to frontend with specific error type and chatId
-          return ResponseHelper.serviceUnavailable(
-            res,
-            'The AI service is temporarily unavailable. The chat was created but the AI could not respond.',
-            'LLM_UNAVAILABLE',
-            undefined,
-            chat.id
-          );
+          return this.handleLLMError(res, error, chat.id, true);
         }
       }
 
@@ -141,6 +132,27 @@ export class ChatController {
       
       return ResponseHelper.internalError(res, 'Failed to create chat');
     }
+  }
+
+  /**
+   * Handle LLM errors and return standardized error response
+   */
+  private handleLLMError(res: Response, error: any, chatId?: string, isInitialMessage: boolean = false): Response {
+    console.error('Error getting AI response:', error);
+    
+    const message = isInitialMessage
+      ? 'The AI service is temporarily unavailable. The chat was created but the AI could not respond.'
+      : 'The AI service is temporarily unavailable. Please try again in a few moments.';
+    
+    const retryAfter = isInitialMessage ? undefined : 60; // Suggest retry after 60 seconds for sendMessage
+    
+    return ResponseHelper.serviceUnavailable(
+      res,
+      message,
+      'LLM_UNAVAILABLE',
+      retryAfter,
+      chatId
+    );
   }
 
   /**
@@ -210,16 +222,7 @@ export class ChatController {
 
         return ResponseHelper.success(res, assistantMessage);
       } catch (error) {
-        console.error('Error getting AI response:', error);
-        
-        // Return specific error code for LLM unavailability
-        // The frontend can handle this error type appropriately
-        return ResponseHelper.serviceUnavailable(
-          res,
-          'The AI service is temporarily unavailable. Please try again in a few moments.',
-          'LLM_UNAVAILABLE',
-          60 // Suggest retry after 60 seconds
-        );
+        return this.handleLLMError(res, error);
       }
     } catch (error) {
       console.error('Error sending message:', error);

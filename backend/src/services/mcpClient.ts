@@ -32,20 +32,18 @@ export class MCPClient {
   }
 
   /**
-   * Call a specific MCP tool
+   * Make a JSON-RPC 2.0 request to the MCP server
+   * Handles common logic: request construction, headers, timeout, OAuth token, error handling
    */
-  async callTool(toolName: string, args: Record<string, any>): Promise<string> {
+  private async makeJsonRpcRequest(method: string, params: any): Promise<any> {
     const requestBody = {
       jsonrpc: '2.0',
       id: ++this.requestId,
-      method: 'tools/call',
-      params: {
-        name: toolName,
-        arguments: args
-      }
+      method,
+      params
     };
 
-    console.log(`🔧 MCP call: tools/call - ${toolName}`);
+    console.log(`🔧 MCP call: ${method}`);
     console.debug(`📤 MCP Request (JSON-RPC):`, JSON.stringify(requestBody, null, 2));
 
     try {
@@ -75,19 +73,37 @@ export class MCPClient {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data: MCPResponse = await response.json() as MCPResponse;
+      const data = await response.json() as any;
       console.debug(`📥 MCP Response (JSON-RPC):`, JSON.stringify(data, null, 2));
-      
-      // Handle JSON-RPC error response (proper format)
+
+      // Handle JSON-RPC error response
       if (data.error) {
         const errorMsg = data.error.message || 'Unknown MCP error';
-        console.error('❌ MCP tool returned error:', errorMsg);
+        console.error(`❌ MCP ${method} returned error:`, errorMsg);
         throw new Error(errorMsg);
       }
 
+      return data.result;
+    } catch (error) {
+      // Clear timeout if still active (in case of error before timeout)
+      console.error(`❌ MCP ${method} failed:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Call a specific MCP tool
+   */
+  async callTool(toolName: string, args: Record<string, any>): Promise<string> {
+    try {
+      const result = await this.makeJsonRpcRequest('tools/call', {
+        name: toolName,
+        arguments: args
+      });
+
       // Handle legacy error format from old Java server implementation
-      if (data.result && typeof data.result === 'object' && 'code' in data.result) {
-        const resultAny = data.result as any;
+      if (result && typeof result === 'object' && 'code' in result) {
+        const resultAny = result as any;
         if (resultAny.code === 'error') {
           const errorMsg = resultAny.message || 'Unknown error';
           console.error('❌ MCP tool returned error (legacy format):', errorMsg);
@@ -95,12 +111,12 @@ export class MCPClient {
         }
       }
 
-      if (!data.result || !data.result.content || data.result.content.length === 0) {
-        console.error('❌ Invalid response structure. Full response:', JSON.stringify(data, null, 2));
+      if (!result || !result.content || result.content.length === 0) {
+        console.error('❌ Invalid response structure. Full response:', JSON.stringify(result, null, 2));
         throw new Error('Invalid MCP response structure');
       }
 
-      return data.result.content[0].text;
+      return result.content[0].text;
     } catch (error) {
       console.error(`❌ MCP tool call failed: ${toolName}`, error);
       throw error;
@@ -111,46 +127,9 @@ export class MCPClient {
    * Get all available tools from MCP server
    */
   async getAvailableTools(): Promise<any[]> {
-    const requestBody = {
-      jsonrpc: '2.0',
-      id: ++this.requestId,
-      method: 'tools/list',
-      params: {}
-    };
-
-    console.log('🔧 MCP call: tools/list');
-    console.debug('📤 MCP Request (JSON-RPC) - tools/list:', JSON.stringify(requestBody, null, 2));
-
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-
-      // Add OAuth token if present
-      if (this.oauthToken) {
-        headers['Authorization'] = `Bearer ${this.oauthToken}`;
-      }
-
-      const response = await fetch(this.config.baseUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      const data = await response.json() as any;
-      console.debug('📥 MCP Response (JSON-RPC) - tools/list:', JSON.stringify(data, null, 2));
-      
-      if (data.error) {
-        throw new Error(`MCP Error: ${data.error.message}`);
-      }
-
-      return data.result?.tools || [];
+      const result = await this.makeJsonRpcRequest('tools/list', {});
+      return result?.tools || [];
     } catch (error) {
       console.error('❌ Failed to get available tools', error);
       throw error;
@@ -162,44 +141,7 @@ export class MCPClient {
    */
   async initialize(): Promise<boolean> {
     try {
-      const requestBody = {
-        jsonrpc: '2.0',
-        id: ++this.requestId,
-        method: 'initialize',
-        params: {}
-      };
-
-      console.log('🔧 MCP call: initialize');
-      console.debug('📤 MCP Request (JSON-RPC) - initialize:', JSON.stringify(requestBody, null, 2));
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-
-      // Add OAuth token if present
-      if (this.oauthToken) {
-        headers['Authorization'] = `Bearer ${this.oauthToken}`;
-      }
-
-      const response = await fetch(this.config.baseUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      const data = await response.json() as any;
-      console.debug('📥 MCP Response (JSON-RPC) - initialize:', JSON.stringify(data, null, 2));
-      
-      if (data.error) {
-        throw new Error(`MCP Error: ${data.error.message}`);
-      }
-
+      await this.makeJsonRpcRequest('initialize', {});
       console.log('✅ MCP Server initialized successfully');
       return true;
     } catch (error) {

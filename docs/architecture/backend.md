@@ -80,7 +80,8 @@ backend/
 │   │   └── shared.ts
 │   ├── utils/                      # Utility functions
 │   │   ├── database.ts
-│   │   └── responseHelpers.ts      # Standardized API response helpers
+│   │   ├── responseHelpers.ts      # Standardized API response helpers
+│   │   └── messageRoleConverter.ts # MessageRole conversion utility
 │   └── index.ts                    # Entry point
 ├── prisma/
 │   └── schema.prisma               # Database schema
@@ -196,6 +197,7 @@ Main controller for chat operations. All methods use `ResponseHelper` for standa
 - **handleModelSwitch(model?: string)**: Handles model switching with validation
 - **processInitialMessage(chatId, initialMessage, model?)**: Processes initial message in new chat
 - **getAIMessageResponse(content, chatHistory, oauthToken?)**: Gets AI response with optional MCP integration
+- **handleLLMError(res, error, chatId?, isInitialMessage?)**: Handles LLM errors with standardized error responses
 
 ## 🤖 Gemini Integration
 
@@ -213,7 +215,7 @@ Manages Google Gemini API integration
 
 ### Database Service (`services/databaseService.ts`)
 
-Prisma-based database operations
+Prisma-based database operations. Uses `MessageRoleConverter` utility for converting between Prisma and shared MessageRole enums.
 
 ### Database Schema
 
@@ -225,11 +227,30 @@ See [Database Schema](./database-schema.md) for detailed schema documentation.
 - **Message**: Messages table linked to chats
 - **LLMProvider**: LLM provider configuration (future)
 
+### MessageRole Converter (`utils/messageRoleConverter.ts`)
+
+Utility for converting between Prisma `MessageRole` enum and shared `MessageRole` enum:
+
+- **toPrisma(role)**: Converts shared MessageRole to Prisma MessageRole
+- **toShared(role)**: Converts Prisma MessageRole to shared MessageRole
+
+Used by `DatabaseService` to handle role conversions when reading/writing messages to the database.
+
 ## 🔌 MCP Integration
 
 ### MCP Client (`services/mcpClient.ts`)
 
-JSON-RPC 2.0 client for MCP server communication
+JSON-RPC 2.0 client for MCP server communication. Uses a centralized `makeJsonRpcRequest()` method to eliminate code duplication.
+
+**Key Methods:**
+- **callTool(toolName, args)**: Calls a specific MCP tool
+- **getAvailableTools()**: Gets all available tools from MCP server
+- **initialize()**: Initializes MCP server connection
+- **healthCheck()**: Checks MCP server health
+- **getServerInfo()**: Gets MCP server information
+
+**Internal Methods:**
+- **makeJsonRpcRequest(method, params)**: Private method that handles common JSON-RPC request logic (request construction, headers, timeout, OAuth token, error handling)
 
 ### MCP Context Service (`services/mcpContextService.ts`)
 
@@ -378,6 +399,15 @@ return ResponseHelper.notFound(res, 'Chat not found');
 return ResponseHelper.badRequest(res, 'Invalid input', 'VALIDATION_ERROR');
 return ResponseHelper.serviceUnavailable(res, 'LLM unavailable', 'LLM_UNAVAILABLE', 60, chatId);
 ```
+
+**LLM Error Handling:**
+
+The `ChatController` uses a centralized `handleLLMError()` method to handle LLM service errors consistently:
+
+- Standardized error messages for initial messages vs. subsequent messages
+- Automatic retry suggestions (60 seconds for sendMessage)
+- Includes chatId in error response when chat was created but LLM failed
+- Uses `ResponseHelper.serviceUnavailable()` for consistent error format
 
 ## 🧪 Testing
 
