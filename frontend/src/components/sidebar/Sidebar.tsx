@@ -52,8 +52,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [isAnonymous, loadChats]);
 
   const handleLogout = () => {
+    // logout() now handles page refresh internally
     logout();
-    navigate('/');
   };
 
   const handleLogin = () => {

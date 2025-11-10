@@ -185,6 +185,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Clear user
     setUser(null);
+    
+    // Clear anonymous chats from sessionStorage (optional - could keep them)
+    // sessionStorage.clear();
+    
+    // Refresh page to reset all state and show new anonymous chat
+    window.location.href = '/';
   };
 
   const value: AuthContextType = {
