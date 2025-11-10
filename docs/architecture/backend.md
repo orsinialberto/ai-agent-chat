@@ -65,6 +65,7 @@ backend/
 │   │   ├── geminiService.ts
 │   │   ├── databaseService.ts
 │   │   ├── authService.ts
+│   │   ├── oauthService.ts         # OAuth token management
 │   │   ├── mcpClient.ts
 │   │   └── mcpContextService.ts
 │   ├── middleware/                 # Express middleware
@@ -111,17 +112,31 @@ Core authentication service
 **Login Flow:**
 1. Verify credentials (username/email + password)
 2. If MCP enabled AND OAuth configured:
-   - Call OAuth server to get access token
-   - Calculate OAuth token expiry
+   - Call `OAuthService.getToken()` to get access token
+   - Calculate OAuth token expiry using `OAuthService.calculateExpiry()`
 3. Generate JWT with:
    - `userId`, `username`, `email`
    - `oauthToken` (if MCP + OAuth enabled)
    - `oauthTokenExpiry` (if OAuth enabled)
 4. Return JWT to frontend
 
+#### 1.1. **OAuthService** (`services/oauthService.ts`)
+
+Dedicated service for OAuth token management
+
+**Methods:**
+- **getToken(username, password)**: Gets OAuth token from OAuth server
+- **isTokenExpired(expiry)**: Checks if OAuth token is expired
+- **validateTokenExpiry(expiry)**: Validates token expiry (throws if expired)
+- **calculateExpiry(expiresIn)**: Calculates expiry timestamp from expires_in value
+
+**Used by:**
+- `AuthService`: For obtaining OAuth tokens during login
+- `AuthMiddleware`: For validating OAuth token expiry
+
 #### 2. **Auth Middleware** (`middleware/authMiddleware.ts`)
 
-Protects routes by verifying JWT tokens
+Protects routes by verifying JWT tokens. Uses `OAuthService` to validate OAuth token expiry.
 
 **Applied to:**
 - `POST /api/chats`
@@ -130,6 +145,10 @@ Protects routes by verifying JWT tokens
 - `PUT /api/chats/:id`
 - `DELETE /api/chats/:id`
 - `POST /api/chats/:id/messages`
+
+**OAuth Token Validation:**
+- If OAuth is enabled and token present in JWT payload, validates expiry using `OAuthService.isTokenExpired()`
+- Returns 401 with `OAUTH_TOKEN_EXPIRED` error if token expired
 
 #### 3. **Auth Controller** (`controllers/authController.ts`)
 

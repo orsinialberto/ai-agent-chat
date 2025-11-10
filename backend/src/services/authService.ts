@@ -6,8 +6,9 @@
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
-import { OAUTH_CONFIG, isOAuthEnabled } from '../config/oauthConfig';
+import { isOAuthEnabled } from '../config/oauthConfig';
 import { MCP_CONFIG } from '../config/mcpConfig';
+import { oauthService } from './oauthService';
 import { RegisterRequest, LoginRequest, AuthResponse, User } from '../types/shared';
 
 const prisma = new PrismaClient();
@@ -132,10 +133,10 @@ export class AuthService {
     if (MCP_CONFIG.enabled && isOAuthEnabled()) {
       try {
         // Pass username and password from login request (password in plain text)
-        const oauthResponse = await this.getOAuthToken(user.username, password);
+        const oauthResponse = await oauthService.getToken(user.username, password);
         oauthToken = oauthResponse.access_token;
         // Calculate expiry timestamp (Unix timestamp in seconds)
-        oauthTokenExpiry = Math.floor(Date.now() / 1000) + oauthResponse.expires_in;
+        oauthTokenExpiry = oauthService.calculateExpiry(oauthResponse.expires_in);
 
         console.log(`✅ OAuth token obtained for user ${user.username}, expires at: ${new Date(oauthTokenExpiry * 1000).toISOString()}`);
       } catch (error) {
@@ -173,62 +174,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Get OAuth token from OAuth server
-   * Only called if MCP and OAuth are enabled
-   * Uses query params instead of body
-   * @param username - Username for OAuth authentication
-   * @param password - Password in plain text (only available during login)
-   */
-  private async getOAuthToken(
-    username: string,
-    password: string
-  ): Promise<{ access_token: string; expires_in: number }> {
-    const oauthServerUrl = OAUTH_CONFIG.mockServerUrl;
-    const tokenEndpoint = OAUTH_CONFIG.tokenEndpoint;
-    
-    // Build URL with query params
-    const url = new URL(`${oauthServerUrl}${tokenEndpoint}`);
-    url.searchParams.append('grant_type', 'password')
-    url.searchParams.append('username', username);
-    url.searchParams.append('password', password);
-    
-    console.log(`🔐 Requesting OAuth token from: ${url.toString()}`);
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), OAUTH_CONFIG.timeout);
-
-      // POST request with query params (no body)
-      const response = await fetch(url.toString(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`OAuth server returned ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json() as { access_token?: string; expires_in?: number };
-      
-      if (!data.access_token || !data.expires_in) {
-        throw new Error('Invalid OAuth response format');
-      }
-
-      return {
-        access_token: data.access_token,
-        expires_in: data.expires_in
-      };
-    } catch (error) {
-      console.error('❌ OAuth token request failed:', error);
-      throw new Error(`Failed to get OAuth token: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
 
   /**
    * Generate JWT token

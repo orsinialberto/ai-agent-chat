@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/authService';
+import { oauthService } from '../services/oauthService';
 import { ApiResponse } from '../types/shared';
 import { isOAuthEnabled } from '../config/oauthConfig';
 
@@ -58,9 +59,7 @@ export const authenticate = async (
       
       // Verify OAuth token expiry only if OAuth is enabled
       if (isOAuthEnabled() && payload.oauthToken && payload.oauthTokenExpiry) {
-        const now = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
-        
-        if (now >= payload.oauthTokenExpiry) {
+        if (oauthService.isTokenExpired(payload.oauthTokenExpiry)) {
           // OAuth token expired - force logout
           console.log(`⚠️ OAuth token expired for user ${payload.username}`);
           res.status(401).json({
