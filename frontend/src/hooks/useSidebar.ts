@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiService, Chat } from '../services/api';
+import { AnonymousChatService } from '../services/anonymousChatService';
 
 export interface UseSidebarReturn {
   // State
@@ -17,7 +18,12 @@ export interface UseSidebarReturn {
   clearError: () => void;
 }
 
-export const useSidebar = (): UseSidebarReturn => {
+export interface UseSidebarOptions {
+  isAnonymous?: boolean;
+}
+
+export const useSidebar = (options: UseSidebarOptions = {}): UseSidebarReturn => {
+  const { isAnonymous = false } = options;
   const [chats, setChats] = useState<Chat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,82 +33,125 @@ export const useSidebar = (): UseSidebarReturn => {
     setError(null);
     
     try {
-      const response = await apiService.getChats();
-      
-      if (response.success && response.data) {
-        setChats(response.data);
+      if (isAnonymous) {
+        // Load from sessionStorage for anonymous chats
+        const anonymousChats = AnonymousChatService.getChats();
+        setChats(anonymousChats);
       } else {
-        setError(response.error || 'Failed to load chats');
+        // Load from API for authenticated chats
+        const response = await apiService.getChats();
+        
+        if (response.success && response.data) {
+          setChats(response.data);
+        } else {
+          setError(response.error || 'Failed to load chats');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isAnonymous]);
 
   const selectChat = useCallback(async (chatId: string): Promise<Chat | null> => {
     try {
-      const response = await apiService.getChat(chatId);
-      
-      if (response.success && response.data) {
-        return response.data;
+      if (isAnonymous) {
+        // Load from sessionStorage for anonymous chats
+        const chat = AnonymousChatService.getChat(chatId);
+        if (chat) {
+          return chat;
+        } else {
+          setError('Chat not found');
+          return null;
+        }
       } else {
-        setError(response.error || 'Failed to load chat');
-        return null;
+        // Load from API for authenticated chats
+        const response = await apiService.getChat(chatId);
+        
+        if (response.success && response.data) {
+          return response.data;
+        } else {
+          setError(response.error || 'Failed to load chat');
+          return null;
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       return null;
     }
-  }, []);
+  }, [isAnonymous]);
 
   const updateChatTitle = useCallback(async (chatId: string, title: string) => {
     try {
-      const response = await apiService.updateChat(chatId, title);
-      
-      if (response.success && response.data) {
+      if (isAnonymous) {
+        // Update in sessionStorage for anonymous chats
+        AnonymousChatService.updateChat(chatId, { title });
         setChats(prev => prev.map(chat => 
-          chat.id === chatId ? response.data! : chat
+          chat.id === chatId ? { ...chat, title } : chat
         ));
       } else {
-        setError(response.error || 'Failed to update chat title');
+        // Update via API for authenticated chats
+        const response = await apiService.updateChat(chatId, title);
+        
+        if (response.success && response.data) {
+          setChats(prev => prev.map(chat => 
+            chat.id === chatId ? response.data! : chat
+          ));
+        } else {
+          setError(response.error || 'Failed to update chat title');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     }
-  }, []);
+  }, [isAnonymous]);
 
   const deleteChat = useCallback(async (chatId: string) => {
     try {
-      const response = await apiService.deleteChat(chatId);
-      
-      if (response.success) {
+      if (isAnonymous) {
+        // Delete from sessionStorage for anonymous chats
+        AnonymousChatService.deleteChat(chatId);
         setChats(prev => prev.filter(chat => chat.id !== chatId));
       } else {
-        setError(response.error || 'Failed to delete chat');
+        // Delete via API for authenticated chats
+        const response = await apiService.deleteChat(chatId);
+        
+        if (response.success) {
+          setChats(prev => prev.filter(chat => chat.id !== chatId));
+        } else {
+          setError(response.error || 'Failed to delete chat');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     }
-  }, []);
+  }, [isAnonymous]);
 
   const createNewChat = useCallback(async (): Promise<Chat | null> => {
     try {
-      const response = await apiService.createChat({ title: 'New Chat' });
-      
-      if (response.success && response.data) {
-        setChats(prev => [response.data!, ...prev]);
-        return response.data;
-      } else {
-        setError(response.error || 'Failed to create chat');
+      if (isAnonymous) {
+        // For anonymous chats, don't create a chat yet
+        // The chat will be created when the user sends the first message
+        // Return null to indicate no chat was created
         return null;
+      } else {
+        // Create via API for authenticated chats
+        const response = await apiService.createChat({ title: 'New Chat' });
+        
+        if (response.success && response.data) {
+          setChats(prev => [response.data!, ...prev]);
+          return response.data;
+        } else {
+          setError(response.error || 'Failed to create chat');
+          return null;
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       return null;
     }
-  }, []);
+  }, [isAnonymous]);
 
   const addChat = useCallback((chat: Chat) => {
     setChats(prev => {
@@ -113,7 +162,12 @@ export const useSidebar = (): UseSidebarReturn => {
       // Add at the beginning of the list
       return [chat, ...prev];
     });
-  }, []);
+    
+    // Also save to sessionStorage if anonymous
+    if (isAnonymous) {
+      AnonymousChatService.addChat(chat);
+    }
+  }, [isAnonymous]);
 
   const clearError = useCallback(() => {
     setError(null);

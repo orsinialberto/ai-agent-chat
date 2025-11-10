@@ -4,15 +4,16 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiService, User } from '../services/api';
+import { apiService, User, Chat } from '../services/api';
 import { authService } from '../services/authService';
+import { AnonymousChatService } from '../services/anonymousChatService';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (usernameOrEmail: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (usernameOrEmail: string, password: string) => Promise<{ success: boolean; error?: string; migratedChats?: Chat[] }>;
+  register: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string; migratedChats?: Chat[] }>;
   logout: () => void;
 }
 
@@ -74,7 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const login = async (usernameOrEmail: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (usernameOrEmail: string, password: string): Promise<{ success: boolean; error?: string; migratedChats?: Chat[] }> => {
     try {
       const response = await apiService.login({ usernameOrEmail, password });
 
@@ -85,7 +86,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Set user
         setUser(response.data.user);
 
-        return { success: true };
+        // Migrate anonymous chats if any exist
+        const anonymousChats = AnonymousChatService.getChats();
+        let migratedChats: Chat[] = [];
+        
+        if (anonymousChats.length > 0) {
+          try {
+            const migrateResponse = await apiService.migrateAnonymousChats(anonymousChats);
+            if (migrateResponse.success && migrateResponse.data?.migratedChats) {
+              migratedChats = migrateResponse.data.migratedChats;
+              // Clear anonymous chats from sessionStorage after successful migration
+              AnonymousChatService.clearChats();
+            } else {
+              console.error('Failed to migrate anonymous chats:', migrateResponse.error);
+              // Don't fail login if migration fails, just log the error
+            }
+          } catch (migrateError) {
+            console.error('Error migrating anonymous chats:', migrateError);
+            // Don't fail login if migration fails, just log the error
+          }
+        }
+
+        return { success: true, migratedChats };
       } else {
         return {
           success: false,
@@ -101,7 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (username: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const register = async (username: string, email: string, password: string): Promise<{ success: boolean; error?: string; migratedChats?: Chat[] }> => {
     try {
       const response = await apiService.register({ username, email, password });
 
@@ -112,7 +134,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Set user
         setUser(response.data.user);
 
-        return { success: true };
+        // Migrate anonymous chats if any exist
+        const anonymousChats = AnonymousChatService.getChats();
+        let migratedChats: Chat[] = [];
+        
+        if (anonymousChats.length > 0) {
+          try {
+            const migrateResponse = await apiService.migrateAnonymousChats(anonymousChats);
+            if (migrateResponse.success && migrateResponse.data?.migratedChats) {
+              migratedChats = migrateResponse.data.migratedChats;
+              // Clear anonymous chats from sessionStorage after successful migration
+              AnonymousChatService.clearChats();
+            } else {
+              console.error('Failed to migrate anonymous chats:', migrateResponse.error);
+              // Don't fail registration if migration fails, just log the error
+            }
+          } catch (migrateError) {
+            console.error('Error migrating anonymous chats:', migrateError);
+            // Don't fail registration if migration fails, just log the error
+          }
+        }
+
+        return { success: true, migratedChats };
       } else {
         return {
           success: false,

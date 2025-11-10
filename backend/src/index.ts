@@ -86,17 +86,29 @@ app.options('*', (req, res) => {
   res.sendStatus(204);
 });
 
-// Rate limiting - skip OPTIONS requests (they're handled above)
+// Rate limiting for anonymous endpoints (more restrictive)
+// Must be defined before general limiter
+const anonymousLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 50 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limiting for OPTIONS requests
+  skip: (req) => req.method === 'OPTIONS',
+});
+
+// Rate limiting for authenticated routes
+// Anonymous routes are handled separately above with anonymousLimiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // limit each IP to 1000 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  // Skip rate limiting for OPTIONS requests (they're already handled)
+  // Skip rate limiting for OPTIONS requests
   skip: (req) => req.method === 'OPTIONS',
 });
-app.use(limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -140,6 +152,27 @@ import authRoutes from './routes/auth';
 // Authentication routes (public)
 app.use('/api/auth', authRoutes);
 
+// Anonymous chat endpoints (public - no authentication required)
+// Defined before app.use(limiter) so anonymousLimiter applies first
+// More restrictive rate limiting applied
+app.post('/api/anonymous/chats', anonymousLimiter, (req, res, next) => {
+  chatController.createAnonymousChat(req, res).catch(next);
+});
+app.post('/api/anonymous/chats/:chatId/messages', anonymousLimiter, (req: Request<{ chatId: string }>, res: Response, next: NextFunction) => {
+  chatController.sendAnonymousMessage(req, res).catch(next);
+});
+
+// Apply general rate limiting to remaining routes
+// Anonymous routes are already handled above with anonymousLimiter
+app.use((req, res, next) => {
+  // Skip rate limiting for anonymous endpoints (already handled)
+  if (req.path.startsWith('/api/anonymous')) {
+    return next();
+  }
+  // Apply general limiter to all other routes
+  return limiter(req, res, next);
+});
+
 // Chat API routes (protected - require authentication)
 app.post('/api/chats', authenticate, (req, res, next) => {
   chatController.createChat(req, res).catch(next);
@@ -158,6 +191,9 @@ app.delete('/api/chats/:chatId', authenticate, (req: Request<{ chatId: string }>
 });
 app.post('/api/chats/:chatId/messages', authenticate, (req: Request<{ chatId: string }>, res: Response, next: NextFunction) => {
   chatController.sendMessage(req, res).catch(next);
+});
+app.post('/api/chats/migrate', authenticate, (req: Request, res: Response, next: NextFunction) => {
+  chatController.migrateAnonymousChats(req, res).catch(next);
 });
 
 // Test endpoints (can be public for development)

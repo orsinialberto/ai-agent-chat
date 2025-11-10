@@ -12,15 +12,64 @@ import {
   MessageRole, 
   CreateChatRequest, 
   CreateMessageRequest,
-  ApiResponse
+  ApiResponse,
+  AnonymousChat,
+  MigrateChatsRequest,
+  MigrateChatsResponse
 } from '../types/shared';
 
 export class ChatController {
   private mcpEnabled: boolean;
+  // Map to store anonymous chats in memory (chatId -> chat data)
+  private anonymousChats: Map<string, AnonymousChat>;
+  // Cleanup interval for anonymous chats (1 hour timeout)
+  private readonly ANONYMOUS_CHAT_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
+  private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     // Disable MCP during tests to avoid async side effects in Jest
     this.mcpEnabled = MCP_CONFIG.enabled && process.env.NODE_ENV !== 'test';
+    this.anonymousChats = new Map();
+    
+    // Start cleanup interval for anonymous chats (runs every 30 minutes)
+    this.startAnonymousChatCleanup();
+  }
+
+  /**
+   * Start cleanup interval for anonymous chats
+   * Removes chats older than ANONYMOUS_CHAT_TIMEOUT
+   */
+  private startAnonymousChatCleanup(): void {
+    this.cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      const chatsToDelete: string[] = [];
+      
+      this.anonymousChats.forEach((chat, chatId) => {
+        const chatAge = now - chat.createdAt.getTime();
+        if (chatAge > this.ANONYMOUS_CHAT_TIMEOUT) {
+          chatsToDelete.push(chatId);
+        }
+      });
+      
+      chatsToDelete.forEach(chatId => {
+        this.anonymousChats.delete(chatId);
+        console.log(`Cleaned up anonymous chat: ${chatId}`);
+      });
+      
+      if (chatsToDelete.length > 0) {
+        console.log(`Cleaned up ${chatsToDelete.length} anonymous chat(s)`);
+      }
+    }, 30 * 60 * 1000); // Run every 30 minutes
+  }
+
+  /**
+   * Stop cleanup interval (useful for testing)
+   */
+  private stopAnonymousChatCleanup(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
   }
 
   /**
@@ -40,11 +89,19 @@ export class ChatController {
   /**
    * Create MCP context service with OAuth token
    * Only includes token if OAuth is enabled
+   * Returns null if OAuth is enabled but no token is provided
    */
   private createMCPContextService(oauthToken?: string): MCPContextService | null {
     if (!this.mcpEnabled) {
       return null;
     }
+    
+    // Se OAuth è abilitato, il token è obbligatorio per usare MCP
+    if (isOAuthEnabled() && !oauthToken) {
+      console.log('MCP disabled: OAuth is enabled but no token provided');
+      return null;
+    }
+    
     // Only pass token if OAuth is configured
     const tokenToUse = isOAuthEnabled() ? oauthToken : undefined;
     const mcpClient = this.createMCPClient(tokenToUse);
@@ -283,6 +340,230 @@ export class ChatController {
     } catch (error) {
       console.error('Error getting chat:', error);
       return ResponseHelper.internalError(res, 'Failed to get chat');
+    }
+  }
+
+  /**
+   * Create an anonymous chat (public endpoint, no authentication required)
+   * Chat is stored in memory only, not in database
+   * MCP is not used (no OAuth token available)
+   */
+  async createAnonymousChat(req: Request<{}, ApiResponse<AnonymousChat>, CreateChatRequest>, res: Response<ApiResponse<AnonymousChat>>) {
+    try {
+      const { title, initialMessage, model } = req.body;
+      
+      // Generate unique chat ID
+      const chatId = `anonymous_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const now = new Date();
+      
+      // Create anonymous chat object
+      const anonymousChat: AnonymousChat = {
+        id: chatId,
+        title: title || 'New Chat',
+        messages: [],
+        createdAt: now,
+        updatedAt: now
+      };
+      
+      // If there's an initial message, process it
+      if (initialMessage) {
+        try {
+          // Switch model if requested
+          if (model) {
+            this.handleModelSwitch(model);
+          }
+          
+          // Create user message
+          const userMessage: Message = {
+            id: `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+            chatId: chatId,
+            role: MessageRole.USER,
+            content: initialMessage.trim(),
+            createdAt: now
+          };
+          
+          // Get AI response (without MCP - no OAuth token)
+          const aiResponse = await geminiService.sendMessageWithFallback([userMessage]);
+          
+          // Create assistant message
+          const assistantMessage: Message = {
+            id: `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+            chatId: chatId,
+            role: MessageRole.ASSISTANT,
+            content: aiResponse.content,
+            createdAt: new Date()
+          };
+          
+          // Add messages to chat
+          anonymousChat.messages = [userMessage, assistantMessage];
+          anonymousChat.updatedAt = new Date();
+        } catch (error) {
+          // If LLM fails, still create the chat with user message only
+          const userMessage: Message = {
+            id: `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+            chatId: chatId,
+            role: MessageRole.USER,
+            content: initialMessage.trim(),
+            createdAt: now
+          };
+          anonymousChat.messages = [userMessage];
+          anonymousChat.updatedAt = new Date();
+          
+          // Store chat and return error response
+          this.anonymousChats.set(chatId, anonymousChat);
+          return this.handleLLMError(res, error, chatId, true);
+        }
+      }
+      
+      // Store chat in memory
+      this.anonymousChats.set(chatId, anonymousChat);
+      
+      return ResponseHelper.success(res, anonymousChat, 201);
+    } catch (error) {
+      console.error('Error creating anonymous chat:', error);
+      
+      // Handle model validation errors
+      if (error instanceof Error && error.message.includes('Model')) {
+        return ResponseHelper.badRequest(res, error.message, 'INVALID_MODEL');
+      }
+      
+      return ResponseHelper.internalError(res, 'Failed to create anonymous chat');
+    }
+  }
+
+  /**
+   * Send a message to an anonymous chat (public endpoint, no authentication required)
+   * MCP is not used (no OAuth token available)
+   */
+  async sendAnonymousMessage(req: Request<{ chatId: string }, ApiResponse<Message>, CreateMessageRequest>, res: Response<ApiResponse<Message>>) {
+    try {
+      const { chatId } = req.params;
+      const { content, role = MessageRole.USER, model } = req.body;
+      
+      if (!content || !content.trim()) {
+        return ResponseHelper.badRequest(res, 'Message content is required');
+      }
+      
+      // Check if chat exists in memory
+      const anonymousChat = this.anonymousChats.get(chatId);
+      if (!anonymousChat) {
+        return ResponseHelper.notFound(res, 'Anonymous chat not found');
+      }
+      
+      // Switch model if requested
+      if (model) {
+        this.handleModelSwitch(model);
+      }
+      
+      // Create user message
+      const userMessage: Message = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        chatId: chatId,
+        role: role,
+        content: content.trim(),
+        createdAt: new Date()
+      };
+      
+      // Add user message to chat
+      anonymousChat.messages.push(userMessage);
+      anonymousChat.updatedAt = new Date();
+      
+      try {
+        // Get AI response (without MCP - no OAuth token)
+        const aiResponse = await geminiService.sendMessageWithFallback(anonymousChat.messages);
+        
+        // Create assistant message
+        const assistantMessage: Message = {
+          id: `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          chatId: chatId,
+          role: MessageRole.ASSISTANT,
+          content: aiResponse.content,
+          createdAt: new Date()
+        };
+        
+        // Add assistant message to chat
+        anonymousChat.messages.push(assistantMessage);
+        anonymousChat.updatedAt = new Date();
+        
+        // Update chat in memory
+        this.anonymousChats.set(chatId, anonymousChat);
+        
+        return ResponseHelper.success(res, assistantMessage);
+      } catch (error) {
+        // Remove user message on error
+        anonymousChat.messages.pop();
+        anonymousChat.updatedAt = new Date();
+        return this.handleLLMError(res, error);
+      }
+    } catch (error) {
+      console.error('Error sending anonymous message:', error);
+      
+      // Handle model validation errors
+      if (error instanceof Error && error.message.includes('Model')) {
+        return ResponseHelper.badRequest(res, error.message, 'INVALID_MODEL');
+      }
+      
+      return ResponseHelper.internalError(res, 'Failed to send anonymous message');
+    }
+  }
+
+  /**
+   * Migrate anonymous chats to database (protected endpoint, requires authentication)
+   * Creates chats in database for the authenticated user
+   */
+  async migrateAnonymousChats(req: Request<{}, ApiResponse<MigrateChatsResponse>, MigrateChatsRequest>, res: Response<ApiResponse<MigrateChatsResponse>>) {
+    try {
+      // req.user is guaranteed by authenticate middleware
+      const { chats } = req.body;
+      const userId = req.user!.userId;
+      
+      if (!chats || !Array.isArray(chats) || chats.length === 0) {
+        return ResponseHelper.badRequest(res, 'Chats array is required and must not be empty');
+      }
+      
+      const migratedChats: Chat[] = [];
+      
+      // Migrate each anonymous chat to database
+      for (const anonymousChat of chats) {
+        try {
+          // Create chat in database
+          const chat = await databaseService.createChat(userId, anonymousChat.title);
+          
+          // Add messages to database
+          for (const message of anonymousChat.messages) {
+            await databaseService.addMessage(
+              chat.id,
+              message.role,
+              message.content,
+              message.metadata
+            );
+          }
+          
+          // Get updated chat with messages
+          const updatedChat = await databaseService.getChat(chat.id, userId);
+          if (updatedChat) {
+            migratedChats.push(updatedChat);
+          }
+          
+          // Remove anonymous chat from memory if it exists
+          // (It may not exist if chat was only stored in client sessionStorage)
+          if (this.anonymousChats.has(anonymousChat.id)) {
+            this.anonymousChats.delete(anonymousChat.id);
+          }
+        } catch (error) {
+          console.error(`Error migrating chat ${anonymousChat.id}:`, error);
+          // Continue with other chats even if one fails
+        }
+      }
+      
+      if (migratedChats.length === 0) {
+        return ResponseHelper.internalError(res, 'Failed to migrate any chats');
+      }
+      
+      return ResponseHelper.success(res, { migratedChats });
+    } catch (error) {
+      console.error('Error migrating anonymous chats:', error);
+      return ResponseHelper.internalError(res, 'Failed to migrate anonymous chats');
     }
   }
 

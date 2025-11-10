@@ -4,19 +4,37 @@ import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
 import { Settings } from './components/Settings'
 import { Chat } from './services/api'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LoginPage, RegisterPage, ProtectedRoute } from './components/auth'
+import { LoginDialog } from './components/auth/LoginDialog'
+import { RegisterDialog } from './components/auth/RegisterDialog'
 
 /**
- * Main App Component (protected)
+ * Main App Component
  * Contains the sidebar and main content (chat or settings)
+ * Works for both anonymous and authenticated users
  */
 function MainApp() {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
+  const [registerDialogOpen, setRegisterDialogOpen] = useState(false)
   const addChatToSidebarRef = useRef<((chat: Chat) => void) | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  
+  // Close dialogs when user becomes authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (loginDialogOpen) {
+        setLoginDialogOpen(false)
+      }
+      if (registerDialogOpen) {
+        setRegisterDialogOpen(false)
+      }
+    }
+  }, [isAuthenticated, loginDialogOpen, registerDialogOpen])
 
   // Reset currentChatId when navigating to settings page
   useEffect(() => {
@@ -58,6 +76,8 @@ function MainApp() {
           onAddChatReady={handleAddChatReady}
           isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
+          isAnonymous={!isAuthenticated}
+          onLoginClick={() => setLoginDialogOpen(true)}
         />
         
         {/* Main Content - Centered */}
@@ -73,11 +93,32 @@ function MainApp() {
                     addChatToSidebarRef.current(chat)
                   }
                 }}
+                isAnonymous={!isAuthenticated}
               />
             )}
           </div>
         </main>
       </div>
+      
+      {/* Login Dialog */}
+      <LoginDialog 
+        isOpen={loginDialogOpen}
+        onClose={() => setLoginDialogOpen(false)}
+        onSwitchToRegister={() => {
+          setLoginDialogOpen(false)
+          setRegisterDialogOpen(true)
+        }}
+      />
+      
+      {/* Register Dialog */}
+      <RegisterDialog 
+        isOpen={registerDialogOpen}
+        onClose={() => setRegisterDialogOpen(false)}
+        onSwitchToLogin={() => {
+          setRegisterDialogOpen(false)
+          setLoginDialogOpen(true)
+        }}
+      />
     </div>
   )
 }
@@ -95,15 +136,13 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           
-          {/* Protected routes */}
+          {/* Chat route - accessible to both anonymous and authenticated users */}
           <Route
             path="/"
-            element={
-              <ProtectedRoute>
-                <MainApp />
-              </ProtectedRoute>
-            }
+            element={<MainApp />}
           />
+          
+          {/* Settings route - protected (requires authentication) */}
           <Route
             path="/settings"
             element={

@@ -99,6 +99,23 @@ export interface AuthResponse {
   expiresAt: string;
 }
 
+// Anonymous chat types
+export interface AnonymousChat {
+  id: string;
+  title?: string;
+  messages: Message[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MigrateChatsRequest {
+  chats: AnonymousChat[];
+}
+
+export interface MigrateChatsResponse {
+  migratedChats: Chat[];
+}
+
 // Extend Express Request type for authentication
 declare global {
   namespace Express {

@@ -9,6 +9,7 @@ import { Listbox, Transition } from '@headlessui/react'
 interface ChatInterfaceProps {
   currentChatId?: string;
   onChatCreated?: (chat: Chat) => void;
+  isAnonymous?: boolean;
 }
 
 // Memoized Message Component to prevent unnecessary re-renders
@@ -137,7 +138,7 @@ const MessageItem: React.FC<MessageItemProps> = React.memo(({
 
 MessageItem.displayName = 'MessageItem';
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onChatCreated }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onChatCreated, isAnonymous = false }) => {
   const [inputValue, setInputValue] = useState('')
   const [textAreaHeight, setTextAreaHeight] = useState<number>(40)
   const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash')
@@ -156,7 +157,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
     loadChat,
     sendMessage, 
     clearError 
-  } = useChat()
+  } = useChat({ isAnonymous })
 
   // Load chat when currentChatId changes
   useEffect(() => {

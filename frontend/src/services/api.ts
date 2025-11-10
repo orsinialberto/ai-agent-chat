@@ -86,6 +86,53 @@ class ApiService {
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Make a public request without authentication token
+   * Used for anonymous endpoints
+   */
+  private async requestPublic<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string>),
+      };
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        headers: headers as HeadersInit,
+      });
+
+      // Parse response body
+      const data = await response.json();
+
+      // If response is not OK, preserve error details from backend
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || `HTTP error! status: ${response.status}`,
+          errorType: data.errorType,
+          message: data.message,
+          retryAfter: data.retryAfter,
+          chatId: data.chatId
+        };
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API request failed:', error);
+      
+      // Network error or JSON parse error
+      return {
+        success: false,
+        error: 'NETWORK_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -254,6 +301,29 @@ class ApiService {
   async deleteAccount(): Promise<ApiResponse<{ message: string }>> {
     return this.request<{ message: string }>('/auth/account', {
       method: 'DELETE',
+    });
+  }
+
+  // Anonymous chat endpoints (public - no authentication required)
+  async createAnonymousChat(request: CreateChatRequest): Promise<ApiResponse<Chat>> {
+    return this.requestPublic<Chat>('/anonymous/chats', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  async sendAnonymousMessage(chatId: string, request: CreateMessageRequest): Promise<ApiResponse<Message>> {
+    return this.requestPublic<Message>(`/anonymous/chats/${chatId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  // Migrate anonymous chats to database (requires authentication)
+  async migrateAnonymousChats(chats: Chat[]): Promise<ApiResponse<{ migratedChats: Chat[] }>> {
+    return this.request<{ migratedChats: Chat[] }>('/chats/migrate', {
+      method: 'POST',
+      body: JSON.stringify({ chats }),
     });
   }
 
