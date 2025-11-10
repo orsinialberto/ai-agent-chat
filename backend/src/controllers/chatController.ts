@@ -5,6 +5,7 @@ import { MCPClient } from '../services/mcpClient';
 import { MCPContextService } from '../services/mcpContextService';
 import { MCP_CONFIG } from '../config/mcpConfig';
 import { isOAuthEnabled } from '../config/oauthConfig';
+import { ResponseHelper } from '../utils/responseHelpers';
 import { 
   Chat, 
   Message, 
@@ -54,89 +55,112 @@ export class ChatController {
   }
 
   /**
+   * Handle model switch with validation
+   * @throws Error if model is invalid
+   */
+  private handleModelSwitch(model?: string): void {
+    if (!model) return;
+    geminiService.switchModel(model);
+  }
+
+  /**
+   * Process initial message in a new chat
+   * Returns updated chat or null if LLM error occurred
+   */
+  private async processInitialMessage(
+    chatId: string,
+    initialMessage: string,
+    model?: string
+  ): Promise<Chat | null> {
+    // Switch model if requested
+    if (model) {
+      this.handleModelSwitch(model);
+    }
+
+    // Add user message to database
+    const userMessage = await databaseService.addMessage(
+      chatId,
+      MessageRole.USER,
+      initialMessage
+    );
+
+    // Get AI response
+    const aiResponse = await geminiService.sendMessageWithFallback([userMessage]);
+    
+    // Add AI response to database
+    await databaseService.addMessage(
+      chatId,
+      MessageRole.ASSISTANT,
+      aiResponse.content
+    );
+
+    // Get updated chat with messages
+    return await databaseService.getChat(chatId);
+  }
+
+  /**
    * Create a new chat
    */
   async createChat(req: Request<{}, ApiResponse<Chat>, CreateChatRequest>, res: Response<ApiResponse<Chat>>) {
     try {
       const { title, initialMessage, model } = req.body;
       
-      // Ensure user is authenticated
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        });
-      }
-
       // Create chat in database with userId
-      const chat = await databaseService.createChat(req.user.userId, title);
+      // req.user is guaranteed by authenticate middleware
+      const chat = await databaseService.createChat(req.user!.userId, title);
 
       // If there's an initial message, process it
       if (initialMessage) {
-        // Switch model if requested
-        if (model) {
-          try {
-            geminiService.switchModel(model);
-          } catch (e: any) {
-            return res.status(400).json({
-              success: false,
-              error: 'INVALID_MODEL',
-              message: e?.message || 'Invalid model'
-            });
-          }
-        }
-        // Add user message to database
-        const userMessage = await databaseService.addMessage(
-          chat.id,
-          MessageRole.USER,
-          initialMessage
-        );
-
-        // Get AI response
         try {
-          const aiResponse = await geminiService.sendMessageWithFallback([userMessage]);
-          
-          // Add AI response to database
-          const assistantMessage = await databaseService.addMessage(
-            chat.id,
-            MessageRole.ASSISTANT,
-            aiResponse.content
-          );
-
-          // Get updated chat with messages
-          const updatedChat = await databaseService.getChat(chat.id);
+          const updatedChat = await this.processInitialMessage(chat.id, initialMessage, model);
           if (updatedChat) {
-            return res.status(201).json({
-              success: true,
-              data: updatedChat
-            });
+            return ResponseHelper.success(res, updatedChat, 201);
           }
         } catch (error) {
           console.error('Error getting AI response:', error);
           
           // Return error to frontend with specific error type and chatId
-          return res.status(503).json({
-            success: false,
-            error: 'AI_SERVICE_UNAVAILABLE',
-            errorType: 'LLM_UNAVAILABLE',
-            message: 'The AI service is temporarily unavailable. The chat was created but the AI could not respond.',
-            chatId: chat.id
-          });
+          return ResponseHelper.serviceUnavailable(
+            res,
+            'The AI service is temporarily unavailable. The chat was created but the AI could not respond.',
+            'LLM_UNAVAILABLE',
+            undefined,
+            chat.id
+          );
         }
       }
 
-      return res.status(201).json({
-        success: true,
-        data: chat
-      });
+      return ResponseHelper.success(res, chat, 201);
     } catch (error) {
       console.error('Error creating chat:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to create chat'
-      });
+      
+      // Handle model validation errors
+      if (error instanceof Error && error.message.includes('Model')) {
+        return ResponseHelper.badRequest(res, error.message, 'INVALID_MODEL');
+      }
+      
+      return ResponseHelper.internalError(res, 'Failed to create chat');
     }
+  }
+
+  /**
+   * Get AI response for a message with optional MCP integration
+   */
+  private async getAIMessageResponse(
+    content: string,
+    chatHistory: Message[],
+    oauthToken?: string
+  ): Promise<{ content: string }> {
+    if (this.mcpEnabled) {
+      // Create MCP context service with user's OAuth token
+      const mcpContextService = this.createMCPContextService(oauthToken);
+      if (mcpContextService) {
+        return await this.processWithMCPIntegration(content, chatHistory, mcpContextService);
+      }
+    }
+    
+    // Fallback to standard Gemini response
+    return await geminiService.sendMessageWithFallback(chatHistory);
   }
 
   /**
@@ -147,68 +171,35 @@ export class ChatController {
       const { chatId } = req.params;
       const { content, role = MessageRole.USER, model } = req.body;
 
-      // Ensure user is authenticated
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        });
-      }
-
+      // req.user is guaranteed by authenticate middleware
       if (!content || !content.trim()) {
-        return res.status(400).json({
-          success: false,
-          error: 'Message content is required'
-        });
+        return ResponseHelper.badRequest(res, 'Message content is required');
       }
 
       // Check if chat exists and belongs to user
-      const chat = await databaseService.getChat(chatId, req.user.userId);
+      const chat = await databaseService.getChat(chatId, req.user!.userId);
       if (!chat) {
-        return res.status(404).json({
-          success: false,
-          error: 'Chat not found'
-        });
+        return ResponseHelper.notFound(res, 'Chat not found');
       }
 
       // Switch model if requested
       if (model) {
-        try {
-          geminiService.switchModel(model);
-        } catch (e: any) {
-          return res.status(400).json({
-            success: false,
-            error: 'INVALID_MODEL',
-            message: e?.message || 'Invalid model'
-          });
-        }
+        this.handleModelSwitch(model);
       }
 
       // Add user message to database
-      const userMessage = await databaseService.addMessage(
-        chatId,
-        role,
-        content.trim()
-      );
+      await databaseService.addMessage(chatId, role, content.trim());
 
       try {
         // Get chat history for context
         const chatHistory = await databaseService.getMessages(chatId);
         
         // Get AI response with MCP integration
-        let aiResponse;
-        if (this.mcpEnabled) {
-          // Create MCP context service with user's OAuth token
-          const mcpContextService = this.createMCPContextService(req.user.oauthToken);
-          if (mcpContextService) {
-            aiResponse = await this.processWithMCPIntegration(content, chatHistory, mcpContextService);
-          } else {
-            aiResponse = await geminiService.sendMessageWithFallback(chatHistory);
-          }
-        } else {
-          aiResponse = await geminiService.sendMessageWithFallback(chatHistory);
-        }
+        const aiResponse = await this.getAIMessageResponse(
+          content,
+          chatHistory,
+          req.user!.oauthToken
+        );
         
         // Add AI response to database
         const assistantMessage = await databaseService.addMessage(
@@ -217,29 +208,28 @@ export class ChatController {
           aiResponse.content
         );
 
-        return res.json({
-          success: true,
-          data: assistantMessage
-        });
+        return ResponseHelper.success(res, assistantMessage);
       } catch (error) {
         console.error('Error getting AI response:', error);
         
         // Return specific error code for LLM unavailability
         // The frontend can handle this error type appropriately
-        return res.status(503).json({
-          success: false,
-          error: 'AI_SERVICE_UNAVAILABLE',
-          errorType: 'LLM_UNAVAILABLE',
-          message: 'The AI service is temporarily unavailable. Please try again in a few moments.',
-          retryAfter: 60 // Suggest retry after 60 seconds
-        });
+        return ResponseHelper.serviceUnavailable(
+          res,
+          'The AI service is temporarily unavailable. Please try again in a few moments.',
+          'LLM_UNAVAILABLE',
+          60 // Suggest retry after 60 seconds
+        );
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to send message'
-      });
+      
+      // Handle model validation errors
+      if (error instanceof Error && error.message.includes('Model')) {
+        return ResponseHelper.badRequest(res, error.message, 'INVALID_MODEL');
+      }
+      
+      return ResponseHelper.internalError(res, 'Failed to send message');
     }
   }
 
@@ -248,26 +238,12 @@ export class ChatController {
    */
   async getChats(req: Request, res: Response<ApiResponse<Chat[]>>) {
     try {
-      // Ensure user is authenticated
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        });
-      }
-
-      const chats = await databaseService.getChats(req.user.userId);
-      return res.json({
-        success: true,
-        data: chats
-      });
+      // req.user is guaranteed by authenticate middleware
+      const chats = await databaseService.getChats(req.user!.userId);
+      return ResponseHelper.success(res, chats);
     } catch (error) {
       console.error('Error getting chats:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to get chats'
-      });
+      return ResponseHelper.internalError(res, 'Failed to get chats');
     }
   }
 
@@ -278,15 +254,7 @@ export class ChatController {
    */
   async getChat(req: Request<{ chatId: string }>, res: Response<ApiResponse<Chat>>) {
     try {
-      // Ensure user is authenticated
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        });
-      }
-
+      // req.user is guaranteed by authenticate middleware
       const { chatId } = req.params;
       
       // Parse limit from query parameter (default: 50 messages)
@@ -302,25 +270,16 @@ export class ChatController {
         }
       }
 
-      const chat = await databaseService.getChat(chatId, req.user.userId, limitMessages);
+      const chat = await databaseService.getChat(chatId, req.user!.userId, limitMessages);
 
       if (!chat) {
-        return res.status(404).json({
-          success: false,
-          error: 'Chat not found'
-        });
+        return ResponseHelper.notFound(res, 'Chat not found');
       }
 
-      return res.json({
-        success: true,
-        data: chat
-      });
+      return ResponseHelper.success(res, chat);
     } catch (error) {
       console.error('Error getting chat:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to get chat'
-      });
+      return ResponseHelper.internalError(res, 'Failed to get chat');
     }
   }
 
@@ -350,56 +309,33 @@ export class ChatController {
    */
   async updateChat(req: Request<{ chatId: string }, ApiResponse<Chat>, { title: string }>, res: Response<ApiResponse<Chat>>) {
     try {
-      // Ensure user is authenticated
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        });
-      }
-
+      // req.user is guaranteed by authenticate middleware
       const { chatId } = req.params;
       const { title } = req.body;
 
       if (!title || !title.trim()) {
-        return res.status(400).json({
-          success: false,
-          error: 'Title is required'
-        });
+        return ResponseHelper.badRequest(res, 'Title is required');
       }
 
       // Check if chat exists and belongs to user
-      const existingChat = await databaseService.getChat(chatId, req.user.userId);
+      const existingChat = await databaseService.getChat(chatId, req.user!.userId);
       if (!existingChat) {
-        return res.status(404).json({
-          success: false,
-          error: 'Chat not found'
-        });
+        return ResponseHelper.notFound(res, 'Chat not found');
       }
 
       // Update chat title
       await databaseService.updateChatTitle(chatId, title.trim());
 
       // Get updated chat
-      const updatedChat = await databaseService.getChat(chatId, req.user.userId);
+      const updatedChat = await databaseService.getChat(chatId, req.user!.userId);
       if (!updatedChat) {
-        return res.status(500).json({
-          success: false,
-          error: 'Failed to retrieve updated chat'
-        });
+        return ResponseHelper.internalError(res, 'Failed to retrieve updated chat');
       }
 
-      return res.json({
-        success: true,
-        data: updatedChat
-      });
+      return ResponseHelper.success(res, updatedChat);
     } catch (error) {
       console.error('Error updating chat:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to update chat'
-      });
+      return ResponseHelper.internalError(res, 'Failed to update chat');
     }
   }
 
@@ -408,39 +344,22 @@ export class ChatController {
    */
   async deleteChat(req: Request<{ chatId: string }>, res: Response<ApiResponse<{ message: string }>>) {
     try {
-      // Ensure user is authenticated
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        });
-      }
-
+      // req.user is guaranteed by authenticate middleware
       const { chatId } = req.params;
 
       // Check if chat exists and belongs to user
-      const existingChat = await databaseService.getChat(chatId, req.user.userId);
+      const existingChat = await databaseService.getChat(chatId, req.user!.userId);
       if (!existingChat) {
-        return res.status(404).json({
-          success: false,
-          error: 'Chat not found'
-        });
+        return ResponseHelper.notFound(res, 'Chat not found');
       }
 
       // Delete chat
       await databaseService.deleteChat(chatId);
 
-      return res.json({
-        success: true,
-        data: { message: 'Chat deleted successfully' }
-      });
+      return ResponseHelper.success(res, { message: 'Chat deleted successfully' });
     } catch (error) {
       console.error('Error deleting chat:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to delete chat'
-      });
+      return ResponseHelper.internalError(res, 'Failed to delete chat');
     }
   }
 
@@ -720,6 +639,7 @@ TOOL_CALL:toolName:{"corrected":"arguments"}
       }
 
       // Create MCP context service with user's OAuth token if available
+      // Note: This endpoint is not protected by authenticate, so req.user may be undefined
       const mcpContextService = this.createMCPContextService(req.user?.oauthToken);
       if (!mcpContextService) {
         return res.json({

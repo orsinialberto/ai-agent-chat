@@ -79,7 +79,8 @@ backend/
 │   ├── types/                      # TypeScript types
 │   │   └── shared.ts
 │   ├── utils/                      # Utility functions
-│   │   └── database.ts
+│   │   ├── database.ts
+│   │   └── responseHelpers.ts      # Standardized API response helpers
 │   └── index.ts                    # Entry point
 ├── prisma/
 │   └── schema.prisma               # Database schema
@@ -131,7 +132,7 @@ Protects routes by verifying JWT tokens
 
 #### 3. **Auth Controller** (`controllers/authController.ts`)
 
-Handles authentication endpoints:
+Handles authentication endpoints. All protected routes use the `authenticate` middleware, which ensures `req.user` is always available in controller methods.
 
 | Endpoint             | Method | Auth Required | Description           |
 |----------------------|--------|---------------|-----------------------|
@@ -152,47 +153,49 @@ Handles authentication endpoints:
 
 ### Chat Controller (`controllers/chatController.ts`)
 
-Main controller for chat operations:
+Main controller for chat operations. All methods use `ResponseHelper` for standardized API responses.
 
-#### **createChat()**
+#### **Public Methods**
+
+##### **createChat()**
 - Creates new chat in database
-- Associates chat with authenticated user
+- Associates chat with authenticated user (via `authenticate` middleware)
 - If initial message provided:
-  - Adds user message
-  - Gets AI response
+  - Processes initial message using `processInitialMessage()` helper
+  - Adds user message and gets AI response
   - Adds assistant message
 - Returns chat with messages
 
-#### **getChats()**
+##### **getChats()**
 - Retrieves all chats for authenticated user
 - Returns list of chats with metadata
 
-#### **getChat()**
+##### **getChat()**
 - Retrieves single chat by ID
-- Verifies user owns the chat
+- Verifies user owns the chat (via database query)
 - Returns chat with all messages
 
-#### **sendMessage()**
+##### **sendMessage()**
+- Validates message content
 - Adds user message to chat
 - Gets chat history
-- If MCP enabled:
-  - Gets MCP tools context
-  - Sends to Gemini with MCP context
-  - Parses tool calls from response
-  - Executes tool calls
-  - Generates final response
-- Else:
-  - Sends to Gemini without MCP
+- Gets AI response using `getAIMessageResponse()` helper (supports MCP integration)
 - Saves assistant response
 - Returns assistant message
 
-#### **updateChat()**
+##### **updateChat()**
 - Updates chat title
 - Verifies user ownership
 
-#### **deleteChat()**
+##### **deleteChat()**
 - Deletes chat and all messages (cascade)
 - Verifies user ownership
+
+#### **Private Helper Methods**
+
+- **handleModelSwitch(model?: string)**: Handles model switching with validation
+- **processInitialMessage(chatId, initialMessage, model?)**: Processes initial message in new chat
+- **getAIMessageResponse(content, chatHistory, oauthToken?)**: Gets AI response with optional MCP integration
 
 ## 🤖 Gemini Integration
 
@@ -250,8 +253,23 @@ For detailed MCP documentation, see [MCP Protocol Integration](../integrations/m
 
 ### Error Handling
 
-**Error Handler** (`middleware/errorHandler.ts`):
-- Centralized error handling
+#### **Response Helper** (`utils/responseHelpers.ts`)
+
+Standardized API response utility used across all controllers:
+
+- **success()**: Send successful responses (200, 201, etc.)
+- **error()**: Send error responses with custom status codes
+- **unauthorized()**: Send 401 Unauthorized responses
+- **notFound()**: Send 404 Not Found responses
+- **badRequest()**: Send 400 Bad Request responses
+- **serviceUnavailable()**: Send 503 Service Unavailable responses (for LLM/MCP errors)
+- **validationError()**: Send 400 validation error responses
+- **internalError()**: Send 500 Internal Server Error responses
+
+All responses follow the standard `ApiResponse<T>` format with consistent error codes and messages.
+
+#### **Error Handler** (`middleware/errorHandler.ts`):
+- Centralized error handling for unhandled errors
 - Structured error responses
 - Logging for debugging
 
@@ -297,6 +315,8 @@ For detailed MCP documentation, see [MCP Protocol Integration](../integrations/m
 - Password hashing with bcrypt
 - Token expiration checking
 - User ownership verification for resources
+- **Middleware Protection**: All protected routes use `authenticate` middleware
+- **No Redundant Checks**: Controller methods don't check `req.user` as it's guaranteed by middleware
 
 ### Input Validation
 - Request body validation
@@ -325,13 +345,38 @@ For detailed MCP documentation, see [MCP Protocol Integration](../integrations/m
 
 ### Error Response Format
 
+All error responses follow the standard format:
+
 ```json
 {
   "success": false,
   "error": "ERROR_CODE",
   "message": "Human-readable error message",
-  "errorType": "ERROR_TYPE" // Optional
+  "errorType": "ERROR_TYPE" // Optional, used for specific error types (e.g., "LLM_UNAVAILABLE")
 }
+```
+
+**Standard Error Codes:**
+- `UNAUTHORIZED` (401): Authentication required
+- `NOT_FOUND` (404): Resource not found
+- `BAD_REQUEST` (400): Invalid request
+- `VALIDATION_ERROR` (400): Validation failed
+- `SERVICE_UNAVAILABLE` (503): External service unavailable (LLM, MCP)
+- `INTERNAL_ERROR` (500): Internal server error
+
+**Response Helper Usage:**
+
+All controllers use `ResponseHelper` for consistent error handling:
+
+```typescript
+// Success response
+return ResponseHelper.success(res, data, 201);
+
+// Error responses
+return ResponseHelper.unauthorized(res, 'Authentication required');
+return ResponseHelper.notFound(res, 'Chat not found');
+return ResponseHelper.badRequest(res, 'Invalid input', 'VALIDATION_ERROR');
+return ResponseHelper.serviceUnavailable(res, 'LLM unavailable', 'LLM_UNAVAILABLE', 60, chatId);
 ```
 
 ## 🧪 Testing

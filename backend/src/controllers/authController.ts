@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/authService';
 import { RegisterRequest, LoginRequest, ChangePasswordRequest, AuthResponse, ApiResponse } from '../types/shared';
+import { ResponseHelper } from '../utils/responseHelpers';
 
 export class AuthController {
   /**
@@ -21,48 +22,29 @@ export class AuthController {
 
       // Validation
       if (!username || !email || !password) {
-        return res.status(400).json({
-          success: false,
-          error: 'VALIDATION_ERROR',
-          message: 'Username, email, and password are required'
-        });
+        return ResponseHelper.validationError(res, 'Username, email, and password are required');
       }
 
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json({
-          success: false,
-          error: 'INVALID_EMAIL',
-          message: 'Please provide a valid email address'
-        });
+        return ResponseHelper.badRequest(res, 'Please provide a valid email address', 'INVALID_EMAIL');
       }
 
       // Password strength validation
       if (password.length < 6) {
-        return res.status(400).json({
-          success: false,
-          error: 'WEAK_PASSWORD',
-          message: 'Password must be at least 6 characters long'
-        });
+        return ResponseHelper.badRequest(res, 'Password must be at least 6 characters long', 'WEAK_PASSWORD');
       }
 
       // Username validation
       if (username.length < 3) {
-        return res.status(400).json({
-          success: false,
-          error: 'INVALID_USERNAME',
-          message: 'Username must be at least 3 characters long'
-        });
+        return ResponseHelper.badRequest(res, 'Username must be at least 3 characters long', 'INVALID_USERNAME');
       }
 
       // Register user
       const authResponse = await authService.register({ username, email, password });
 
-      return res.status(201).json({
-        success: true,
-        data: authResponse
-      });
+      return ResponseHelper.success(res, authResponse, 201);
     } catch (error) {
       console.error('Registration error:', error);
       
@@ -70,18 +52,10 @@ export class AuthController {
       const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       
       if (errorMessage.includes('already exists')) {
-        return res.status(409).json({
-          success: false,
-          error: 'DUPLICATE_USER',
-          message: errorMessage
-        });
+        return ResponseHelper.error(res, 'DUPLICATE_USER', errorMessage, 409);
       }
 
-      return res.status(500).json({
-        success: false,
-        error: 'REGISTRATION_ERROR',
-        message: errorMessage
-      });
+      return ResponseHelper.internalError(res, errorMessage, 'REGISTRATION_ERROR');
     }
   }
 
@@ -98,20 +72,13 @@ export class AuthController {
 
       // Validation
       if (!usernameOrEmail || !password) {
-        return res.status(400).json({
-          success: false,
-          error: 'VALIDATION_ERROR',
-          message: 'Username/email and password are required'
-        });
+        return ResponseHelper.validationError(res, 'Username/email and password are required');
       }
 
       // Login user
       const authResponse = await authService.login({ usernameOrEmail, password });
 
-      return res.status(200).json({
-        success: true,
-        data: authResponse
-      });
+      return ResponseHelper.success(res, authResponse);
     } catch (error) {
       console.error('Login error:', error);
       
@@ -119,18 +86,10 @@ export class AuthController {
       
       // Don't reveal whether username or password was incorrect
       if (errorMessage.includes('Invalid credentials')) {
-        return res.status(401).json({
-          success: false,
-          error: 'INVALID_CREDENTIALS',
-          message: 'Invalid username/email or password'
-        });
+        return ResponseHelper.unauthorized(res, 'Invalid username/email or password');
       }
 
-      return res.status(500).json({
-        success: false,
-        error: 'LOGIN_ERROR',
-        message: 'An error occurred during login'
-      });
+      return ResponseHelper.internalError(res, 'An error occurred during login', 'LOGIN_ERROR');
     }
   }
 
@@ -140,27 +99,13 @@ export class AuthController {
    */
   async logout(req: Request, res: Response<ApiResponse>) {
     try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Not authenticated'
-        });
-      }
+      // req.user is guaranteed by authenticate middleware
+      await authService.logout(req.user!.userId);
 
-      await authService.logout(req.user.userId);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Logged out successfully'
-      });
+      return ResponseHelper.success(res, { message: 'Logged out successfully' });
     } catch (error) {
       console.error('Logout error:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'LOGOUT_ERROR',
-        message: 'An error occurred during logout'
-      });
+      return ResponseHelper.internalError(res, 'An error occurred during logout', 'LOGOUT_ERROR');
     }
   }
 
@@ -170,29 +115,15 @@ export class AuthController {
    */
   async getCurrentUser(req: Request, res: Response<ApiResponse>) {
     try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Not authenticated'
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: {
-          userId: req.user.userId,
-          username: req.user.username,
-          email: req.user.email
-        }
+      // req.user is guaranteed by authenticate middleware
+      return ResponseHelper.success(res, {
+        userId: req.user!.userId,
+        username: req.user!.username,
+        email: req.user!.email
       });
     } catch (error) {
       console.error('Get current user error:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'SERVER_ERROR',
-        message: 'An error occurred'
-      });
+      return ResponseHelper.internalError(res, 'An error occurred', 'SERVER_ERROR');
     }
   }
 
@@ -205,66 +136,36 @@ export class AuthController {
     res: Response<ApiResponse>
   ) {
     try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Not authenticated'
-        });
-      }
-
+      // req.user is guaranteed by authenticate middleware
       const { currentPassword, newPassword } = req.body;
 
       // Validation
       if (!currentPassword || !newPassword) {
-        return res.status(400).json({
-          success: false,
-          error: 'VALIDATION_ERROR',
-          message: 'Current password and new password are required'
-        });
+        return ResponseHelper.validationError(res, 'Current password and new password are required');
       }
 
       if (newPassword.length < 6) {
-        return res.status(400).json({
-          success: false,
-          error: 'WEAK_PASSWORD',
-          message: 'New password must be at least 6 characters long'
-        });
+        return ResponseHelper.badRequest(res, 'New password must be at least 6 characters long', 'WEAK_PASSWORD');
       }
 
-      const userId = req.user.userId;
+      const userId = req.user!.userId;
       await authService.changePassword(userId, currentPassword, newPassword);
 
-      return res.status(200).json({
-        success: true,
-        message: 'Password changed successfully'
-      });
+      return ResponseHelper.success(res, { message: 'Password changed successfully' });
     } catch (error) {
       console.error('Change password error:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
       
       if (errorMessage.includes('incorrect')) {
-        return res.status(401).json({
-          success: false,
-          error: 'INVALID_PASSWORD',
-          message: 'Current password is incorrect'
-        });
+        return ResponseHelper.unauthorized(res, 'Current password is incorrect');
       }
 
       if (errorMessage.includes('not found')) {
-        return res.status(404).json({
-          success: false,
-          error: 'USER_NOT_FOUND',
-          message: errorMessage
-        });
+        return ResponseHelper.notFound(res, errorMessage);
       }
 
-      return res.status(500).json({
-        success: false,
-        error: 'PASSWORD_CHANGE_ERROR',
-        message: 'An error occurred while changing password'
-      });
+      return ResponseHelper.internalError(res, 'An error occurred while changing password', 'PASSWORD_CHANGE_ERROR');
     }
   }
 
@@ -274,39 +175,21 @@ export class AuthController {
    */
   async deleteAccount(req: Request, res: Response<ApiResponse>) {
     try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'Not authenticated'
-        });
-      }
-
-      const userId = req.user.userId;
+      // req.user is guaranteed by authenticate middleware
+      const userId = req.user!.userId;
       await authService.deleteUser(userId);
 
-      return res.status(200).json({
-        success: true,
-        message: 'Account deleted successfully'
-      });
+      return ResponseHelper.success(res, { message: 'Account deleted successfully' });
     } catch (error) {
       console.error('Delete account error:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete account';
       
       if (errorMessage.includes('not found')) {
-        return res.status(404).json({
-          success: false,
-          error: 'USER_NOT_FOUND',
-          message: errorMessage
-        });
+        return ResponseHelper.notFound(res, errorMessage);
       }
 
-      return res.status(500).json({
-        success: false,
-        error: 'DELETE_ERROR',
-        message: 'An error occurred while deleting account'
-      });
+      return ResponseHelper.internalError(res, 'An error occurred while deleting account', 'DELETE_ERROR');
     }
   }
 }
