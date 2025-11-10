@@ -16,6 +16,7 @@ import { RegisterDialog } from './components/auth/RegisterDialog'
  */
 function MainApp() {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>()
+  const [resetKey, setResetKey] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
   const [registerDialogOpen, setRegisterDialogOpen] = useState(false)
@@ -59,6 +60,17 @@ function MainApp() {
     }
   }
 
+  const handleHomeClick = () => {
+    // Force reset: clear current chat and navigate to home
+    setCurrentChatId(undefined)
+    // Increment resetKey to force ChatInterface to reset even if we're already on home
+    setResetKey(prev => prev + 1)
+    // Navigate to home if we're not already there
+    if (location.pathname !== '/') {
+      navigate('/')
+    }
+  }
+
   const handleAddChatReady = (addChat: (chat: Chat) => void) => {
     addChatToSidebarRef.current = addChat
   }
@@ -78,6 +90,7 @@ function MainApp() {
           onToggle={() => setSidebarOpen(!sidebarOpen)}
           isAnonymous={!isAuthenticated}
           onLoginClick={() => setLoginDialogOpen(true)}
+          onHomeClick={handleHomeClick}
         />
         
         {/* Main Content - Centered */}
@@ -87,6 +100,7 @@ function MainApp() {
               <Settings />
             ) : (
               <ChatInterface 
+                key={resetKey}
                 currentChatId={currentChatId} 
                 onChatCreated={(chat) => {
                   if (addChatToSidebarRef.current) {

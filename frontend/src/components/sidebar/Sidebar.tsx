@@ -15,6 +15,7 @@ interface SidebarProps {
   onToggle?: () => void;
   isAnonymous?: boolean;
   onLoginClick?: () => void;
+  onHomeClick?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
@@ -25,7 +26,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen = true,
   onToggle,
   isAnonymous = false,
-  onLoginClick
+  onLoginClick,
+  onHomeClick
 }) => {
   const [showChatList, setShowChatList] = React.useState(true);
   const { user, logout } = useAuth();
@@ -113,14 +115,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <>
               {/* Header con toggle allineato */}
               <div className="flex items-end justify-between pl-6 pr-4 pt-4 pb-6">
-                <div className="flex items-end gap-3">
+                <button
+                  onClick={() => {
+                    if (onHomeClick) {
+                      onHomeClick();
+                    } else {
+                      navigate('/');
+                      if (onNewChat) {
+                        onNewChat();
+                      }
+                    }
+                  }}
+                  className="flex items-end gap-3 hover:opacity-80 transition-opacity cursor-pointer group/logo"
+                  title="Go to home"
+                >
                   <img 
                     src="/images/ai-icon.png" 
                     alt="AI" 
-                    className="w-10 h-10 mb-1.5"
+                    className="w-10 h-10 mb-1.5 group-hover/logo:scale-105 transition-transform"
                   />
                   <span className="text-2xl font-light text-gray-100 tracking-wider">AI Agent</span>
-                </div>
+                </button>
                 
                 {/* Toggle Button - visibile solo al hover quando aperta */}
                 <button
@@ -141,8 +156,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </>
           ) : (
             <>
-              {/* Bottoni incolonnati quando chiusa */}
-              <div className="pt-4 pb-10 flex flex-col items-center gap-2">
+              {/* Header quando chiusa */}
+              <div className="pt-4 pb-4 flex flex-col items-center gap-2">
+                {/* AI Icon Button - torna alla home */}
+                <button
+                  onClick={() => {
+                    if (onHomeClick) {
+                      onHomeClick();
+                    } else {
+                      navigate('/');
+                      if (onNewChat) {
+                        onNewChat();
+                      }
+                    }
+                  }}
+                  className="p-2 rounded-md hover:bg-gray-700 text-gray-100 hover:text-white transition-colors group/logo"
+                  title="Go to home"
+                >
+                  <img 
+                    src="/images/ai-icon.png" 
+                    alt="AI" 
+                    className="w-8 h-8 group-hover/logo:scale-110 transition-transform"
+                  />
+                </button>
+
                 {/* Toggle Button - sempre visibile quando chiusa */}
                 <button
                   onClick={onToggle}

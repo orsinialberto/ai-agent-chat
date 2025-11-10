@@ -15,6 +15,7 @@ export interface UseChatReturn {
   loadChat: (chatId: string) => Promise<void>;
   sendMessage: (content: string, options?: { model?: string }) => Promise<void>;
   clearError: () => void;
+  resetChat: () => void;
 }
 
 export interface UseChatOptions {
@@ -247,6 +248,12 @@ export const useChat = (options: UseChatOptions = {}): UseChatReturn => {
     setError(null);
   }, []);
 
+  const resetChat = useCallback(() => {
+    setCurrentChat(null);
+    setMessages([]);
+    setError(null);
+  }, []);
+
   return {
     currentChat,
     messages,
@@ -255,6 +262,7 @@ export const useChat = (options: UseChatOptions = {}): UseChatReturn => {
     createChat,
     loadChat,
     sendMessage,
-    clearError
+    clearError,
+    resetChat
   };
 };

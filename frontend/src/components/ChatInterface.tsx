@@ -156,8 +156,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
     createChat, 
     loadChat,
     sendMessage, 
-    clearError 
+    clearError,
+    resetChat
   } = useChat({ isAnonymous })
+
+  // Reset state when currentChatId becomes undefined (going to home)
+  useEffect(() => {
+    if (!currentChatId) {
+      // Clear the current chat when navigating to home
+      // This will show the empty chat interface
+      resetChat();
+      notifiedChatIdsRef.current.clear();
+    }
+  }, [currentChatId, resetChat])
 
   // Load chat when currentChatId changes
   useEffect(() => {
