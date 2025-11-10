@@ -273,6 +273,8 @@ export class ChatController {
 
   /**
    * Get a specific chat by ID
+   * Supports optional limit query parameter to limit number of messages loaded (default: 50)
+   * Use ?limit=0 or ?limit=all to load all messages
    */
   async getChat(req: Request<{ chatId: string }>, res: Response<ApiResponse<Chat>>) {
     try {
@@ -286,7 +288,21 @@ export class ChatController {
       }
 
       const { chatId } = req.params;
-      const chat = await databaseService.getChat(chatId, req.user.userId);
+      
+      // Parse limit from query parameter (default: 50 messages)
+      let limitMessages: number | undefined = 50;
+      if (req.query.limit !== undefined) {
+        if (req.query.limit === 'all' || req.query.limit === '0') {
+          limitMessages = undefined; // Load all messages
+        } else {
+          const parsedLimit = parseInt(req.query.limit as string, 10);
+          if (!isNaN(parsedLimit) && parsedLimit > 0) {
+            limitMessages = parsedLimit;
+          }
+        }
+      }
+
+      const chat = await databaseService.getChat(chatId, req.user.userId, limitMessages);
 
       if (!chat) {
         return res.status(404).json({

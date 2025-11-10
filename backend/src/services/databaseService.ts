@@ -27,13 +27,45 @@ export class DatabaseService {
 
   /**
    * Get a chat by ID and userId (for authorization)
+   * @param limitMessages - Limit number of messages to load (loads most recent messages). Default: 50. Set to undefined to load all.
    */
-  async getChat(chatId: string, userId?: string): Promise<SharedChat | null> {
+  async getChat(chatId: string, userId?: string, limitMessages?: number): Promise<SharedChat | null> {
     const where: any = { id: chatId };
     if (userId) {
       where.userId = userId;
     }
 
+    // If limit is specified, we need to get messages separately to get the most recent ones
+    if (limitMessages !== undefined && limitMessages > 0) {
+      const chat = await prisma.chat.findFirst({
+        where,
+        // Don't include messages here, we'll load them separately
+      });
+
+      if (!chat) {
+        return null;
+      }
+
+      // Get most recent messages (limitMessages most recent, then reverse to get chronological order)
+      const messages = await prisma.message.findMany({
+        where: { chatId },
+        orderBy: { createdAt: 'desc' },
+        take: limitMessages
+      });
+
+      // Reverse to get chronological order (oldest first)
+      const sortedMessages = messages.reverse();
+
+      return {
+        id: chat.id,
+        title: chat.title || undefined,
+        createdAt: chat.createdAt,
+        updatedAt: chat.updatedAt,
+        messages: sortedMessages.map(msg => this.mapMessageToShared(msg))
+      };
+    }
+
+    // Load all messages (original behavior)
     const chat = await prisma.chat.findFirst({
       where,
       include: {
@@ -49,7 +81,8 @@ export class DatabaseService {
   }
 
   /**
-   * Get all chats for a user
+   * Get all chats for a user (with only the last message for preview)
+   * Optimized: uses a single query with include to get only the last message per chat
    */
   async getChats(userId?: string): Promise<SharedChat[]> {
     const where: any = {};
@@ -57,13 +90,15 @@ export class DatabaseService {
       where.userId = userId;
     }
 
+    // Get chats with only their last message for preview
+    // This is efficient because Prisma optimizes the query with proper indexes
+    // We only fetch the most recent message (take: 1) ordered by createdAt desc
     const chats = await prisma.chat.findMany({
       where,
       include: {
         messages: {
-          orderBy: {
-            createdAt: 'asc'
-          }
+          orderBy: { createdAt: 'desc' },
+          take: 1 // Only get the last message for preview
         }
       },
       orderBy: {
@@ -71,6 +106,7 @@ export class DatabaseService {
       }
     });
 
+    // Map to shared format (messages are already in the correct format)
     return chats.map(chat => this.mapChatToShared(chat));
   }
 

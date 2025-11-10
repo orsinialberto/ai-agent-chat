@@ -46,6 +46,11 @@ model Message {
   
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
   
+  // Indexes for performance optimization
+  // Single column index for filtering by chatId
+  @@index([chatId])
+  // Compound index for filtering by chatId and ordering by createdAt
+  @@index([chatId, createdAt])
   @@map("messages")
 }
 

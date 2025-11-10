@@ -2,7 +2,11 @@
 
 import { authService } from './authService';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+// Use Vite proxy in development to avoid WSL networking issues
+// In production, this should be set to the actual API URL
+const API_BASE_URL = import.meta.env.DEV 
+  ? '/api'  // Use Vite proxy (no CORS, faster connection)
+  : (import.meta.env.VITE_API_URL || 'http://localhost:3001/api');
 
 export interface Chat {
   id: string;

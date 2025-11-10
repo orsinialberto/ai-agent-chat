@@ -10,53 +10,117 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Security middleware
-app.use(helmet());
+// Pre-compute allowed origins for better performance (Set for O(1) lookup)
+const getAllowedOrigins = (): string[] => {
+  const origins: string[] = [];
+  
+  if (process.env.NODE_ENV !== 'production') {
+    // In development, allow localhost on common ports
+    origins.push(
+      'http://localhost:3000', 
+      'http://localhost:5173', 
+      'http://127.0.0.1:3000', 
+      'http://127.0.0.1:5173'
+    );
+  }
+  
+  // Add configured frontend URL
+  if (process.env.FRONTEND_URL) {
+    origins.push(process.env.FRONTEND_URL);
+  }
+  
+  return origins;
+};
 
-// Rate limiting - più permissivo per sviluppo
+const allowedOrigins = new Set(getAllowedOrigins());
+
+// Optimized origin check function (faster than array.includes)
+const originCheck = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void): void => {
+  // Allow requests with no origin (mobile apps, Postman, etc.)
+  if (!origin) {
+    return callback(null, true);
+  }
+  
+  // Fast check using Set (O(1) lookup instead of O(n))
+  if (allowedOrigins.has(origin)) {
+    return callback(null, true);
+  }
+  
+  // In development, also check if it's a localhost variant (for dynamic ports)
+  if (process.env.NODE_ENV !== 'production') {
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      // Cache this origin for future requests
+      allowedOrigins.add(origin);
+      return callback(null, true);
+    }
+  }
+  
+  callback(new Error('Not allowed by CORS'));
+};
+
+// Security middleware (configure helmet to not interfere with CORS)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false, // Allow embedding if needed
+}));
+
+// CORS configuration - MUST be before rate limiting for OPTIONS requests
+// This ensures preflight requests are handled immediately
+app.use(cors({
+  origin: originCheck,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  // Cache preflight requests for 24 hours (86400 seconds)
+  // Browser will cache the preflight response and won't send OPTIONS again for 24h
+  maxAge: 86400,
+  // Don't continue to other middleware for OPTIONS requests (faster response)
+  preflightContinue: false,
+  // Use 204 for successful OPTIONS (lighter response than 200)
+  optionsSuccessStatus: 204
+}));
+
+// Explicit OPTIONS handler for fastest response (fires before rate limiter)
+app.options('*', (req, res) => {
+  // CORS middleware already set headers, just send immediate response
+  res.sendStatus(204);
+});
+
+// Rate limiting - skip OPTIONS requests (they're handled above)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs (più permissivo)
+  max: 1000, // limit each IP to 1000 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for OPTIONS requests (they're already handled)
+  skip: (req) => req.method === 'OPTIONS',
 });
 app.use(limiter);
-
-// CORS configuration - più permissiva per sviluppo
-app.use(cors({
-  origin: function (origin, callback) {
-    // Permetti richieste senza origin (es. mobile apps, Postman)
-    if (!origin) return callback(null, true);
-    
-    // In sviluppo, permetti localhost su qualsiasi porta
-    if (process.env.NODE_ENV !== 'production') {
-      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-        return callback(null, true);
-      }
-    }
-    
-    // In produzione, usa solo l'URL configurato
-    const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:5173'
-    ];
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Enable HTTP keep-alive for better connection reuse
+// This helps reduce connection overhead for multiple requests
+app.use((req, res, next) => {
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Keep-Alive', 'timeout=5, max=1000');
+  next();
+});
+
+// Request logging middleware (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    const startTime = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - startTime;
+      console.log(`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+    });
+    next();
+  });
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {

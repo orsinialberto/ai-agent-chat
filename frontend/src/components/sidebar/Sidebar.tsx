@@ -51,11 +51,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [onAddChatReady, addChat]);
 
-  const handleChatSelect = async (chatId: string) => {
-    const chat = await selectChat(chatId);
-    if (chat) {
-      onChatSelect(chatId);
-    }
+  const handleChatSelect = (chatId: string) => {
+    // Just notify parent - ChatInterface will load the chat data
+    // This avoids duplicate API calls
+    onChatSelect(chatId);
   };
 
   const handleNewChat = async () => {
