@@ -34,7 +34,6 @@ export enum MessageRole {
 
 export enum LLMType {
   GEMINI = 'gemini',
-  OPENAI = 'openai',
   ANTHROPIC = 'anthropic',
   MCP = 'mcp'
 }

@@ -2,7 +2,7 @@
 CREATE TYPE "MessageRole" AS ENUM ('user', 'assistant', 'system');
 
 -- CreateEnum
-CREATE TYPE "LLMType" AS ENUM ('gemini', 'openai', 'anthropic', 'mcp');
+CREATE TYPE "LLMType" AS ENUM ('gemini', 'anthropic', 'mcp');
 
 -- CreateTable
 CREATE TABLE "users" (

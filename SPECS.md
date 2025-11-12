@@ -74,7 +74,7 @@ CREATE TABLE messages (
 CREATE TABLE llm_providers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(100) NOT NULL,
-  type ENUM('gemini', 'openai', 'anthropic', 'mcp'),
+  type ENUM('gemini', 'anthropic', 'mcp'),
   config JSONB NOT NULL,
   active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()

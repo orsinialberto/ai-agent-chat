@@ -18,7 +18,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE llm_type AS ENUM ('gemini', 'openai', 'anthropic', 'mcp');
+    CREATE TYPE llm_type AS ENUM ('gemini', 'anthropic', 'mcp');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

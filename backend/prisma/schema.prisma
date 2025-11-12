@@ -73,7 +73,6 @@ enum MessageRole {
 
 enum LLMType {
   gemini
-  openai
   anthropic
   mcp
 }
