@@ -108,6 +108,27 @@
   .aic-textarea--withSend {
     padding-bottom: 56px; /* space for button */
   }
+  /* Leaflet Popup custom styles */
+  .custom-popup .leaflet-popup-content-wrapper {
+    max-width: 450px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .custom-popup .leaflet-popup-content {
+    margin: 0;
+    width: 100% !important;
+    max-width: 450px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .custom-popup .leaflet-popup-content p {
+    margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
   .aic-textarea:focus {
     /* don't highlight border, only slightly increase shadow */
     box-shadow: 0 10px 18px -14px rgba(0, 0, 0, 0.3);

@@ -4,7 +4,7 @@ interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'fullscreen';
   showCloseButton?: boolean;
 }
 
@@ -39,11 +39,14 @@ export const Dialog: React.FC<DialogProps> = ({
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
-    xl: 'max-w-xl'
+    xl: 'max-w-xl',
+    fullscreen: 'max-w-full w-full h-full'
   };
 
+  const isFullscreen = size === 'fullscreen';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className={`fixed inset-0 z-50 ${isFullscreen ? '' : 'flex items-center justify-center p-4'}`}>
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -51,7 +54,7 @@ export const Dialog: React.FC<DialogProps> = ({
       />
       
       {/* Dialog */}
-      <div className={`relative ${sizeClasses[size]} w-full max-h-[90vh] overflow-y-auto bg-transparent`}>
+      <div className={`relative ${isFullscreen ? 'w-full h-full flex items-center justify-center p-4' : sizeClasses[size]} ${isFullscreen ? '' : 'max-h-[90vh] overflow-y-auto'} bg-transparent`}>
         {showCloseButton && (
           <button
             onClick={onClose}
@@ -63,9 +66,13 @@ export const Dialog: React.FC<DialogProps> = ({
             </svg>
           </button>
         )}
-        <div className="relative">
-          {children}
-        </div>
+        {isFullscreen ? (
+          children
+        ) : (
+          <div className="relative">
+            {children}
+          </div>
+        )}
       </div>
     </div>
   );

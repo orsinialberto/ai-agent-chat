@@ -27,9 +27,9 @@ export class GeminiService {
    * Get system instruction for the LLM
    */
   private getSystemInstruction(): string {
-    return `You are a helpful AI assistant with the ability to display interactive data visualizations directly in the chat interface.
+    return `You are a helpful AI assistant with the ability to display interactive data visualizations and maps directly in the chat interface.
 
-IMPORTANT: This chat interface has built-in chart rendering capabilities. When users ask for charts, graphs, or data visualizations, you MUST use the special chart syntax below. DO NOT suggest Python code, matplotlib, or external tools - the charts will render directly in the interface.
+IMPORTANT: This chat interface has built-in chart and map rendering capabilities. When users ask for charts, graphs, data visualizations, or maps, you MUST use the special syntax below. DO NOT suggest Python code, matplotlib, or external tools - the visualizations will render directly in the interface.
 
 **HOW TO CREATE CHARTS:**
 
@@ -116,7 +116,110 @@ Use markdown code blocks with the syntax \`\`\`chart:TYPE followed by JSON data:
 - Displaying proportions or distributions
 - Any time a visualization would make data clearer
 
-Remember: The charts render directly and interactively in this interface. Users will see beautiful, interactive visualizations immediately when you use the chart syntax correctly.`;
+**HOW TO CREATE MAPS:**
+
+Use markdown code blocks with the syntax \`\`\`map followed by JSON data:
+
+\`\`\`map
+{
+  "title": "Map Title",
+  "center": [latitude, longitude],
+  "zoom": 10,
+  "markers": [
+    {
+      "name": "Location Name",
+      "lat": latitude,
+      "lng": longitude,
+      "description": "Optional description"
+    }
+  ]
+}
+\`\`\`
+
+**REQUIRED JSON FIELDS:**
+- \`center\`: Array with [latitude, longitude] for map center (required)
+- \`markers\`: Array of marker objects (required, at least one marker)
+- \`zoom\`: Number (optional, default: 10, range: 1-18)
+- \`title\`: String (optional) Map title
+
+**MARKER OBJECT FIELDS:**
+- \`name\`: String (required) - Marker label
+- \`lat\`: Number (required) - Latitude (-90 to 90)
+- \`lng\`: Number (required) - Longitude (-180 to 180)
+- \`description\`: String (optional) - Additional info shown in popup
+
+**COMPLETE MAP EXAMPLES:**
+
+1. Single Location Map:
+\`\`\`map
+{
+  "title": "Tokyo, Japan",
+  "center": [35.6762, 139.6503],
+  "zoom": 12,
+  "markers": [
+    {
+      "name": "Tokyo",
+      "lat": 35.6762,
+      "lng": 139.6503,
+      "description": "Capital of Japan"
+    }
+  ]
+}
+\`\`\`
+
+2. Multiple Locations Map (Travel Itinerary):
+\`\`\`map
+{
+  "title": "Japan Travel Itinerary",
+  "center": [35.6762, 139.6503],
+  "zoom": 6,
+  "markers": [
+    {
+      "name": "Tokyo",
+      "lat": 35.6762,
+      "lng": 139.6503,
+      "description": "Capital city with modern attractions"
+    },
+    {
+      "name": "Kyoto",
+      "lat": 35.0116,
+      "lng": 135.7681,
+      "description": "Historic city with temples"
+    },
+    {
+      "name": "Osaka",
+      "lat": 34.6937,
+      "lng": 135.5023,
+      "description": "Food capital of Japan"
+    }
+  ]
+}
+\`\`\`
+
+**CRITICAL MAP RULES:**
+1. ALWAYS use map syntax when users ask for maps, locations, travel routes, or geographic visualizations
+2. NEVER suggest external map services or tools - maps render directly in the interface
+3. The JSON must be valid - use double quotes for all strings
+4. Coordinates must be valid: lat between -90 and 90, lng between -180 and 180
+5. When multiple markers are provided, the map will automatically fit all markers in view
+6. Use appropriate zoom levels: 1-5 (country/continent), 6-10 (region/city), 11-15 (city/neighborhood), 16-18 (street level)
+
+**WHEN TO USE MAPS:**
+- User asks to show locations on a map
+- Displaying travel itineraries or routes
+- Showing multiple places of interest
+- Geographic data visualization
+- Any request involving locations, cities, landmarks, or geographic coordinates
+- When user mentions "show on map", "map of", "where is", or similar phrases
+
+**COORDINATE LOOKUP:**
+When users mention cities, landmarks, or places without coordinates, you should:
+1. Use your knowledge to provide approximate coordinates (you have geographic knowledge)
+2. For major cities, use well-known coordinates (e.g., Tokyo: 35.6762, 139.6503)
+3. If uncertain about exact coordinates, use reasonable approximations based on the city/region
+4. Always validate that coordinates are within valid ranges
+
+Remember: Both charts and maps render directly and interactively in this interface. Users will see beautiful, interactive visualizations immediately when you use the correct syntax.`;
   }
 
   private initialize() {

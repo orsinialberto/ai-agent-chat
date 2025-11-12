@@ -1,6 +1,7 @@
 import React, { type InputHTMLAttributes, type ReactNode } from 'react';
 import type { Pluggable, PluggableList } from 'unified';
 import { ChartRenderer } from './ChartRenderer';
+import { MapRenderer } from './MapRenderer';
 
 type ChildrenProps = {
   children?: ReactNode;
@@ -117,10 +118,27 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
               );
             }
             
+            // Check if this is a map block (e.g., language-map)
+            const mapMatch = /language-map/.exec(className || '');
+            if (mapMatch) {
+              try {
+                const mapData = JSON.parse(String(children).replace(/\n$/, ''));
+                return <MapRenderer mapData={mapData} />;
+              } catch (error) {
+                console.error('Error parsing map data:', error);
+                return (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded text-red-700">
+                    <p className="text-sm font-semibold">❌ Error rendering map</p>
+                    <p className="text-xs mt-1">Invalid JSON data. Please check the map syntax.</p>
+                  </div>
+                );
+              }
+            }
+            
             // Check if this is a chart block (e.g., language-chart:line)
-            const match = /language-chart:(\w+)/.exec(className || '');
-            if (match) {
-              const chartType = match[1]; // line, bar, pie, area
+            const chartMatch = /language-chart:(\w+)/.exec(className || '');
+            if (chartMatch) {
+              const chartType = chartMatch[1]; // line, bar, pie, area
               try {
                 const chartData = JSON.parse(String(children).replace(/\n$/, ''));
                 return (
