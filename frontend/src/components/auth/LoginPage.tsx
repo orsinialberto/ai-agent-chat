@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const REMEMBER_ME_KEY = 'rememberMe';
@@ -20,6 +20,16 @@ export const LoginPage: React.FC = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Redirect to home if session expired error (these errors should no longer redirect to login)
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'session_expired' || errorParam === 'oauth_expired') {
+      // Session expired - redirect to home (user will be in anonymous mode)
+      navigate('/', { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   // Load saved credentials on mount
   useEffect(() => {

@@ -51,29 +51,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Periodic check for token expiration (every 30 seconds)
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (authService.hasToken()) {
-        // Check if token is expired (JWT or OAuth)
-        if (authService.isTokenExpired()) {
-          // Check if it's OAuth token expiration before removing token
-          const payload = authService.decodeToken();
-          const isOAuthExpired = payload?.oauthTokenExpiry && 
-            Math.floor(Date.now() / 1000) >= payload.oauthTokenExpiry;
-          
-          console.log(isOAuthExpired 
-            ? 'OAuth token expired detected by periodic check, logging out'
-            : 'Token expired detected by periodic check, logging out');
-          authService.removeToken();
-          setUser(null);
-          // Redirect to login page with appropriate error
-          const errorParam = isOAuthExpired ? '?error=oauth_expired' : '?error=session_expired';
-          window.location.href = `/login${errorParam}`;
-        }
+      // Check if user is still authenticated (token exists and is valid)
+      if (user && !authService.isAuthenticated()) {
+        // Token was removed or expired - logout silently and remain as anonymous user
+        console.log('Session expired, switching to anonymous mode');
+        authService.removeToken();
+        setUser(null);
+      } else if (authService.hasToken() && authService.isTokenExpired()) {
+        // Token exists but is expired - remove it and logout silently
+        const payload = authService.decodeToken();
+        const isOAuthExpired = payload?.oauthTokenExpiry && 
+          Math.floor(Date.now() / 1000) >= payload.oauthTokenExpiry;
+        
+        console.log(isOAuthExpired 
+          ? 'OAuth token expired detected by periodic check, switching to anonymous mode'
+          : 'Token expired detected by periodic check, switching to anonymous mode');
+        authService.removeToken();
+        setUser(null);
       }
     }, 30000); // Check every 30 seconds
 
     // Cleanup interval on unmount
     return () => clearInterval(intervalId);
-  }, []);
+  }, [user]);
+
+  // Listen for token removal from localStorage (e.g., from api.ts)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'ai_agent_jwt' && e.newValue === null && user) {
+        // Token was removed from localStorage - update user state
+        console.log('Token removed from storage, switching to anonymous mode');
+        setUser(null);
+      }
+    };
+
+    // Listen for storage events (when token is removed in another tab/window)
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also check periodically if token was removed in same window
+    const checkTokenRemoval = setInterval(() => {
+      if (user && !authService.hasToken()) {
+        console.log('Token removed, switching to anonymous mode');
+        setUser(null);
+      }
+    }, 1000); // Check every second
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(checkTokenRemoval);
+    };
+  }, [user]);
 
   const login = async (usernameOrEmail: string, password: string): Promise<{ success: boolean; error?: string; migratedChats?: Chat[] }> => {
     try {

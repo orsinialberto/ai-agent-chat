@@ -145,18 +145,16 @@ class ApiService {
         const isOAuthExpired = payload?.oauthTokenExpiry && 
           Math.floor(Date.now() / 1000) >= payload.oauthTokenExpiry;
         
-        console.log(isOAuthExpired ? 'OAuth token expired, logging out' : 'Token expired (JWT), logging out');
+        console.log(isOAuthExpired ? 'OAuth token expired, switching to anonymous mode' : 'Token expired (JWT), switching to anonymous mode');
         authService.removeToken();
         
-        // Redirect to login page with appropriate error
-        const errorParam = isOAuthExpired ? '?error=oauth_expired' : '';
-        window.location.href = `/login${errorParam}`;
+        // Return error without redirect - user will remain in chat as anonymous
         return {
           success: false,
           error: isOAuthExpired ? 'OAUTH_TOKEN_EXPIRED' : 'TOKEN_EXPIRED',
           message: isOAuthExpired 
-            ? 'OAuth token has expired. Please log in again.'
-            : 'Your session has expired. Please log in again.'
+            ? 'OAuth token has expired. You are now using anonymous mode.'
+            : 'Your session has expired. You are now using anonymous mode.'
         };
       }
 
@@ -183,25 +181,23 @@ class ApiService {
       if (response.status === 401) {
         // Handle OAuth token expiration specifically
         if (data.error === 'OAUTH_TOKEN_EXPIRED') {
-          console.log('OAuth token expired, logging out');
+          console.log('OAuth token expired, switching to anonymous mode');
           authService.removeToken();
-          // Redirect to login page with error message
-          window.location.href = '/login?error=oauth_expired';
+          // Return error without redirect - user will remain in chat as anonymous
           return {
             success: false,
             error: 'OAUTH_TOKEN_EXPIRED',
-            message: data.message || 'OAuth token has expired. Please log in again.'
+            message: data.message || 'OAuth token has expired. You are now using anonymous mode.'
           };
         }
         
-        console.log('Unauthorized, logging out');
+        console.log('Unauthorized, switching to anonymous mode');
         authService.removeToken();
-        // Redirect to login page
-        window.location.href = '/login';
+        // Return error without redirect - user will remain in chat as anonymous
         return {
           success: false,
           error: 'UNAUTHORIZED',
-          message: 'Authentication required. Please log in.'
+          message: 'Authentication required. You are now using anonymous mode.'
         };
       }
 
