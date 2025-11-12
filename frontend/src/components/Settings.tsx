@@ -12,64 +12,64 @@ const styles = {
   
   // Header
   header: "mb-4",
-  pageTitle: "text-2xl font-bold text-gray-900",
+  pageTitle: "text-2xl font-bold text-gray-900 dark:text-gray-100",
   
   // Buttons
-  backButton: "inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors group mb-4",
+  backButton: "inline-flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors group mb-4",
   backIcon: "w-4 h-4 transform group-hover:-translate-x-1 transition-transform",
   primaryButton: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-800 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2",
-  cancelButton: "flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2",
+  cancelButton: "flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-500 focus:ring-offset-2",
   dangerButton: "flex-1 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-rose-300/60 focus:ring-offset-2",
-  deleteIconButton: "p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0",
+  deleteIconButton: "p-2 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0",
   
   // Cards and sections - come textarea con ombra inferiore
-  card: "bg-white border border-gray-300 rounded-2xl p-5 shadow-[0_8px_14px_-12px_rgba(0,0,0,0.25)]",
+  card: "bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl p-5 shadow-[0_8px_14px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_14px_-12px_rgba(0,0,0,0.5)] transition-colors",
   cardHeader: "flex items-center gap-2.5 mb-4",
-  cardIcon: "w-5 h-5 text-gray-500 flex-shrink-0",
-  cardTitle: "text-lg font-semibold text-gray-900",
+  cardIcon: "w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0",
+  cardTitle: "text-lg font-semibold text-gray-900 dark:text-gray-100",
   section: "space-y-3",
   
   // Forms
   formContainer: "space-y-3",
   formInputContainer: "group relative",
-  formInputWrapper: "flex items-center gap-2.5 px-3 py-2 border border-gray-300 rounded-lg focus-within:border-gray-400 transition-colors bg-white",
-  formInputIcon: "w-4 h-4 text-gray-400 flex-shrink-0",
-  formInput: "flex-1 bg-transparent border-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0",
+  formInputWrapper: "flex items-center gap-2.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus-within:border-gray-400 dark:focus-within:border-gray-500 transition-colors bg-white dark:bg-gray-700",
+  formInputIcon: "w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0",
+  formInput: "flex-1 bg-transparent border-0 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-0",
   formActions: "flex justify-end pt-2",
   
   // Info display
-  infoCard: "rounded-lg p-4 border border-gray-300",
+  infoCard: "rounded-lg p-4 border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 transition-colors",
   infoRow: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2",
-  infoLabel: "text-xs font-semibold text-gray-600 uppercase tracking-wide",
-  infoValue: "text-gray-900 text-sm font-medium",
+  infoLabel: "text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide",
+  infoValue: "text-gray-900 dark:text-gray-100 text-sm font-medium",
   
   // Alerts
-  errorAlert: "mb-4 rounded-lg bg-rose-50 border border-rose-300 p-3 flex items-start gap-2",
-  successAlert: "mb-4 rounded-lg bg-emerald-50 border border-emerald-300 p-3 flex items-start gap-2",
+  errorAlert: "mb-4 rounded-lg bg-rose-50 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-700 p-3 flex items-start gap-2 transition-colors",
+  successAlert: "mb-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 p-3 flex items-start gap-2 transition-colors",
   alertIcon: "w-4 h-4 flex-shrink-0 mt-0.5",
-  errorText: "text-sm text-rose-800 font-medium",
-  successText: "text-sm text-emerald-800 font-medium",
+  errorText: "text-sm text-rose-800 dark:text-rose-300 font-medium",
+  successText: "text-sm text-emerald-800 dark:text-emerald-300 font-medium",
   
   // Delete section
-  deleteBox: "flex items-center justify-between p-4 rounded-lg border border-rose-300 hover:border-rose-400 transition-colors",
+  deleteBox: "flex items-center justify-between p-4 rounded-lg border border-rose-300 dark:border-rose-700 hover:border-rose-400 dark:hover:border-rose-600 transition-colors bg-rose-50/50 dark:bg-rose-900/20",
   deleteContent: "flex-1 pr-3",
-  deleteTitle: "text-sm font-semibold text-gray-900 mb-1",
-  deleteDescription: "text-xs text-gray-600 leading-relaxed",
+  deleteTitle: "text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1",
+  deleteDescription: "text-xs text-gray-600 dark:text-gray-400 leading-relaxed",
   
   // Dialogs
   dialogOverlay: "fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4 animate-fadeIn",
-  dialogContainer: "bg-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-gray-200 animate-scaleIn",
-  dialogContainerDanger: "bg-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-rose-300 animate-scaleIn",
-  dialogTitle: "text-xl font-bold text-gray-900 mb-3",
-  dialogText: "text-sm text-gray-600 mb-4 leading-relaxed",
-  dialogList: "list-disc list-inside text-sm text-gray-600 mb-4 space-y-1.5 pl-2",
+  dialogContainer: "bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-700 animate-scaleIn transition-colors",
+  dialogContainerDanger: "bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-2xl border border-rose-300 dark:border-rose-700 animate-scaleIn transition-colors",
+  dialogTitle: "text-xl font-bold text-gray-900 dark:text-gray-100 mb-3",
+  dialogText: "text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed",
+  dialogList: "list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mb-4 space-y-1.5 pl-2",
   dialogActions: "flex gap-3",
   
   // Warning icon container
-  warningIconContainer: "w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0",
-  warningIcon: "w-6 h-6 text-rose-600",
+  warningIconContainer: "w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center flex-shrink-0 transition-colors",
+  warningIcon: "w-6 h-6 text-rose-600 dark:text-rose-400",
   warningHeader: "flex items-center gap-3 mb-4",
-  warningTitle: "text-xl font-bold text-rose-700",
+  warningTitle: "text-xl font-bold text-rose-700 dark:text-rose-400",
 } as const;
 
 export const Settings: React.FC = () => {

@@ -5,6 +5,7 @@ import { Sidebar } from './components/sidebar'
 import { Settings } from './components/Settings'
 import { Chat } from './services/api'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { LoginPage, RegisterPage, ProtectedRoute } from './components/auth'
 import { LoginDialog } from './components/auth/LoginDialog'
 import { RegisterDialog } from './components/auth/RegisterDialog'
@@ -78,7 +79,7 @@ function MainApp() {
   const isSettingsPage = location.pathname === '/settings'
 
   return (
-    <div className="h-screen bg-white overflow-hidden">
+    <div className="h-screen bg-white dark:bg-gray-900 overflow-hidden transition-colors">
       <div className="flex h-screen">
         {/* Sidebar */}
         <Sidebar 
@@ -143,9 +144,10 @@ function MainApp() {
  */
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
+    <ThemeProvider>
+      <Router>
+        <AuthProvider>
+          <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -171,6 +173,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </Router>
+    </ThemeProvider>
   )
 }
 

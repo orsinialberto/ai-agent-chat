@@ -60,7 +60,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
   if (isLoading) {
     return (
       <div className={`markdown-content ${className}`} style={{ fontFamily: 'system-ui, sans-serif' }}>
-        <div className="whitespace-pre-wrap text-sm text-gray-700">
+        <div className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-100">
           {content}
         </div>
       </div>
@@ -70,7 +70,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
   if (error || !ReactMarkdown) {
     return (
       <div className={`markdown-content ${className}`} style={{ fontFamily: 'system-ui, sans-serif' }}>
-        <div className="whitespace-pre-wrap text-sm text-gray-700">
+        <div className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-100">
           {content}
         </div>
       </div>
@@ -79,11 +79,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
 
   return (
     <div 
-      className={`markdown-content ${className}`}
+      className={`markdown-content ${className} text-gray-700 dark:text-gray-100`}
       style={{ 
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        lineHeight: '1.6',
-        color: '#374151'
+        lineHeight: '1.6'
       }}
     >
       <ReactMarkdown
@@ -100,15 +99,12 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
             if (inline) {
               return (
                 <code 
-                  className={inlineClassName}
+                  className={`${inlineClassName} dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600`}
                   style={{ 
-                    backgroundColor: '#f3f4f6', 
-                    color: '#1f2937',
                     padding: '0.05rem 0.3rem',
                     borderRadius: '0.25rem',
                     fontSize: '0.8125rem',
                     fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                    border: '1px solid #d1d5db',
                     verticalAlign: 'middle',
                     lineHeight: '1'
                   }}
@@ -166,15 +162,12 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
               .join(' ');
             return (
               <pre 
-                className="bg-gray-50 text-gray-800 p-1 rounded overflow-x-auto my-1 border border-gray-200"
+                className="bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-1 rounded overflow-x-auto my-1 border border-gray-200 dark:border-gray-700"
                 style={{
-                  backgroundColor: '#f9fafb',
-                  color: '#1f2937',
                   padding: '0.25rem 0.4rem',
                   borderRadius: '0.375rem',
                   overflowX: 'auto',
                   margin: '0.25rem 0',
-                  border: '1px solid #e5e7eb',
                   display: 'inline-block',
                   maxWidth: '100%',
                   width: 'fit-content',
@@ -182,11 +175,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
                 }}
               >
                 <code 
-                  className={blockClassName}
+                  className={`${blockClassName} text-gray-800 dark:text-gray-200`}
                   style={{
                     fontSize: '0.8125rem',
                     fontFamily: 'ui-monospace, SFMono-Regular, monospace',
-                    color: '#374151',
                     lineHeight: '1'
                   }}
                 >
@@ -200,7 +192,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           table({ children }: ChildrenProps) {
             return (
               <div 
-                className="overflow-x-auto my-4 rounded-lg border border-gray-200 shadow-sm"
+                className="overflow-x-auto my-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-gray-900/50"
                 style={{
                   overflowX: 'auto',
                   margin: '1rem 0',
@@ -225,7 +217,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           // Table head
           thead({ children }: ChildrenProps) {
             return (
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 {children}
               </thead>
             );
@@ -235,18 +227,16 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           th({ children }: ChildrenProps) {
             return (
               <th 
-                className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b-2 border-gray-200 border-r border-gray-200 last:border-r-0 bg-gray-50"
+                className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b-2 border-gray-200 dark:border-gray-700 border-r border-gray-200 dark:border-gray-700 last:border-r-0 bg-gray-50 dark:bg-gray-800"
                 style={{
                   padding: '0.75rem 1.5rem',
                   textAlign: 'left',
                   fontSize: '0.75rem',
                   fontWeight: '600',
-                  color: '#374151',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   borderBottom: '2px solid #e5e7eb',
-                  borderRight: '1px solid #e5e7eb',
-                  backgroundColor: '#f9fafb'
+                  borderRight: '1px solid #e5e7eb'
                 }}
               >
                 {children}
@@ -257,7 +247,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           // Table body
           tbody({ children }: ChildrenProps) {
             return (
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                 {children}
               </tbody>
             );
@@ -267,12 +257,11 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           td({ children }: ChildrenProps) {
             return (
               <td 
-                className="px-6 py-4 text-sm text-gray-700 border-r border-gray-100 last:border-r-0"
+                className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 border-r border-gray-100 dark:border-gray-700 last:border-r-0"
                 style={{
                   padding: '1rem 1.5rem',
                   whiteSpace: 'normal',
                   fontSize: '0.875rem',
-                  color: '#374151',
                   borderRight: '1px solid #f3f4f6'
                 }}
               >
@@ -285,7 +274,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           tr({ children }: ChildrenProps) {
             return (
               <tr 
-                className="hover:bg-gray-50 transition-colors"
+                className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 style={{
                   transition: 'background-color 0.15s ease-in-out'
                 }}
@@ -299,11 +288,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           h1({ children }: ChildrenProps) {
             return (
               <h1 
-                className="text-2xl font-bold text-gray-900 mt-6 mb-4 pb-2 border-b border-gray-200"
+                className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700"
                 style={{
                   fontSize: '1.5rem',
                   fontWeight: 'bold',
-                  color: '#111827',
                   marginTop: '1.5rem',
                   marginBottom: '1rem',
                   paddingBottom: '0.5rem',
@@ -318,11 +306,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           h2({ children }: ChildrenProps) {
             return (
               <h2 
-                className="text-xl font-semibold text-gray-800 mt-5 mb-3"
+                className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-5 mb-3"
                 style={{
                   fontSize: '1.25rem',
                   fontWeight: '600',
-                  color: '#1f2937',
                   marginTop: '1.25rem',
                   marginBottom: '0.75rem'
                 }}
@@ -335,11 +322,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           h3({ children }: ChildrenProps) {
             return (
               <h3 
-                className="text-lg font-semibold text-gray-800 mt-4 mb-2"
+                className="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-4 mb-2"
                 style={{
                   fontSize: '1.125rem',
                   fontWeight: '600',
-                  color: '#1f2937',
                   marginTop: '1rem',
                   marginBottom: '0.5rem'
                 }}
@@ -352,11 +338,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           h4({ children }: ChildrenProps) {
             return (
               <h4 
-                className="text-base font-semibold text-gray-800 mt-3 mb-2"
+                className="text-base font-semibold text-gray-800 dark:text-gray-100 mt-3 mb-2"
                 style={{
                   fontSize: '1rem',
                   fontWeight: '600',
-                  color: '#1f2937',
                   marginTop: '0.75rem',
                   marginBottom: '0.5rem'
                 }}
@@ -369,11 +354,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           h5({ children }: ChildrenProps) {
             return (
               <h5 
-                className="text-sm font-semibold text-gray-800 mt-3 mb-1"
+                className="text-sm font-semibold text-gray-800 dark:text-gray-100 mt-3 mb-1"
                 style={{
                   fontSize: '0.875rem',
                   fontWeight: '600',
-                  color: '#1f2937',
                   marginTop: '0.75rem',
                   marginBottom: '0.25rem'
                 }}
@@ -386,11 +370,10 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           h6({ children }: ChildrenProps) {
             return (
               <h6 
-                className="text-xs font-semibold text-gray-800 mt-3 mb-1"
+                className="text-xs font-semibold text-gray-800 dark:text-gray-100 mt-3 mb-1"
                 style={{
                   fontSize: '0.75rem',
                   fontWeight: '600',
-                  color: '#1f2937',
                   marginTop: '0.75rem',
                   marginBottom: '0.25rem'
                 }}
@@ -404,10 +387,9 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           p({ children }: ChildrenProps) {
             return (
               <p 
-                className="mb-3 text-gray-700"
+                className="mb-3 text-gray-700 dark:text-gray-100"
                 style={{
-                  marginBottom: '0.75rem',
-                  color: '#374151'
+                  marginBottom: '0.75rem'
                 }}
               >
                 {children}
@@ -451,9 +433,8 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           li({ children }: ChildrenProps) {
             return (
               <li 
-                className="text-gray-700"
+                className="text-gray-700 dark:text-gray-100"
                 style={{
-                  color: '#374151',
                   marginBottom: '0.25rem'
                 }}
               >
@@ -466,7 +447,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           blockquote({ children }: ChildrenProps) {
             return (
               <blockquote 
-                className="border-l-4 border-blue-500 pl-4 my-4 italic text-gray-600 bg-blue-50 py-2 rounded-r"
+                className="border-l-4 border-blue-500 dark:border-blue-400 pl-4 my-4 italic text-gray-600 dark:text-gray-200 bg-blue-50 dark:bg-blue-900/30 py-2 rounded-r"
                 style={{
                   borderLeft: '4px solid #3b82f6',
                   paddingLeft: '1rem',
@@ -488,7 +469,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
             return (
               <a 
                 href={href} 
-                className="text-blue-600 hover:text-blue-800 underline decoration-blue-300 hover:decoration-blue-500 transition-colors"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-blue-300 dark:decoration-blue-600 hover:decoration-blue-500 dark:hover:decoration-blue-400 transition-colors"
                 target="_blank" 
                 rel="noopener noreferrer"
                 style={{
@@ -506,7 +487,7 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           hr() {
             return (
               <hr 
-                className="my-4 border-gray-300"
+                className="my-4 border-gray-300 dark:border-gray-700"
                 style={{
                   margin: '1rem 0',
                   border: 'none',
@@ -520,10 +501,9 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           strong({ children }: ChildrenProps) {
             return (
               <strong 
-                className="font-semibold text-gray-900"
+                className="font-bold text-gray-900 dark:text-gray-100"
                 style={{
-                  fontWeight: '600',
-                  color: '#111827'
+                  fontWeight: '700'
                 }}
               >
                 {children}
@@ -535,10 +515,9 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           em({ children }: ChildrenProps) {
             return (
               <em 
-                className="italic text-gray-700"
+                className="italic text-gray-700 dark:text-gray-100"
                 style={{
-                  fontStyle: 'italic',
-                  color: '#374151'
+                  fontStyle: 'italic'
                 }}
               >
                 {children}
@@ -550,10 +529,9 @@ const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
           del({ children }: ChildrenProps) {
             return (
               <del 
-                className="line-through text-gray-500"
+                className="line-through text-gray-500 dark:text-gray-400"
                 style={{
-                  textDecoration: 'line-through',
-                  color: '#6b7280'
+                  textDecoration: 'line-through'
                 }}
               >
                 {children}

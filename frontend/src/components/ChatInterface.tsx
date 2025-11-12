@@ -33,10 +33,10 @@ const MessageItem: React.FC<MessageItemProps> = React.memo(({
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`break-words relative group ${
+        className={`break-words relative group transition-colors ${
           isUser
-            ? 'max-w-[70%] px-4 py-2 rounded-lg bg-sky-200/60 text-sky-800'
-            : 'w-full py-2 text-gray-700'
+            ? 'max-w-[70%] px-4 py-2 rounded-lg bg-sky-200/60 dark:bg-sky-800/60 text-sky-800 dark:text-sky-100'
+            : 'w-full py-2 text-gray-700 dark:text-gray-100'
         }`}
       >
         {message.role === 'assistant' ? (
@@ -50,7 +50,7 @@ const MessageItem: React.FC<MessageItemProps> = React.memo(({
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => onCopy(message)}
-                  className="p-1 text-gray-400 hover:text-gray-600 bg-white/80 hover:bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                   title={copiedMessageId === message.id ? (t('chat.copied') ?? 'Copied!') : (t('chat.copy_message') ?? 'Copy message')}
                   aria-label={t('chat.copy_message') ?? 'Copy message'}
                 >
@@ -85,7 +85,7 @@ const MessageItem: React.FC<MessageItemProps> = React.memo(({
                 </button>
                 <button
                   onClick={() => onDownload(message)}
-                  className="p-1 text-gray-400 hover:text-gray-600 bg-white/80 hover:bg-white rounded opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                   title={t('chat.download_message') ?? 'Download message'}
                   aria-label={t('chat.download_message') ?? 'Download message'}
                 >
@@ -105,7 +105,7 @@ const MessageItem: React.FC<MessageItemProps> = React.memo(({
                   </svg>
                 </button>
               </div>
-              <p className="text-xs opacity-70 text-right">
+              <p className="text-xs opacity-70 dark:opacity-60 text-right text-gray-600 dark:text-gray-400">
                 {new Date(message.createdAt).toLocaleTimeString()}
               </p>
             </div>
@@ -113,7 +113,7 @@ const MessageItem: React.FC<MessageItemProps> = React.memo(({
         ) : (
           <>
             <p className="text-sm">{message.content}</p>
-            <p className="text-xs opacity-70 mt-1 text-right">
+            <p className="text-xs opacity-70 dark:opacity-60 mt-1 text-right text-gray-600 dark:text-gray-400">
               {new Date(message.createdAt).toLocaleTimeString()}
             </p>
           </>
@@ -255,16 +255,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
   }, [])
 
   return (
-    <div className="w-full min-w-0 min-h-0 max-h-[calc(100vh-8rem)] flex flex-col bg-white/90 rounded-lg">
+    <div className="w-full min-w-0 min-h-0 max-h-[calc(100vh-8rem)] flex flex-col bg-white/90 dark:bg-gray-900 rounded-lg transition-colors">
       
       {/* Error Display */}
       {error && (
-        <div className="mb-4 p-3 bg-rose-100/60 border-l-4 border-rose-300 text-rose-700 rounded-r-lg mx-6 mt-6">
+        <div className="mb-4 p-3 bg-rose-100/60 dark:bg-rose-900/30 border-l-4 border-rose-300 dark:border-rose-600 text-rose-700 dark:text-rose-300 rounded-r-lg mx-6 mt-6 transition-colors">
           <div className="flex justify-between items-center">
             <span>{error}</span>
             <button 
               onClick={clearError}
-              className="text-rose-500 hover:text-rose-700"
+              className="text-rose-500 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition-colors"
             >
               ×
             </button>
@@ -275,7 +275,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
       {/* Messages Area */}
       {messages.length === 0 ? (
         <div className="flex-1 flex flex-col justify-center items-center px-6">
-          <div className="text-center text-gray-600 py-4 mb-8">
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4 mb-8 transition-colors">
             <p className="text-4xl font-light tracking-wide">All set when you are!</p>
           </div>
         </div>
@@ -295,8 +295,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
           {/* Loading indicator */}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-center space-x-2 text-gray-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 transition-colors">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400 dark:border-gray-500"></div>
                 <span className="text-sm">{t('chat.thinking')}</span>
               </div>
             </div>
@@ -349,7 +349,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
             <Listbox value={selectedModel} onChange={setSelectedModel}>
               <div className="relative text-xs">
                 <Listbox.Button
-                  className="px-2 py-1 text-gray-600 hover:text-gray-800 bg-transparent hover:bg-gray-50/30 focus:bg-white border-none outline-none rounded shadow-none inline-flex items-center gap-1"
+                  className="px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-transparent hover:bg-gray-50/30 dark:hover:bg-gray-700/30 focus:bg-white dark:focus:bg-gray-700 border-none outline-none rounded shadow-none inline-flex items-center gap-1 transition-colors"
                   aria-label={t('chat.model') ?? 'Model'}
                 >
                   {selectedModel.replace('gemini-2.5-', 'gemini 2.5 ')}
@@ -370,15 +370,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
                   leaveTo="opacity-0"
                 >
                   <Listbox.Options
-                    className="absolute mt-1 max-h-60 w-max min-w-[10rem] overflow-auto rounded-md bg-white py-1 text-xs shadow-lg ring-1 ring-black/5 focus:outline-none z-[60]"
+                    className="absolute mt-1 max-h-60 w-max min-w-[10rem] overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-xs shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none z-[60] transition-colors"
                   >
                     {availableModels.map((model) => (
                       <Listbox.Option
                         key={model}
                         value={model}
                         className={({ active, selected }: { active: boolean; selected: boolean }) => `
-                          cursor-pointer select-none px-3 py-1.5 rounded
-                          ${active ? 'bg-sky-100/50 text-sky-800' : 'text-gray-700'}
+                          cursor-pointer select-none px-3 py-1.5 rounded transition-colors
+                          ${active ? 'bg-sky-100/50 dark:bg-sky-800/50 text-sky-800 dark:text-sky-200' : 'text-gray-700 dark:text-gray-300'}
                           ${selected ? 'font-medium' : 'font-normal'}
                         `}
                       >
@@ -393,7 +393,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}
-              className="absolute right-2 bottom-2 p-2 text-gray-600 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="absolute right-2 bottom-2 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               type="button"
               aria-label={t('chat.send') ?? 'Invia'}
               title={t('chat.send') ?? 'Invia'}

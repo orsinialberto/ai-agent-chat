@@ -70,8 +70,8 @@ export const ChatItem: React.FC<ChatItemProps> = ({
         className={`
           group relative pl-6 pr-6 py-2 rounded-lg cursor-pointer transition-colors
           ${isActive 
-            ? 'bg-gray-700 border border-gray-600' 
-            : 'hover:bg-gray-700/50'
+            ? 'bg-gray-700 dark:bg-gray-700 border border-gray-600 dark:border-gray-600' 
+            : 'hover:bg-gray-700/50 dark:hover:bg-gray-700/50'
           }
         `}
         onClick={onSelect}
@@ -88,7 +88,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={handleTitleSubmit}
-              className="w-full text-sm font-medium bg-transparent border-none outline-none text-gray-100"
+              className="w-full text-sm font-medium bg-transparent border-none outline-none text-gray-100 dark:text-gray-100"
               autoFocus
             />
           </form>
@@ -97,19 +97,19 @@ export const ChatItem: React.FC<ChatItemProps> = ({
             {/* Title and timestamp row */}
             <div className="flex items-center justify-between mb-1">
               <h3 
-                className={`text-sm font-medium truncate flex-1 ${isActive ? 'text-gray-100' : 'text-gray-200'}`}
+                className={`text-sm font-medium truncate flex-1 ${isActive ? 'text-gray-100 dark:text-gray-100' : 'text-gray-200 dark:text-gray-200'}`}
                 title="Double-click to rename"
               >
                 {chat.title || 'Untitled Chat'}
               </h3>
-              <span className="text-xs text-gray-400 ml-2 mr-2 flex-shrink-0">
+              <span className="text-xs text-gray-400 dark:text-gray-400 ml-2 mr-2 flex-shrink-0">
                 {formatDate(chat.updatedAt)}
               </span>
             </div>
             
             {/* Last message and action buttons row */}
             <div className="flex items-center justify-between">
-              <p className={`text-xs truncate flex-1 ${isActive ? 'text-gray-300' : 'text-gray-400'}`}>
+              <p className={`text-xs truncate flex-1 ${isActive ? 'text-gray-300 dark:text-gray-300' : 'text-gray-400 dark:text-gray-400'}`}>
                 {getLastMessage()}
               </p>
               
@@ -120,7 +120,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
                     e.stopPropagation();
                     setShowDeleteModal(true);
                   }}
-                  className="p-1 rounded hover:bg-gray-600 text-gray-400 hover:text-rose-400"
+                  className="p-1 rounded hover:bg-gray-600 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-400 hover:text-rose-400 dark:hover:text-rose-400"
                   title="Delete chat"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
