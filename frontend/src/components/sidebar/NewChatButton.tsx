@@ -15,7 +15,7 @@ export const NewChatButton: React.FC<NewChatButtonProps> = ({
       disabled={disabled}
       className="
         w-full flex items-center justify-start pl-6 pr-6 pt-4 pb-2 
-        text-base text-gray-100 hover:text-white hover:bg-gray-700 
+        text-base text-gray-700 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 
         rounded-lg transition-all duration-200
         disabled:opacity-50 disabled:cursor-not-allowed
       "
