@@ -14,7 +14,7 @@ export class AnonymousChatService {
    */
   static saveChats(chats: Chat[]): void {
     try {
-      const serialized = JSON.stringify(chats, (key, value) => {
+      const serialized = JSON.stringify(chats, (_key, value) => {
         // Convert Date objects to ISO strings
         if (value instanceof Date) {
           return value.toISOString();

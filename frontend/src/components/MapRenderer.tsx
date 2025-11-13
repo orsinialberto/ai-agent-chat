@@ -57,7 +57,7 @@ const MapBounds: React.FC<{ markers: MapMarker[] }> = ({ markers }) => {
 };
 
 const MapRendererComponent: React.FC<MapRendererProps> = ({ mapData }) => {
-  const { title, center, zoom = 10, markers } = mapData;
+  const { center, zoom = 10, markers } = mapData;
 
   // Validate data
   if (!center || !Array.isArray(center) || center.length !== 2) {

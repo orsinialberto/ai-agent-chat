@@ -39,7 +39,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     chats, 
     isLoading, 
     error, 
-    selectChat, 
     updateChatTitle, 
     deleteChat, 
     createNewChat,
