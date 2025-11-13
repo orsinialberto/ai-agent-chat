@@ -4,7 +4,7 @@ interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'fullscreen';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'fullscreen';
   showCloseButton?: boolean;
 }
 
@@ -35,15 +35,21 @@ export const Dialog: React.FC<DialogProps> = ({
 
   if (!isOpen) return null;
 
-  const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    fullscreen: 'max-w-full w-full h-full'
+  const getSizeClass = (size?: string): string => {
+    switch (size) {
+      case 'sm': return 'max-w-sm';
+      case 'md': return 'max-w-md';
+      case 'lg': return 'max-w-lg';
+      case 'xl': return 'max-w-xl';
+      case '2xl': return 'max-w-2xl';
+      case '3xl': return 'max-w-3xl';
+      case 'fullscreen': return 'max-w-full w-full h-full';
+      default: return 'max-w-md';
+    }
   };
 
   const isFullscreen = size === 'fullscreen';
+  const sizeClass = getSizeClass(size);
 
   return (
     <div className={`fixed inset-0 z-50 ${isFullscreen ? '' : 'flex items-center justify-center p-4'}`}>
@@ -54,7 +60,7 @@ export const Dialog: React.FC<DialogProps> = ({
       />
       
       {/* Dialog */}
-      <div className={`relative ${isFullscreen ? 'w-full h-full flex items-center justify-center p-4' : sizeClasses[size]} ${isFullscreen ? '' : 'max-h-[90vh] overflow-y-auto'} bg-transparent`}>
+      <div className={`relative ${isFullscreen ? 'w-full h-full flex items-center justify-center p-4' : `${sizeClass} w-full`} ${isFullscreen ? '' : 'max-h-[90vh] overflow-y-auto'} bg-transparent`}>
         {showCloseButton && (
           <button
             onClick={onClose}
