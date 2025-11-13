@@ -104,14 +104,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* Sidebar */}
-      <div className={`
-        fixed top-0 left-0 h-screen bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50
-        transform transition-all duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:z-auto
-        ${isOpen ? 'w-72' : 'w-14'}
-        overflow-hidden
-      `}>
+      <div 
+        data-sidebar
+        className={`
+          fixed top-0 left-0 h-screen bg-gray-100 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50
+          transform transition-all duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 lg:static lg:z-auto
+          ${isOpen ? 'w-72' : 'w-14'}
+          overflow-hidden
+        `}>
         <div className="flex flex-col h-full relative group/sidebar">
           {isOpen ? (
             <>
