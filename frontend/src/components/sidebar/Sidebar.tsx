@@ -110,12 +110,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto
         ${isOpen ? 'w-72' : 'w-14'}
+        overflow-hidden
       `}>
         <div className="flex flex-col h-full relative group/sidebar">
           {isOpen ? (
             <>
               {/* Header con toggle allineato */}
-              <div className="flex items-end justify-between pl-6 pr-4 pt-4 pb-6">
+              <div className={`flex items-end justify-between pl-6 pr-4 pt-4 pb-6 transition-opacity duration-300 delay-200 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
                 <button
                   onClick={() => {
                     if (onHomeClick) {
@@ -135,13 +136,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     alt="AI" 
                     className="w-10 h-10 mb-1.5 group-hover/logo:scale-105 transition-transform"
                   />
-                  <span className="text-2xl font-light text-gray-800 dark:text-gray-100 tracking-wider">AI Agent</span>
+                  <span className="text-2xl font-light text-gray-800 dark:text-gray-100 tracking-wider whitespace-nowrap">AI Agent</span>
                 </button>
                 
                 {/* Toggle Button - visibile solo al hover quando aperta */}
                 <button
                   onClick={onToggle}
-                  className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white transition-all duration-200 opacity-0 group-hover/sidebar:opacity-100 mb-0.5"
+                  className="hidden group-hover/sidebar:block p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white transition-all duration-200 mb-0.5"
                   title="Close sidebar"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {/* New Chat Button */}
-              <div className="pb-4">
+              <div className={`pb-4 transition-opacity duration-300 delay-200 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
                 <NewChatButton onClick={handleNewChat} />
               </div>
             </>
@@ -209,7 +210,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isOpen && (
             <>
               {/* Chats Title with Toggle */}
-              <div className="pl-6 pr-6 py-2 flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-colors" onClick={() => setShowChatList(!showChatList)}>
+              <div className={`pl-6 pr-6 py-2 flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-all duration-300 delay-200 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`} onClick={() => setShowChatList(!showChatList)}>
                 <h1 className="text-base font-medium text-gray-700 dark:text-gray-300 tracking-wide">Chats</h1>
                 <button
                   className="ml-1 p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
@@ -243,7 +244,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
 
               {/* User info and login/logout at bottom */}
-              <div className="mt-auto border-t border-gray-200 dark:border-gray-700 p-4">
+              <div className={`mt-auto border-t border-gray-200 dark:border-gray-700 p-4 transition-opacity duration-300 delay-200 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
                 {isAnonymous ? (
                   // Anonymous user - show Login icon button
                   <div className="flex items-center justify-between">
