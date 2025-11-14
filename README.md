@@ -59,6 +59,11 @@ A modern chat application with AI agents that supports multiple LLM providers an
    ```
    App runs on http://localhost:5173
 
+   Or run both with prefixed logs from the project root:
+   ```bash
+   ./start.sh
+   ```
+
 ## Configuration
 
 ### Environment Variables
