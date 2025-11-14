@@ -137,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isOpen ? (
             <>
               {/* Header & quick actions */}
-              <div className="px-6 pt-6 pb-4 border-b border-gray-200 dark:border-gray-700 space-y-4">
+              <div className="pl-4 pr-6 pt-6 pb-4 border-b border-gray-200 dark:border-gray-700 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <button
                     onClick={() => {
@@ -179,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
 
-                <div className="-mx-6 h-px bg-gray-200 dark:bg-gray-700/70" />
+                <div className="-ml-4 -mr-6 h-px bg-gray-200 dark:bg-gray-700/70" />
 
                 <div className="space-y-1.5">
                   <button
@@ -219,7 +219,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {/* Chats Title + search */}
-              <div className="px-6 pt-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="pl-4 pr-6 pt-4 pb-4 border-b border-gray-200 dark:border-gray-700">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-400 dark:text-gray-500">Chats</p>
                   <h1 className="text-lg font-medium text-gray-800 dark:text-gray-100">Inbox</h1>
@@ -323,7 +323,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {showChatList ? (
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                   {showEmptyState ? (
-                    <div className="px-6 py-8 text-center text-gray-400 dark:text-gray-500">
+                    <div className="pl-4 pr-6 py-8 text-center text-gray-400 dark:text-gray-500">
                       <p className="text-sm">{emptyStateLabel}</p>
                       {!hasSearch && (
                         <p className="text-xs mt-1">Create your first chat to get started</p>
@@ -349,7 +349,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
 
               {/* User info and login/logout at bottom */}
-              <div className="mt-auto border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+              <div className="mt-auto border-t border-gray-200 dark:border-gray-700 pl-4 pr-6 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-200">

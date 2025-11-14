@@ -68,7 +68,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
     <>
       <div
         className={`
-          group relative pl-6 pr-6 py-2 rounded-lg cursor-pointer transition-colors
+          group relative pl-4 pr-6 py-2 rounded-lg cursor-pointer transition-colors
           ${isActive 
             ? 'bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600' 
             : 'hover:bg-gray-200/50 dark:hover:bg-gray-700/50'

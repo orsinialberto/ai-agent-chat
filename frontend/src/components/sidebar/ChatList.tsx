@@ -25,7 +25,7 @@ export const ChatList: React.FC<ChatListProps> = ({
 }) => {
   if (error) {
     return (
-      <div className="pl-6 pr-6 py-4">
+      <div className="pl-4 pr-6 py-4">
         <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded">
           <div className="flex justify-between items-center">
             <span className="text-sm">{error}</span>
@@ -43,7 +43,7 @@ export const ChatList: React.FC<ChatListProps> = ({
 
   if (isLoading) {
     return (
-      <div className="pl-6 pr-6 py-4">
+      <div className="pl-4 pr-6 py-4">
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
           <span className="ml-2 text-gray-400">Loading chats...</span>
@@ -54,7 +54,7 @@ export const ChatList: React.FC<ChatListProps> = ({
 
   if (chats.length === 0) {
     return (
-      <div className="pl-6 pr-6 py-4">
+      <div className="pl-4 pr-6 py-4">
         <div className="text-center text-gray-400 py-8">
           <p className="text-sm">No chats yet</p>
           <p className="text-xs mt-1">Create your first chat to get started</p>

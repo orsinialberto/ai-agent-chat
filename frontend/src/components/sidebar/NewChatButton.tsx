@@ -16,7 +16,7 @@ export const NewChatButton: React.FC<NewChatButtonProps> = ({
   const baseClasses =
     variant === 'pill'
       ? 'inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 px-4 py-2 text-sm font-medium shadow-sm hover:shadow transition-colors duration-200'
-      : 'w-full flex items-center justify-start pl-6 pr-6 pt-4 pb-2 text-base text-gray-700 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-all duration-200';
+      : 'w-full flex items-center justify-start pl-4 pr-6 pt-4 pb-2 text-base text-gray-700 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-all duration-200';
 
   return (
     <button
