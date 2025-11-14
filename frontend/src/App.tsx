@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { ChatInterface } from './components/ChatInterface'
 import { Sidebar } from './components/sidebar'
 import { Settings } from './components/Settings'
@@ -107,6 +107,11 @@ function MainApp() {
   }
 
   const isSettingsPage = location.pathname === '/settings'
+  const isChatPage = location.pathname === '/'
+
+  if (!isChatPage && !isSettingsPage) {
+    return <Navigate to="/" replace />
+  }
 
   return (
     <div className="h-screen bg-white dark:bg-gray-900 overflow-hidden transition-colors">
@@ -129,7 +134,9 @@ function MainApp() {
         <main className="flex-1 overflow-hidden flex justify-center items-center py-6">
           <div className="w-full max-w-4xl px-4">
             {isSettingsPage ? (
-              <Settings />
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
             ) : (
               <ChatInterface 
                 key={resetKey}
@@ -179,31 +186,15 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          {/* Chat route - accessible to both anonymous and authenticated users */}
-          <Route
-            path="/"
-            element={<MainApp />}
-          />
-          
-          {/* Settings route - protected (requires authentication) */}
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <MainApp />
-              </ProtectedRoute>
-            }
-          />
-          
-          {/* Redirect any unknown routes to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </Router>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/* Main application (chat + settings) */}
+            <Route path="/*" element={<MainApp />} />
+          </Routes>
+        </AuthProvider>
+      </Router>
     </ThemeProvider>
   )
 }
