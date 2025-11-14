@@ -102,7 +102,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               >
                 {chat.title || 'Untitled Chat'}
               </h3>
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 mr-2 flex-shrink-0">
+              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 flex-shrink-0 -mr-4">
                 {formatDate(chat.updatedAt)}
               </span>
             </div>
@@ -114,7 +114,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
               </p>
               
               {/* Action buttons aligned with message preview */}
-              <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1 ml-2">
+              <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1 ml-2 -mr-4">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

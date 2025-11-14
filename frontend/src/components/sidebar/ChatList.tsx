@@ -64,7 +64,7 @@ export const ChatList: React.FC<ChatListProps> = ({
   }
 
   return (
-    <div className="px-3">
+    <div className="px-0">
       <div className="space-y-1">
         {chats.map((chat) => (
           <ChatItem
