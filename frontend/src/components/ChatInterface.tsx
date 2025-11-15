@@ -345,46 +345,63 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
       )}
         
         {/* Input Area */}
-        <div
-          className="px-6 mt-1"
-        >
-          <div
-            className="aic-input-container"
-            style={{
-              // compute pill factor from height (min ~40px, max ~40vh)
-              // clamp to [0,1]
-              // @ts-ignore: CSS var inline
-              '--pillFactor': (() => {
-                const minH = 40
-                const maxH = typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.4) : 320
-                const h = Math.max(minH, Math.min(textAreaHeight, maxH))
-                const ratio = (maxH - h) / (maxH - minH)
-                return Math.max(0, Math.min(1, Number.isFinite(ratio) ? ratio : 1))
-              })()
-            }}
-          >
-          <label htmlFor="chat-input" className="sr-only">
-            {t('chat.type_message')}
-          </label>
+        <div className="px-6 mt-1">
           <div className="relative">
-            <TextArea
-              id="chat-input"
-              ariaLabelledBy={undefined}
-              ariaLabel={t('chat.type_message')}
-              value={inputValue}
-              onChange={setInputValue}
-              onKeyDown={handleKeyDown}
-              placeholder={t('chat.type_message')}
-              disabled={isLoading}
-              minRows={1}
-              maxHeightVh={40}
-              onHeightChange={setTextAreaHeight}
-              className="aic-textarea--withSend"
-            />
-          {/* Model selector - bottom-left, accessible Listbox */}
-          <div className="absolute left-3.5 bottom-3.5">
+            <div
+              className="aic-input-container"
+              style={{
+                // compute pill factor from height (min ~40px, max ~40vh)
+                // clamp to [0,1]
+                // @ts-ignore: CSS var inline
+                '--pillFactor': (() => {
+                  const minH = 40
+                  const maxH = typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.4) : 320
+                  const h = Math.max(minH, Math.min(textAreaHeight, maxH))
+                  const ratio = (maxH - h) / (maxH - minH)
+                  return Math.max(0, Math.min(1, Number.isFinite(ratio) ? ratio : 1))
+                })()
+              }}
+            >
+              <label htmlFor="chat-input" className="sr-only">
+                {t('chat.type_message')}
+              </label>
+              <div className="relative">
+                <TextArea
+                  id="chat-input"
+                  ariaLabelledBy={undefined}
+                  ariaLabel={t('chat.type_message')}
+                  value={inputValue}
+                  onChange={setInputValue}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t('chat.type_message')}
+                  disabled={isLoading}
+                  minRows={1}
+                  maxHeightVh={40}
+                  onHeightChange={setTextAreaHeight}
+                  className="aic-textarea--withSend"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isLoading}
+                  className="absolute right-2 bottom-2 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  type="button"
+                  aria-label={t('chat.send') ?? 'Invia'}
+                  title={t('chat.send') ?? 'Invia'}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {/* Model selector overlay - positioned outside container to avoid clipping */}
             <Listbox value={selectedModel} onChange={setSelectedModel}>
-              <div className="relative text-xs">
+              <div className="absolute left-3.5 bottom-3.5 text-xs">
                 <Listbox.Button
                   className="px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-transparent hover:bg-gray-50/30 dark:hover:bg-gray-700/30 focus:bg-white dark:focus:bg-gray-700 border-none outline-none rounded shadow-none inline-flex items-center gap-1 transition-colors"
                   aria-label={t('chat.model') ?? 'Model'}
@@ -407,7 +424,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
                   leaveTo="opacity-0"
                 >
                   <Listbox.Options
-                    className="absolute mt-1 max-h-60 w-max min-w-[10rem] overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-xs shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none z-[60] transition-colors"
+                    className="absolute left-0 top-full mt-1 max-h-60 w-max min-w-[10rem] overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-xs shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none z-[60] transition-colors"
                   >
                     {availableModels.map((model) => (
                       <Listbox.Option
@@ -426,25 +443,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ currentChatId, onC
                 </Transition>
               </div>
             </Listbox>
-          </div>
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isLoading}
-              className="absolute right-2 bottom-2 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              type="button"
-              aria-label={t('chat.send') ?? 'Invia'}
-              title={t('chat.send') ?? 'Invia'}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-6 h-6"
-              >
-                <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-              </svg>
-            </button>
-          </div>
           </div>
         </div>
       </div>
